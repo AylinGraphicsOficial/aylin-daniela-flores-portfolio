@@ -1,0 +1,249 @@
+import React, { useState, useEffect } from 'react';
+import { Mail, Clock, Send, Check, Copy, Sparkles, MessageSquare, ArrowUpRight } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { Language } from '../types';
+import { translations } from '../data/portfolioData';
+import { playClickSound, playSuccessSound } from '../utils/audio';
+
+interface ContactSectionProps {
+  lang: Language;
+  onOpenProjectPlanner: () => void;
+}
+
+export const ContactSection: React.FC<ContactSectionProps> = ({
+  lang,
+  onOpenProjectPlanner,
+}) => {
+  const t = translations[lang];
+
+  const [formName, setFormName] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formService, setFormService] = useState('3D Modeling & Visualization');
+  const [formMessage, setFormMessage] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
+  const [isSent, setIsSent] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
+
+  // Live El Salvador Time Clock (UTC-6)
+  useEffect(() => {
+    const updateTime = () => {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: 'America/El_Salvador',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      };
+      setCurrentTime(new Intl.DateTimeFormat('en-US', options).format(new Date()));
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCopyEmail = () => {
+    playClickSound();
+    navigator.clipboard.writeText('aylin.flores.design@gmail.com');
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 3000);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    playSuccessSound();
+    setIsSent(true);
+
+    try {
+      confetti({
+        particleCount: 70,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#00E5FF', '#0052FF', '#BDF4FF']
+      });
+    } catch {
+      // Ignored
+    }
+  };
+
+  return (
+    <section id="contact" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
+      {/* Glow */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#00E5FF]/10 rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {/* Left Column: Direct Info & Time Clock */}
+        <div className="lg:col-span-5 space-y-8">
+          <div>
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00E5FF] animate-ping" />
+              <span className="text-xs font-bold font-mono tracking-widest text-[#00E5FF] uppercase">
+                GET IN TOUCH
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-none mb-4">
+              {t.contact.title}
+            </h2>
+            <p className="text-base text-gray-300 leading-relaxed max-w-md">
+              {t.contact.subtitle}
+            </p>
+          </div>
+
+          {/* Quick Copy Email Card */}
+          <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-mono text-[#00E5FF] uppercase font-bold">
+                {t.contact.directEmail}
+              </span>
+              <button
+                onClick={handleCopyEmail}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-mono text-gray-200 transition-colors"
+              >
+                {isCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-[#00E5FF]" />
+                    <span className="text-[#00E5FF] font-bold">COPIED!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>COPY</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-lg md:text-xl font-bold font-mono text-white select-all">
+              aylin.flores.design@gmail.com
+            </p>
+          </div>
+
+          {/* Live El Salvador Clock */}
+          <div className="glass-panel p-6 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-xs font-mono text-gray-400 block">
+                {t.contact.localTime}
+              </span>
+              <span className="text-2xl font-black font-mono text-white tracking-wider">
+                {currentTime || '02:30:00 PM'}
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-[#0052FF]/20 border border-[#0052FF]/50 flex items-center justify-center text-[#00E5FF]">
+              <Clock className="w-6 h-6 animate-pulse" />
+            </div>
+          </div>
+
+          {/* Start Project Banner */}
+          <div className="glass-panel p-6 rounded-2xl border border-[#00E5FF]/30 bg-gradient-to-br from-[#0052FF]/20 to-transparent flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+              <h4 className="text-sm font-bold text-white mb-1">Looking for a tailored quote?</h4>
+              <p className="text-xs text-gray-300">Use the step-by-step interactive project calculator.</p>
+            </div>
+            <button
+              onClick={() => {
+                playClickSound();
+                onOpenProjectPlanner();
+              }}
+              className="px-5 py-2.5 bg-[#00E5FF] text-[#0A0F14] font-bold text-xs rounded-xl shadow-md hover:bg-[#BDF4FF] transition-all whitespace-nowrap"
+            >
+              LAUNCH ESTIMATOR
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column: Interactive Contact Form */}
+        <div className="lg:col-span-7 glass-panel p-6 md:p-10 rounded-2xl border border-white/10 relative">
+          {isSent ? (
+            <div className="py-16 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-[#00E5FF]/20 border border-[#00E5FF] mx-auto flex items-center justify-center text-[#00E5FF] shadow-[0_0_20px_#00E5FF]">
+                <Check className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-white uppercase">
+                Message Received!
+              </h3>
+              <p className="text-sm text-gray-300 max-w-md mx-auto">
+                Thank you, {formName || 'friend'}. I have received your message and will respond within 24 hours.
+              </p>
+              <button
+                onClick={() => setIsSent(false)}
+                className="mt-4 px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-mono font-bold"
+              >
+                SEND ANOTHER MESSAGE
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-mono font-bold text-gray-300 block">
+                    NAME *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={t.contact.namePlaceholder}
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF] transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-mono font-bold text-gray-300 block">
+                    EMAIL *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder={t.contact.emailPlaceholder}
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono font-bold text-gray-300 block">
+                  {t.contact.serviceInterest}
+                </label>
+                <select
+                  value={formService}
+                  onChange={(e) => setFormService(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-[#0C0E10] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer"
+                >
+                  <option value="3D Modeling & Visualization">3D Modeling & Visualization</option>
+                  <option value="Branding & Corporate Identity">Branding & Corporate Identity</option>
+                  <option value="Motion Graphics & Video">Motion Graphics & Video</option>
+                  <option value="Digital Illustration & Art">Digital Illustration & Art</option>
+                  <option value="Full Creative Direction">Full Creative Direction & Consultation</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono font-bold text-gray-300 block">
+                  PROJECT MESSAGE *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder={t.contact.messagePlaceholder}
+                  value={formMessage}
+                  onChange={(e) => setFormMessage(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF] transition-colors"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-4 bg-[#00E5FF] hover:bg-[#BDF4FF] text-[#0A0F14] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.4)] hover:scale-101 active:scale-99 transition-all flex items-center justify-center space-x-2"
+              >
+                <Send className="w-4 h-4" />
+                <span>{t.contact.sendBtn}</span>
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};

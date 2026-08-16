@@ -1,0 +1,6 @@
+{
+  "name": "Aylin Daniela Flores - Studio Kinetic Portfolio",
+  "description": "Fluid, versatile interactive portfolio for Aylin Daniela Flores, Senior Graphic Designer and 3D Modeler featuring kinetic WebGL shaders, 3D interactive viewer, and project builder.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
