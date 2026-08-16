@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowDown, Sparkles, FileText, MoveRight, CheckCircle2 } from 'lucide-react';
+import { ArrowDown, Sparkles, FileText, MoveRight } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
@@ -43,13 +43,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="lg:col-span-8 flex flex-col justify-center">
           {/* Status Badge */}
           <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 w-fit mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-ping" />
-            <span className="text-[11px] font-bold font-mono tracking-widest text-[#00E5FF] uppercase">
+            <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-ping" />
+            <span className="text-[11px] font-bold font-mono tracking-widest text-[#76FF03] uppercase">
               {t.hero.badgeAvailable}
             </span>
           </div>
 
-          <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#00E5FF] mb-2 uppercase">
+          <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase">
             {t.hero.portfolioOf}
           </h2>
 
@@ -57,11 +57,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[96px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6">
             <span>{t.hero.titleLine1}</span>
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">
               {t.hero.titleLine2}
             </span>
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#0052FF]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#76FF03] to-[#38B000]">
               {t.hero.titleLine3}
             </span>
           </h1>
@@ -75,7 +75,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <a
               href="#work"
               onClick={playClickSound}
-              className="px-8 py-4 bg-[#BDF4FF] hover:bg-[#00E5FF] text-[#0A0F14] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(189,244,255,0.4)] hover:shadow-[0_0_35px_rgba(0,229,255,0.6)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center space-x-2"
+              className="px-8 py-4 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:shadow-[0_0_35px_rgba(118,255,3,0.6)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center space-x-2"
             >
               <span>{t.hero.viewProjects}</span>
               <MoveRight className="w-4 h-4" />
@@ -86,9 +86,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 playClickSound();
                 onOpenCVModal();
               }}
-              className="px-6 py-4 border-2 border-white/20 hover:border-[#00E5FF] text-white hover:text-[#00E5FF] font-bold text-xs md:text-sm tracking-wider rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center space-x-2"
+              className="px-6 py-4 border-2 border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] font-bold text-xs md:text-sm tracking-wider rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center space-x-2"
             >
-              <FileText className="w-4 h-4 text-[#00E5FF]" />
+              <FileText className="w-4 h-4 text-[#76FF03]" />
               <span>{t.hero.downloadCv}</span>
             </button>
 
@@ -97,7 +97,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 playClickSound();
                 onOpenProjectPlanner();
               }}
-              className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-[#0052FF]/40 text-[#00E5FF] font-bold text-xs md:text-sm tracking-wider rounded-xl transition-all duration-300 flex items-center space-x-2"
+              className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-[#76FF03]/40 text-[#76FF03] font-bold text-xs md:text-sm tracking-wider rounded-xl transition-all duration-300 flex items-center space-x-2"
             >
               <Sparkles className="w-4 h-4" />
               <span>{t.hero.startProjectBtn}</span>
@@ -111,7 +111,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="text-[11px] text-gray-400 font-medium">Professional Experience</div>
             </div>
             <div>
-              <div className="text-xl md:text-2xl font-black text-[#00E5FF] font-mono">120+</div>
+              <div className="text-xl md:text-2xl font-black text-[#76FF03] font-mono">120+</div>
               <div className="text-[11px] text-gray-400 font-medium">3D Assets Rendered</div>
             </div>
             <div>
@@ -124,7 +124,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Right Column: Floating Interactive 3D Render Artworks */}
         <div className="lg:col-span-4 relative flex justify-center items-center min-h-[380px] lg:min-h-[480px]">
           {/* Subtle Ambient Radial Glow */}
-          <div className="absolute w-72 h-72 bg-[#0052FF]/30 rounded-full blur-[100px] pointer-events-none animate-pulse-glow" />
+          <div className="absolute w-72 h-72 bg-[#76FF03]/20 rounded-full blur-[100px] pointer-events-none animate-pulse-glow" />
 
           {/* Primary Floating 3D Artwork Card */}
           <div
@@ -133,18 +133,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               transform: `perspective(1000px) rotateY(${tilt.x}deg) rotateX(${-tilt.y}deg)`,
             }}
           >
-            <div className="relative overflow-hidden rounded-xl bg-[#0C0E10] border border-white/10 group">
+            <div className="relative overflow-hidden rounded-xl bg-[#081008] border border-white/10 group">
               <img
                 src="https://lh3.googleusercontent.com/aida/AP1WRLsYcVyHRuT6OeFxHxRfNMHceGT-VD8VVa5gOodzQYkO0ElzN1TTEIZj1hFgNMXqKsuRCCTwVt-gmKgpHwGU1wF49unMKF-ztGc1gu-iT4akzgUS1cBvRndCZQAg8Sjyg1mK1D4Nmp4BIyoLtkgzMrMp_ncGeTfBz1PS0SQNU9zosVp46Gc4NO02BqSfTLRuJnRvMKk2rwcNJllOxGUvn7qKa2teBmwIOspgg3K7WQlQpU-z1t5E0sVfkhs"
                 alt="3D Hands Visualization"
                 className="w-full h-auto object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute bottom-3 left-3 right-3 bg-[#0A0F14]/80 backdrop-blur-md p-3 rounded-lg border border-white/10 flex justify-between items-center">
+              <div className="absolute bottom-3 left-3 right-3 bg-[#050B05]/80 backdrop-blur-md p-3 rounded-lg border border-white/10 flex justify-between items-center">
                 <div>
-                  <span className="text-[10px] font-mono text-[#00E5FF] block">STUDY NO. 01</span>
+                  <span className="text-[10px] font-mono text-[#76FF03] block">STUDY NO. 01</span>
                   <span className="text-xs font-bold text-white">Kinetic Touch Anatomy</span>
                 </div>
-                <span className="px-2 py-0.5 bg-[#0052FF]/40 border border-[#0052FF] text-[10px] text-white font-mono rounded">
+                <span className="px-2 py-0.5 bg-[#38B000]/40 border border-[#76FF03] text-[10px] text-white font-mono rounded">
                   ZBRUSH / C4D
                 </span>
               </div>
@@ -158,15 +158,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               transform: `perspective(1000px) rotateY(${tilt.x * 1.5}deg) rotateX(${-tilt.y * 1.5}deg)`,
             }}
           >
-            <div className="relative overflow-hidden rounded-lg bg-[#0C0E10] border border-white/10">
+            <div className="relative overflow-hidden rounded-lg bg-[#081008] border border-white/10">
               <img
                 src="https://lh3.googleusercontent.com/aida/AP1WRLuelUNvB0s29U6Uku7DycUTPiOmYcBUQerJmAAMs3miyC3tX1s57f9KfRNnOgv5PFI8R78531NUvr_jd6jGGme97HR50ewzFufxUgKR3GWIUJrHXLHx9Cokmr75hduUp4NJ-8TJ2DzKQPFhJBHy-sdeEEzJIPCkxBncVdS15cNI3vlAGa1sz_VvlFOuY_9u-QDdJmY1h9R1ulwiN0Jn8n7I7nGhlqZKq0uyEHWvDdNXgqMZg9EDMJhwDWs"
                 alt="3D Car Render"
                 className="w-full h-auto object-contain"
               />
-              <div className="p-2 bg-[#0A0F14]/90 flex justify-between items-center">
+              <div className="p-2 bg-[#050B05]/90 flex justify-between items-center">
                 <span className="text-[10px] font-bold text-white">Retro Mini Render</span>
-                <span className="text-[10px] font-mono text-[#00E5FF]">OCTANE 8K</span>
+                <span className="text-[10px] font-mono text-[#76FF03]">OCTANE 8K</span>
               </div>
             </div>
           </div>
@@ -177,12 +177,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <a
         href="#about"
         onClick={playClickSound}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center text-gray-400 hover:text-[#00E5FF] transition-colors group cursor-pointer"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center text-gray-400 hover:text-[#76FF03] transition-colors group cursor-pointer"
       >
         <span className="text-[10px] font-bold font-mono tracking-widest uppercase mb-1">
           SCROLL TO EXPLORE
         </span>
-        <ArrowDown className="w-4 h-4 text-[#00E5FF] animate-bounce" />
+        <ArrowDown className="w-4 h-4 text-[#76FF03] animate-bounce" />
       </a>
     </section>
   );

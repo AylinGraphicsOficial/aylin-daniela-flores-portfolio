@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, Filter, Sparkles, Box, Award, PenTool, Video } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { Project, Language } from '../types';
 import { translations, projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
@@ -28,8 +28,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00E5FF]" />
-            <span className="text-xs font-bold font-mono tracking-[0.25em] text-[#00E5FF] uppercase">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
+            <span className="text-xs font-bold font-mono tracking-[0.25em] text-[#76FF03] uppercase">
               CURATED PORTFOLIO
             </span>
           </div>
@@ -52,7 +52,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 onMouseEnter={playHoverSound}
                 className={`px-4 py-2 rounded-xl text-xs font-bold font-mono tracking-wider transition-all ${
                   isSelected
-                    ? 'bg-[#00E5FF] text-[#0A0F14] shadow-[0_0_20px_rgba(0,229,255,0.4)]'
+                    ? 'bg-[#76FF03] text-[#050B05] shadow-[0_0_20px_rgba(118,255,3,0.4)]'
                     : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10'
                 }`}
               >
@@ -83,10 +83,10 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 playClickSound();
                 onSelectProject(project);
               }}
-              className={`${colSpan} glass-panel rounded-2xl overflow-hidden group cursor-pointer relative kinetic-hover flex flex-col justify-between min-h-[360px] md:min-h-[420px] bg-[#0C0E10]/90 border border-white/10`}
+              className={`${colSpan} glass-panel rounded-2xl overflow-hidden group cursor-pointer relative kinetic-hover flex flex-col justify-between min-h-[360px] md:min-h-[420px] bg-[#081008]/90 border border-white/10`}
             >
               {/* Background gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F14] via-[#0A0F14]/40 to-transparent z-10 opacity-90 group-hover:opacity-80 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#050B05] via-[#050B05]/40 to-transparent z-10 opacity-90 group-hover:opacity-80 transition-opacity" />
 
               {/* Project Image */}
               <div className="absolute inset-0 overflow-hidden flex items-center justify-center p-4">
@@ -100,15 +100,15 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
               {/* Top Tags Bar */}
               <div className="relative z-20 p-6 flex justify-between items-start">
                 <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-[#0A0F14]/80 backdrop-blur-md border border-[#00E5FF]/50 text-[#00E5FF] text-[10px] font-mono font-bold rounded-full">
+                  <span className="px-3 py-1 bg-[#050B05]/80 backdrop-blur-md border border-[#76FF03]/50 text-[#76FF03] text-[10px] font-mono font-bold rounded-full">
                     {project.category}
                   </span>
-                  <span className="px-2.5 py-1 bg-[#0A0F14]/80 backdrop-blur-md border border-white/10 text-gray-300 text-[10px] font-mono rounded-full">
+                  <span className="px-2.5 py-1 bg-[#050B05]/80 backdrop-blur-md border border-white/10 text-gray-300 text-[10px] font-mono rounded-full">
                     {project.year}
                   </span>
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-[#00E5FF] text-white group-hover:text-[#0A0F14] flex items-center justify-center transition-all duration-300 shadow-lg group-hover:rotate-45">
+                <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 shadow-lg group-hover:rotate-45">
                   <ArrowUpRight className="w-5 h-5" />
                 </div>
               </div>
@@ -118,7 +118,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 <span className="text-[11px] font-mono text-gray-400 block mb-1">
                   Client: {project.client}
                 </span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white group-hover:text-[#00E5FF] transition-colors leading-tight mb-2">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white group-hover:text-[#76FF03] transition-colors leading-tight mb-2">
                   {project.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-300 line-clamp-2 mb-4 font-normal">
@@ -136,7 +136,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                     </span>
                   ))}
                   {project.tags.length > 3 && (
-                    <span className="px-2 py-0.5 bg-white/5 rounded text-[10px] font-mono text-[#00E5FF]">
+                    <span className="px-2 py-0.5 bg-white/5 rounded text-[10px] font-mono text-[#76FF03]">
                       +{project.tags.length - 3} more
                     </span>
                   )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, Copy, Send, CheckCircle2, Box, Award, Video, Layers, PenTool } from 'lucide-react';
+import { X, Sparkles, Copy, Send, CheckCircle2, Box, Award, Video, Layers, PenTool } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
@@ -96,7 +96,7 @@ ${projectDescription || 'No description provided yet.'}
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#00E5FF', '#0052FF', '#BDF4FF', '#FFFFFF']
+        colors: ['#76FF03', '#38B000', '#A3E635', '#FFFFFF']
       });
     } catch {
       // Ignored
@@ -107,9 +107,9 @@ ${projectDescription || 'No description provided yet.'}
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/85 backdrop-blur-xl overflow-y-auto animate-fade-in">
       <div className="relative w-full max-w-4xl glass-panel-heavy rounded-2xl border border-white/20 shadow-2xl overflow-hidden my-auto max-h-[94vh] flex flex-col">
         {/* Modal Header */}
-        <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#0A0F14]/90 z-20">
+        <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#050B05]/90 z-20">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#00E5FF]/20 border border-[#00E5FF] flex items-center justify-center text-[#00E5FF]">
+            <div className="w-8 h-8 rounded-lg bg-[#76FF03]/20 border border-[#76FF03] flex items-center justify-center text-[#76FF03]">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
@@ -137,7 +137,7 @@ ${projectDescription || 'No description provided yet.'}
         <div className="overflow-y-auto p-4 md:p-8 space-y-8">
           {isSubmitted ? (
             <div className="py-12 text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-[#00E5FF]/20 border-2 border-[#00E5FF] mx-auto flex items-center justify-center text-[#00E5FF] shadow-[0_0_30px_#00E5FF]">
+              <div className="w-16 h-16 rounded-full bg-[#76FF03]/20 border-2 border-[#76FF03] mx-auto flex items-center justify-center text-[#76FF03] shadow-[0_0_30px_#76FF03]">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3 className="text-2xl md:text-3xl font-black text-white uppercase">
@@ -157,13 +157,13 @@ ${projectDescription || 'No description provided yet.'}
                   onClick={handleCopyBrief}
                   className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl flex items-center space-x-2 border border-white/20 transition-all"
                 >
-                  <Copy className="w-4 h-4 text-[#00E5FF]" />
+                  <Copy className="w-4 h-4 text-[#76FF03]" />
                   <span>{isCopied ? 'COPIED TO CLIPBOARD!' : 'COPY BRIEF TEXT'}</span>
                 </button>
 
                 <a
                   href={`mailto:aylin.flores.design@gmail.com?subject=New%20Project%20Inquiry%20from%20${encodeURIComponent(clientName || 'Client')}&body=${encodeURIComponent(generateBriefText())}`}
-                  className="px-6 py-3 bg-[#00E5FF] text-[#0A0F14] font-black text-xs rounded-xl flex items-center space-x-2 shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all"
+                  className="px-6 py-3 bg-[#76FF03] text-[#050B05] font-black text-xs rounded-xl flex items-center space-x-2 shadow-[0_0_20px_rgba(118,255,3,0.4)] transition-all"
                 >
                   <Send className="w-4 h-4" />
                   <span>OPEN IN EMAIL CLIENT</span>
@@ -174,7 +174,7 @@ ${projectDescription || 'No description provided yet.'}
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Step 1: Services selection */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-[#00E5FF] uppercase font-mono tracking-wider block">
+                <label className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-wider block">
                   {t.planner.step1}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -188,11 +188,11 @@ ${projectDescription || 'No description provided yet.'}
                         onClick={() => toggleService(srv.label)}
                         className={`p-4 rounded-xl border text-left flex items-start space-x-3 transition-all ${
                           isSelected
-                            ? 'bg-[#0052FF]/20 border-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.2)]'
+                            ? 'bg-[#38B000]/20 border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
                             : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
                         }`}
                       >
-                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#00E5FF] text-[#0A0F14]' : 'bg-white/10 text-gray-300'}`}>
+                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#76FF03] text-[#050B05]' : 'bg-white/10 text-gray-300'}`}>
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
@@ -208,7 +208,7 @@ ${projectDescription || 'No description provided yet.'}
 
               {/* Step 2: Timeline selection */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-[#00E5FF] uppercase font-mono tracking-wider block">
+                <label className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-wider block">
                   {t.planner.step2}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -224,7 +224,7 @@ ${projectDescription || 'No description provided yet.'}
                         }}
                         className={`p-4 rounded-xl border text-left transition-all ${
                           isSelected
-                            ? 'bg-[#0052FF]/20 border-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.2)]'
+                            ? 'bg-[#38B000]/20 border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
                             : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
                         }`}
                       >
@@ -242,7 +242,7 @@ ${projectDescription || 'No description provided yet.'}
 
               {/* Step 3: Budget Range */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-[#00E5FF] uppercase font-mono tracking-wider block">
+                <label className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-wider block">
                   {t.planner.step3}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -258,7 +258,7 @@ ${projectDescription || 'No description provided yet.'}
                         }}
                         className={`p-4 rounded-xl border text-left transition-all ${
                           isSelected
-                            ? 'bg-[#0052FF]/20 border-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.2)]'
+                            ? 'bg-[#38B000]/20 border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
                             : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
                         }`}
                       >
@@ -276,7 +276,7 @@ ${projectDescription || 'No description provided yet.'}
 
               {/* Step 4: Contact & Message */}
               <div className="space-y-4 pt-2 border-t border-white/10">
-                <label className="text-xs font-bold text-[#00E5FF] uppercase font-mono tracking-wider block">
+                <label className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-wider block">
                   {t.planner.step4}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -287,7 +287,7 @@ ${projectDescription || 'No description provided yet.'}
                       placeholder="Your Full Name *"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF]"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
                     />
                   </div>
                   <div>
@@ -297,7 +297,7 @@ ${projectDescription || 'No description provided yet.'}
                       placeholder="Your Email Address *"
                       value={clientEmail}
                       onChange={(e) => setClientEmail(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF]"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
                     />
                   </div>
                 </div>
@@ -308,7 +308,7 @@ ${projectDescription || 'No description provided yet.'}
                     placeholder="Company or Brand Name (Optional)"
                     value={clientCompany}
                     onChange={(e) => setClientCompany(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF]"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
                   />
                 </div>
 
@@ -318,7 +318,7 @@ ${projectDescription || 'No description provided yet.'}
                     placeholder="Project vision, specific deliverables (e.g. 3D car turntable, complete logo suite), reference links..."
                     value={projectDescription}
                     onChange={(e) => setProjectDescription(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF]"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
                   />
                 </div>
               </div>
@@ -331,7 +331,7 @@ ${projectDescription || 'No description provided yet.'}
 
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-8 py-3.5 bg-[#00E5FF] hover:bg-[#BDF4FF] text-[#0A0F14] font-black text-xs rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.4)] hover:scale-102 transition-all flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-8 py-3.5 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:scale-102 transition-all flex items-center justify-center space-x-2"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>{t.planner.generateInquiry}</span>

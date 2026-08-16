@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { X, ExternalLink, Box, Sparkles, CheckCircle2, ChevronLeft, ChevronRight, Layers, Palette } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2 } from 'lucide-react';
 import { Project, Language } from '../types';
-import { translations } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
 
 interface CaseStudyModalProps {
@@ -14,7 +13,6 @@ interface CaseStudyModalProps {
 
 export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
   project,
-  lang,
   onClose,
   onOpenProjectPlanner,
 }) => {
@@ -39,9 +37,9 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/85 backdrop-blur-xl overflow-y-auto animate-fade-in">
       <div className="relative w-full max-w-5xl glass-panel-heavy rounded-2xl border border-white/20 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
         {/* Header Bar */}
-        <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#0A0F14]/90 z-20">
+        <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#050B05]/90 z-20">
           <div className="flex items-center space-x-3">
-            <span className="px-3 py-1 bg-[#0052FF]/30 border border-[#0052FF] text-[#00E5FF] text-xs font-mono font-bold rounded-full">
+            <span className="px-3 py-1 bg-[#38B000]/30 border border-[#38B000] text-[#76FF03] text-xs font-mono font-bold rounded-full">
               {project.category}
             </span>
             <span className="text-xs font-mono text-gray-400">
@@ -61,7 +59,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
         </div>
 
         {/* Scrollable Modal Body */}
-        <div className="overflow-y-auto p-4 md:p-8 space-y-8">
+        <div className="overflow-y-auto p-4 md:p-8 space-y-8 bg-[#081008]">
           {/* Main Title & Subtitle */}
           <div>
             <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">
@@ -73,7 +71,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
           </div>
 
           {/* Interactive Image Gallery Carousel */}
-          <div className="relative rounded-2xl overflow-hidden bg-[#0C0E10] border border-white/10 min-h-[300px] md:min-h-[460px] flex items-center justify-center">
+          <div className="relative rounded-2xl overflow-hidden bg-[#050B05] border border-white/10 min-h-[300px] md:min-h-[460px] flex items-center justify-center">
             <img
               src={gallery[activeImageIndex]}
               alt={project.title}
@@ -105,7 +103,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
                         setActiveImageIndex(idx);
                       }}
                       className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        activeImageIndex === idx ? 'bg-[#00E5FF] w-6' : 'bg-white/40 hover:bg-white'
+                        activeImageIndex === idx ? 'bg-[#76FF03] w-6' : 'bg-white/40 hover:bg-white'
                       }`}
                     />
                   ))}
@@ -119,7 +117,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {project.metrics.map((m, idx) => (
                 <div key={idx} className="glass-panel p-4 rounded-xl text-center">
-                  <div className="text-xl md:text-2xl font-black text-[#00E5FF] font-mono mb-1">
+                  <div className="text-xl md:text-2xl font-black text-[#76FF03] font-mono mb-1">
                     {m.value}
                   </div>
                   <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
@@ -133,7 +131,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
           {/* Deep-Dive Narrative & Deliverables */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-7 space-y-4">
-              <h3 className="text-sm font-bold text-[#00E5FF] uppercase font-mono tracking-widest flex items-center space-x-2">
+              <h3 className="text-sm font-bold text-[#76FF03] uppercase font-mono tracking-widest flex items-center space-x-2">
                 <Layers className="w-4 h-4" />
                 <span>PROJECT SCOPE & CREATIVE EXECUTION</span>
               </h3>
@@ -162,13 +160,13 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
               {project.deliverables && (
                 <div className="glass-panel p-5 rounded-xl space-y-3">
                   <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#00E5FF]" />
+                    <CheckCircle2 className="w-4 h-4 text-[#76FF03]" />
                     <span>CLIENT DELIVERABLES</span>
                   </h4>
                   <ul className="space-y-2 text-xs text-gray-300">
                     {project.deliverables.map((deliv, idx) => (
                       <li key={idx} className="flex items-center space-x-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00E5FF]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#76FF03]" />
                         <span>{deliv}</span>
                       </li>
                     ))}
@@ -180,7 +178,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
               {project.colorPalette && (
                 <div className="glass-panel p-5 rounded-xl space-y-3">
                   <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-                    <Palette className="w-4 h-4 text-[#00E5FF]" />
+                    <Palette className="w-4 h-4 text-[#76FF03]" />
                     <span>COLOR HARMONY</span>
                   </h4>
                   <div className="flex space-x-2">
@@ -211,7 +209,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
                   onClose();
                   onOpenProjectPlanner();
                 }}
-                className="px-6 py-3 bg-[#00E5FF] hover:bg-[#BDF4FF] text-[#0A0F14] font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all"
+                className="px-6 py-3 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(118,255,3,0.4)] transition-all"
               >
                 START A SIMILAR PROJECT
               </button>

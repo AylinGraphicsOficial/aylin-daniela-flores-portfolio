@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Clock, Send, Check, Copy, Sparkles, MessageSquare, ArrowUpRight } from 'lucide-react';
+import { Clock, Send, Check, Copy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
@@ -59,7 +59,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         particleCount: 70,
         spread: 60,
         origin: { y: 0.7 },
-        colors: ['#00E5FF', '#0052FF', '#BDF4FF']
+        colors: ['#76FF03', '#38B000', '#A3E635']
       });
     } catch {
       // Ignored
@@ -69,15 +69,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   return (
     <section id="contact" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
       {/* Glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#00E5FF]/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#76FF03]/10 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         {/* Left Column: Direct Info & Time Clock */}
         <div className="lg:col-span-5 space-y-8">
           <div>
             <div className="flex items-center space-x-2 mb-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00E5FF] animate-ping" />
-              <span className="text-xs font-bold font-mono tracking-widest text-[#00E5FF] uppercase">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03] animate-ping" />
+              <span className="text-xs font-bold font-mono tracking-widest text-[#76FF03] uppercase">
                 GET IN TOUCH
               </span>
             </div>
@@ -92,7 +92,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
           {/* Quick Copy Email Card */}
           <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-mono text-[#00E5FF] uppercase font-bold">
+              <span className="text-xs font-mono text-[#76FF03] uppercase font-bold">
                 {t.contact.directEmail}
               </span>
               <button
@@ -101,8 +101,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               >
                 {isCopied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-[#00E5FF]" />
-                    <span className="text-[#00E5FF] font-bold">COPIED!</span>
+                    <Check className="w-3.5 h-3.5 text-[#76FF03]" />
+                    <span className="text-[#76FF03] font-bold">COPIED!</span>
                   </>
                 ) : (
                   <>
@@ -127,13 +127,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                 {currentTime || '02:30:00 PM'}
               </span>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#0052FF]/20 border border-[#0052FF]/50 flex items-center justify-center text-[#00E5FF]">
+            <div className="w-12 h-12 rounded-xl bg-[#38B000]/20 border border-[#76FF03]/50 flex items-center justify-center text-[#76FF03]">
               <Clock className="w-6 h-6 animate-pulse" />
             </div>
           </div>
 
           {/* Start Project Banner */}
-          <div className="glass-panel p-6 rounded-2xl border border-[#00E5FF]/30 bg-gradient-to-br from-[#0052FF]/20 to-transparent flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div className="glass-panel p-6 rounded-2xl border border-[#76FF03]/30 bg-gradient-to-br from-[#38B000]/20 to-transparent flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
               <h4 className="text-sm font-bold text-white mb-1">Looking for a tailored quote?</h4>
               <p className="text-xs text-gray-300">Use the step-by-step interactive project calculator.</p>
@@ -143,7 +143,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                 playClickSound();
                 onOpenProjectPlanner();
               }}
-              className="px-5 py-2.5 bg-[#00E5FF] text-[#0A0F14] font-bold text-xs rounded-xl shadow-md hover:bg-[#BDF4FF] transition-all whitespace-nowrap"
+              className="px-5 py-2.5 bg-[#76FF03] text-[#050B05] font-bold text-xs rounded-xl shadow-md hover:bg-[#50E310] transition-all whitespace-nowrap"
             >
               LAUNCH ESTIMATOR
             </button>
@@ -154,7 +154,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         <div className="lg:col-span-7 glass-panel p-6 md:p-10 rounded-2xl border border-white/10 relative">
           {isSent ? (
             <div className="py-16 text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-[#00E5FF]/20 border border-[#00E5FF] mx-auto flex items-center justify-center text-[#00E5FF] shadow-[0_0_20px_#00E5FF]">
+              <div className="w-16 h-16 rounded-full bg-[#76FF03]/20 border border-[#76FF03] mx-auto flex items-center justify-center text-[#76FF03] shadow-[0_0_20px_#76FF03]">
                 <Check className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-black text-white uppercase">
@@ -183,7 +183,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                     placeholder={t.contact.namePlaceholder}
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF] transition-colors"
+                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03] transition-colors"
                   />
                 </div>
 
@@ -197,7 +197,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                     placeholder={t.contact.emailPlaceholder}
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF] transition-colors"
+                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03] transition-colors"
                   />
                 </div>
               </div>
@@ -209,7 +209,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                 <select
                   value={formService}
                   onChange={(e) => setFormService(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-[#0C0E10] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#00E5FF] transition-colors cursor-pointer"
+                  className="w-full px-4 py-3.5 bg-[#081008] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#76FF03] transition-colors cursor-pointer"
                 >
                   <option value="3D Modeling & Visualization">3D Modeling & Visualization</option>
                   <option value="Branding & Corporate Identity">Branding & Corporate Identity</option>
@@ -229,13 +229,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                   placeholder={t.contact.messagePlaceholder}
                   value={formMessage}
                   onChange={(e) => setFormMessage(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#00E5FF] transition-colors"
+                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03] transition-colors"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-4 bg-[#00E5FF] hover:bg-[#BDF4FF] text-[#0A0F14] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(0,229,255,0.4)] hover:scale-101 active:scale-99 transition-all flex items-center justify-center space-x-2"
+                className="w-full py-4 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:scale-101 active:scale-99 transition-all flex items-center justify-center space-x-2"
               >
                 <Send className="w-4 h-4" />
                 <span>{t.contact.sendBtn}</span>

@@ -25,7 +25,7 @@ export const projectsData: Project[] = [
       { label: 'Render Samples', value: '4,096 SPP' },
       { label: 'PBR Shaders', value: '18 Custom Materials' }
     ],
-    colorPalette: ['#0A0F14', '#00E5FF', '#1E2022', '#BDF4FF']
+    colorPalette: ['#050B05', '#76FF03', '#1A301A', '#A3E635']
   },
   {
     id: 'kinetic-touch-hands',
@@ -49,7 +49,7 @@ export const projectsData: Project[] = [
       { label: 'Exhibition Views', value: '45,000+' },
       { label: 'Sculpt Details', value: '12M Polys (ZBrush)' }
     ],
-    colorPalette: ['#0A0F14', '#0052FF', '#00E5FF', '#FFFFFF']
+    colorPalette: ['#050B05', '#38B000', '#76FF03', '#FFFFFF']
   },
   {
     id: 'corporate-identity-system',
@@ -75,7 +75,7 @@ export const projectsData: Project[] = [
       { label: 'Deploy Time', value: '3 Months' },
       { label: 'Asset Modules', value: '140+ Brand Assets' }
     ],
-    colorPalette: ['#0A0F14', '#0052FF', '#00E5FF', '#BDF4FF', '#FFFFFF']
+    colorPalette: ['#050B05', '#38B000', '#76FF03', '#A3E635', '#FFFFFF']
   },
   {
     id: 'lumina-beverage-packaging',
@@ -99,7 +99,7 @@ export const projectsData: Project[] = [
       { label: 'Conversion Lift', value: '+38%' },
       { label: 'Formats', value: 'Instagram / Billboard / Web' }
     ],
-    colorPalette: ['#00E5FF', '#0A0F14', '#5AFF9B', '#FFFFFF']
+    colorPalette: ['#76FF03', '#050B05', '#50E310', '#FFFFFF']
   },
   {
     id: 'cyber-kinetic-intro',
@@ -123,7 +123,7 @@ export const projectsData: Project[] = [
       { label: 'Video Streams', value: '1.2M+' },
       { label: 'Framerate', value: '60 FPS Uncompressed' }
     ],
-    colorPalette: ['#0052FF', '#00E5FF', '#0A0F14', '#FFFFFF']
+    colorPalette: ['#38B000', '#76FF03', '#050B05', '#FFFFFF']
   }
 ];
 

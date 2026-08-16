@@ -83,11 +83,11 @@ export const CustomCursor: React.FC = () => {
     <>
       {/* Outer Trail Ring */}
       <div
-        className={`fixed pointer-events-none z-[9998] rounded-full border border-[#00E5FF]/50 transition-all duration-150 ease-out mix-blend-screen ${
+        className={`fixed pointer-events-none z-[9998] rounded-full border border-[#76FF03]/50 transition-all duration-150 ease-out mix-blend-screen ${
           isHovered
-            ? 'w-14 h-14 bg-[#00E5FF]/10 border-[#00E5FF] shadow-[0_0_20px_rgba(0,229,255,0.4)]'
+            ? 'w-14 h-14 bg-[#76FF03]/10 border-[#76FF03] shadow-[0_0_20px_rgba(118,255,3,0.4)]'
             : isClicking
-            ? 'w-7 h-7 bg-[#0052FF]/20 border-[#0052FF]'
+            ? 'w-7 h-7 bg-[#38B000]/20 border-[#38B000]'
             : 'w-8 h-8'
         }`}
         style={{
@@ -99,11 +99,11 @@ export const CustomCursor: React.FC = () => {
 
       {/* Center Precise Dot */}
       <div
-        className={`fixed pointer-events-none z-[9999] rounded-full bg-[#00E5FF] shadow-[0_0_10px_#00E5FF] transition-transform duration-75 ease-out ${
+        className={`fixed pointer-events-none z-[9999] rounded-full bg-[#76FF03] shadow-[0_0_10px_#76FF03] transition-transform duration-75 ease-out ${
           isHovered
             ? 'w-2 h-2 scale-150 bg-white shadow-[0_0_15px_#FFFFFF]'
             : isClicking
-            ? 'w-3 h-3 scale-90 bg-[#00E5FF]'
+            ? 'w-3 h-3 scale-90 bg-[#76FF03]'
             : 'w-2.5 h-2.5'
         }`}
         style={{

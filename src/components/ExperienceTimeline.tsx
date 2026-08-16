@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Briefcase, Calendar, MapPin, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
+import { Calendar, MapPin, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
 import { Language } from '../types';
 import { translations, experienceData } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
@@ -22,8 +22,8 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-16">
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-3">
-          <span className="w-2 h-2 rounded-full bg-[#00E5FF]" />
-          <span className="text-[11px] font-bold font-mono tracking-widest text-[#00E5FF] uppercase">
+          <span className="w-2 h-2 rounded-full bg-[#76FF03]" />
+          <span className="text-[11px] font-bold font-mono tracking-widest text-[#76FF03] uppercase">
             CAREER TRAJECTORY
           </span>
         </div>
@@ -38,7 +38,7 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
       {/* Timeline Container */}
       <div className="max-w-4xl mx-auto relative">
         {/* Central Glowing Vertical Track */}
-        <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#00E5FF] via-[#0052FF] to-transparent transform md:-translate-x-1/2 shadow-[0_0_15px_rgba(0,229,255,0.4)]" />
+        <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#76FF03] via-[#38B000] to-transparent transform md:-translate-x-1/2 shadow-[0_0_15px_rgba(118,255,3,0.4)]" />
 
         <div className="space-y-12">
           {experienceData.map((item, idx) => {
@@ -53,25 +53,25 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                 } group`}
               >
                 {/* Center Node Indicator */}
-                <div className="absolute left-4 md:left-1/2 w-6 h-6 rounded-full bg-[#0A0F14] border-2 border-[#00E5FF] transform -translate-x-[11px] md:-translate-x-1/2 flex items-center justify-center z-20 shadow-[0_0_15px_#00E5FF] group-hover:scale-125 transition-transform duration-300">
-                  <div className="w-2 h-2 rounded-full bg-[#00E5FF]" />
+                <div className="absolute left-4 md:left-1/2 w-6 h-6 rounded-full bg-[#050B05] border-2 border-[#76FF03] transform -translate-x-[11px] md:-translate-x-1/2 flex items-center justify-center z-20 shadow-[0_0_15px_#76FF03] group-hover:scale-125 transition-transform duration-300">
+                  <div className="w-2 h-2 rounded-full bg-[#76FF03]" />
                 </div>
 
                 {/* Left/Right Side Card */}
                 <div className="w-full md:w-[46%] pl-12 md:pl-0">
                   <div
                     onClick={() => toggleExpand(item.id)}
-                    className="glass-panel p-6 rounded-2xl cursor-pointer kinetic-hover border border-white/10 hover:border-[#00E5FF]/60 transition-all"
+                    className="glass-panel p-6 rounded-2xl cursor-pointer kinetic-hover border border-white/10 hover:border-[#76FF03]/60 transition-all"
                   >
                     {/* Role & Company */}
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h3 className="text-lg md:text-xl font-black text-white group-hover:text-[#00E5FF] transition-colors">
+                          <h3 className="text-lg md:text-xl font-black text-white group-hover:text-[#76FF03] transition-colors">
                             {item.role}
                           </h3>
                           {item.isCurrent && (
-                            <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#00E5FF] text-[#0A0F14]">
+                            <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#76FF03] text-[#050B05]">
                               ACTIVE
                             </span>
                           )}
@@ -89,11 +89,11 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                     {/* Meta info */}
                     <div className="flex flex-wrap gap-3 text-xs text-gray-400 font-mono mb-4 pb-3 border-b border-white/10">
                       <span className="flex items-center space-x-1">
-                        <Calendar className="w-3.5 h-3.5 text-[#00E5FF]" />
+                        <Calendar className="w-3.5 h-3.5 text-[#76FF03]" />
                         <span>{item.period}</span>
                       </span>
                       <span className="flex items-center space-x-1">
-                        <MapPin className="w-3.5 h-3.5 text-[#0052FF]" />
+                        <MapPin className="w-3.5 h-3.5 text-[#38B000]" />
                         <span>{item.location}</span>
                       </span>
                     </div>
@@ -105,13 +105,13 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                     {/* Expandable Key Responsibilities */}
                     {isExpanded && (
                       <div className="pt-3 space-y-3 animate-fade-in border-t border-white/5">
-                        <span className="text-xs font-bold font-mono text-[#00E5FF] uppercase block">
+                        <span className="text-xs font-bold font-mono text-[#76FF03] uppercase block">
                           KEY DELIVERABLES & IMPACT:
                         </span>
                         <ul className="space-y-2 text-xs text-gray-300">
                           {item.responsibilities.map((resp, rIdx) => (
                             <li key={rIdx} className="flex items-start space-x-2">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#00E5FF] mt-0.5 flex-shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#76FF03] mt-0.5 flex-shrink-0" />
                               <span>{resp}</span>
                             </li>
                           ))}

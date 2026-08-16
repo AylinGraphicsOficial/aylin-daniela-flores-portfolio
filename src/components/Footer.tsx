@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, Sparkles, Heart } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 import { playClickSound } from '../utils/audio';
 
 export const Footer: React.FC = () => {
@@ -38,7 +38,7 @@ export const Footer: React.FC = () => {
               target="_blank"
               rel="noreferrer"
               onClick={playClickSound}
-              className="text-xs font-mono font-bold text-gray-400 hover:text-[#00E5FF] transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#00E5FF] hover:after:w-full after:transition-all"
+              className="text-xs font-mono font-bold text-gray-400 hover:text-[#76FF03] transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#76FF03] hover:after:w-full after:transition-all"
             >
               {link.label}
             </a>
@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
         {/* Back to top */}
         <button
           onClick={scrollToTop}
-          className="p-3 rounded-xl bg-white/5 hover:bg-[#00E5FF] hover:text-[#0A0F14] text-white border border-white/10 transition-all duration-300 shadow-md group"
+          className="p-3 rounded-xl bg-white/5 hover:bg-[#76FF03] hover:text-[#050B05] text-white border border-white/10 transition-all duration-300 shadow-md group"
           title="Scroll back to top"
         >
           <ArrowUp className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />

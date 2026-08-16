@@ -44,25 +44,25 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
         motion += cos(uv.y * 2.2 + u_time * 0.65) * 0.12;
         motion += sin((uv.x + uv.y) * 3.5 + u_time * 0.3) * 0.08;
 
-        // Colors
-        vec3 colorNavy = vec3(0.039, 0.059, 0.078); // #0A0F14
-        vec3 colorBlue = vec3(0.0, 0.32, 1.0);       // #0052FF
-        vec3 colorCyan = vec3(0.0, 0.898, 1.0);      // #00E5FF
-        vec3 colorDeep = vec3(0.015, 0.025, 0.04);
+        // Colors for vibrant neon lime theme (Arte 3D Studio)
+        vec3 colorNavy = vec3(0.02, 0.045, 0.02); // #050B05
+        vec3 colorGreen = vec3(0.12, 0.45, 0.02);  // #1F7305
+        vec3 colorLime = vec3(0.46, 1.0, 0.01);   // #76FF03
+        vec3 colorDeep = vec3(0.01, 0.025, 0.01);
 
         // Interactive mouse glow
         float dist = distance(uv, mouse);
-        float glow = smoothstep(0.45, 0.0, dist) * 0.35;
+        float glow = smoothstep(0.45, 0.0, dist) * 0.4;
 
         // Wave blend factor
         float mixFactor = smoothstep(0.15, 0.85, uv.y + motion * 1.2);
-        vec3 base = mix(colorNavy, colorBlue * 0.4, mixFactor);
+        vec3 base = mix(colorNavy, colorGreen * 0.4, mixFactor);
         base = mix(base, colorDeep, (1.0 - uv.x) * 0.3);
 
         // Ambient cyber shimmer
         float shimmer = sin(uv.x * 12.0 + uv.y * 6.0 + u_time * 0.8) * 0.04 + 0.04;
-        vec3 finalColor = mix(base, colorCyan * 0.5, shimmer);
-        finalColor += glow * colorCyan;
+        vec3 finalColor = mix(base, colorLime * 0.5, shimmer);
+        finalColor += glow * colorLime;
 
         gl_FragColor = vec4(finalColor, 1.0);
       }

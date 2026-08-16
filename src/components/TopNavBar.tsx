@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, Globe, Menu, X, Sparkles } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
-import { playClickSound, toggleAudio, isAudioEnabled } from '../utils/audio';
+import { playClickSound, toggleAudio } from '../utils/audio';
 
 interface TopNavBarProps {
   lang: Language;
@@ -48,7 +48,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-[#0A0F14]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl py-3.5'
+          ? 'bg-[#050B05]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl py-3.5'
           : 'bg-transparent py-5 md:py-6 border-b border-white/5'
       }`}
     >
@@ -59,11 +59,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           onClick={playClickSound}
           className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#0052FF] to-[#00E5FF] flex items-center justify-center font-mono text-sm font-bold text-[#0A0F14] shadow-[0_0_15px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#38B000] to-[#76FF03] flex items-center justify-center font-mono text-sm font-bold text-[#050B05] shadow-[0_0_15px_rgba(118,255,3,0.4)] group-hover:scale-105 transition-transform">
             SK
           </div>
           <div className="flex flex-col">
-            <span className="leading-none group-hover:text-[#00E5FF] transition-colors">
+            <span className="leading-none group-hover:text-[#76FF03] transition-colors">
               STUDIO_KINETIC
             </span>
             <span className="text-[9px] font-mono text-gray-400 tracking-widest font-normal">
@@ -79,7 +79,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               key={link.href}
               href={link.href}
               onClick={playClickSound}
-              className="text-xs font-bold tracking-[0.15em] text-gray-300 hover:text-[#00E5FF] transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-[#00E5FF] hover:after:w-full after:transition-all after:duration-300"
+              className="text-xs font-bold tracking-[0.15em] text-gray-300 hover:text-[#76FF03] transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-[#76FF03] hover:after:w-full after:transition-all after:duration-300"
             >
               {link.label}
             </a>
@@ -93,7 +93,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             onClick={handleSoundToggle}
             className={`p-2.5 rounded-lg border text-xs transition-all ${
               soundOn
-                ? 'bg-[#00E5FF]/20 border-[#00E5FF] text-[#00E5FF] shadow-[0_0_10px_rgba(0,229,255,0.3)]'
+                ? 'bg-[#76FF03]/20 border-[#76FF03] text-[#76FF03] shadow-[0_0_10px_rgba(118,255,3,0.3)]'
                 : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
             }`}
             title={soundOn ? 'Sound effects enabled' : 'Enable tactile audio'}
@@ -110,7 +110,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             className="flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-gray-200 transition-all"
             title="Toggle English / Español"
           >
-            <Globe className="w-3.5 h-3.5 text-[#00E5FF]" />
+            <Globe className="w-3.5 h-3.5 text-[#76FF03]" />
             <span className="font-bold">{lang.toUpperCase()}</span>
           </button>
 
@@ -120,7 +120,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               playClickSound();
               onOpenProjectPlanner();
             }}
-            className="flex items-center space-x-2 px-5 py-2.5 bg-[#BDF4FF] hover:bg-[#00E5FF] text-[#0A0F14] font-bold text-xs tracking-wider rounded-lg shadow-[0_0_15px_rgba(189,244,255,0.3)] hover:shadow-[0_0_25px_rgba(0,229,255,0.5)] hover:scale-95 active:scale-90 transition-all duration-300"
+            className="flex items-center space-x-2 px-5 py-2.5 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-bold text-xs tracking-wider rounded-lg shadow-[0_0_15px_rgba(118,255,3,0.4)] hover:shadow-[0_0_25px_rgba(118,255,3,0.6)] hover:scale-95 active:scale-90 transition-all duration-300"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t.nav.startProject}</span>
@@ -134,7 +134,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               playClickSound();
               onLanguageToggle();
             }}
-            className="p-2 bg-white/5 border border-white/10 rounded-lg text-xs font-mono text-[#00E5FF]"
+            className="p-2 bg-white/5 border border-white/10 rounded-lg text-xs font-mono text-[#76FF03]"
           >
             {lang.toUpperCase()}
           </button>
@@ -152,7 +152,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-[#0A0F14]/98 backdrop-blur-2xl border-b border-white/10 px-6 py-8 space-y-6 animate-fade-in shadow-2xl">
+        <div className="sm:hidden bg-[#050B05]/98 backdrop-blur-2xl border-b border-white/10 px-6 py-8 space-y-6 animate-fade-in shadow-2xl">
           <div className="flex flex-col space-y-4">
             {navLinks.map(link => (
               <a
@@ -162,7 +162,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                   playClickSound();
                   setMobileMenuOpen(false);
                 }}
-                className="text-base font-bold text-gray-200 hover:text-[#00E5FF] py-1 border-b border-white/5"
+                className="text-base font-bold text-gray-200 hover:text-[#76FF03] py-1 border-b border-white/5"
               >
                 {link.label}
               </a>
@@ -176,7 +176,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               }}
               className="flex items-center justify-center space-x-2 py-2.5 bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300"
             >
-              {soundOn ? <Volume2 className="w-4 h-4 text-[#00E5FF]" /> : <VolumeX className="w-4 h-4" />}
+              {soundOn ? <Volume2 className="w-4 h-4 text-[#76FF03]" /> : <VolumeX className="w-4 h-4" />}
               <span>{soundOn ? 'Tactile Audio: On' : 'Tactile Audio: Off'}</span>
             </button>
 
@@ -186,7 +186,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 setMobileMenuOpen(false);
                 onOpenProjectPlanner();
               }}
-              className="w-full py-3.5 bg-[#00E5FF] text-[#0A0F14] font-black text-xs tracking-wider rounded-lg shadow-[0_0_20px_rgba(0,229,255,0.4)]"
+              className="w-full py-3.5 bg-[#76FF03] text-[#050B05] font-black text-xs tracking-wider rounded-lg shadow-[0_0_20px_rgba(118,255,3,0.4)]"
             >
               {t.nav.startProject}
             </button>
