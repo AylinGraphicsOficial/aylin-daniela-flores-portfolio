@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Aylin Daniela Flores | Studio Kinetic Portfolio
 
-# Run and deploy your AI Studio app
+✨ **Portfolio Profesional de Diseño Gráfico, Visualización 3D y Experiencias Digitales**
 
-This contains everything you need to run your app locally.
+🌐 **Sitio Web en Vivo**: [https://aylinflores.com](https://aylinflores.com)
 
-View your app in AI Studio: https://ai.studio/apps/4b9a80a5-3afb-4555-a1c7-0e5919b727b9
+---
 
-## Run Locally
+## 🚀 Tecnologías
 
-**Prerequisites:**  Node.js
+* **Frontend**: React 19 + TypeScript + Vite
+* **Estilos**: TailwindCSS v4 + Custom CSS
+* **Animaciones & 3D**: Framer Motion (`motion`) + WebGL Fluid Shaders + 3D Viewers
+* **Despliegue**: GitHub Actions + Hostinger FTP Auto-Deploy
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🛠️ Desarrollo Local
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
+
+# Compilar para producción
+npm run build
+```
+
