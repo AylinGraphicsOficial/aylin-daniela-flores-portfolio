@@ -117,29 +117,29 @@ function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress
     return `${offset}%`;
   });
 
-  // Dynamic 3D Scale & Opacity Perspective: 1.25x in front of shoulders, 0.76x behind head
+  // Dynamic 3D Scale & Opacity Perspective:
+  // Offset ~25% = SHOULDERS / FRONT -> scale 1.26x
+  // Offset ~75% = HEAD / BACK -> scale 0.76x
   const scale = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
-    const normalized = (offset - 23) / 50;
-    const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
-    return 0.76 + depthFactor * 0.48;
+    const depthFactor = (Math.sin((offset / 100) * 2 * Math.PI) + 1) / 2;
+    return 0.76 + depthFactor * 0.50;
   });
 
   const opacity = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
-    const normalized = (offset - 23) / 50;
-    const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
+    const depthFactor = (Math.sin((offset / 100) * 2 * Math.PI) + 1) / 2;
     return 0.72 + depthFactor * 0.28;
   });
 
-  // Directly update DOM element zIndex (2 = behind photo, 30 = in front of photo)
+  // Directly update DOM element zIndex:
+  // Front half = shoulders/torso (offset 2% to 48%) -> zIndex: 30 (IN FRONT of photo)
+  // Back half = head/hair (offset 48% to 98%) -> zIndex: 2 (BEHIND photo)
   useEffect(() => {
     const updateZ = (p: number) => {
       if (!itemRef.current) return;
       const offset = (((p + itemOffset) % 100) + 100) % 100;
-      // Front half = shoulders/chest (approx 48% to 98%) -> zIndex: 30
-      // Back half = head/hair (0% to 48% and 98% to 100%) -> zIndex: 2
-      if (offset >= 48 && offset <= 98) {
+      if (offset >= 2 && offset <= 48) {
         itemRef.current.style.zIndex = '30';
       } else {
         itemRef.current.style.zIndex = '2';
