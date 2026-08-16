@@ -44,25 +44,25 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
         motion += cos(uv.y * 2.2 + u_time * 0.65) * 0.12;
         motion += sin((uv.x + uv.y) * 3.5 + u_time * 0.3) * 0.08;
 
-        // Colors for subtle cyber dark theme (40% reduced green light)
+        // Colors for balanced cyber dark theme (+20% balanced green luminescence)
         vec3 colorNavy = vec3(0.015, 0.03, 0.015); // #050B05
-        vec3 colorGreen = vec3(0.06, 0.22, 0.01);  // Subtle emerald
-        vec3 colorLime = vec3(0.35, 0.75, 0.01);   // #76FF03 calibrated
+        vec3 colorGreen = vec3(0.08, 0.32, 0.015); // Vibrant emerald
+        vec3 colorLime = vec3(0.40, 0.90, 0.01);   // #76FF03 balanced
         vec3 colorDeep = vec3(0.008, 0.018, 0.008);
 
-        // Interactive mouse glow (40% attenuated)
+        // Interactive mouse glow (+20% enhanced reactivity)
         float dist = distance(uv, mouse);
-        float glow = smoothstep(0.42, 0.0, dist) * 0.32;
+        float glow = smoothstep(0.48, 0.0, dist) * 0.44;
 
         // Wave blend factor
-        float mixFactor = smoothstep(0.20, 0.85, uv.y + motion * 1.2);
-        vec3 base = mix(colorNavy, colorGreen * 0.25, mixFactor);
+        float mixFactor = smoothstep(0.18, 0.85, uv.y + motion * 1.2);
+        vec3 base = mix(colorNavy, colorGreen * 0.35, mixFactor);
         base = mix(base, colorDeep, (1.0 - uv.x) * 0.35);
 
         // Ambient cyber shimmer
-        float shimmer = sin(uv.x * 12.0 + uv.y * 6.0 + u_time * 0.8) * 0.03 + 0.03;
-        vec3 finalColor = mix(base, colorLime * 0.35, shimmer);
-        finalColor += glow * colorLime * 0.55;
+        float shimmer = sin(uv.x * 12.0 + uv.y * 6.0 + u_time * 0.8) * 0.04 + 0.04;
+        vec3 finalColor = mix(base, colorLime * 0.45, shimmer);
+        finalColor += glow * colorLime * 0.80;
 
         gl_FragColor = vec4(finalColor, 1.0);
       }
@@ -198,7 +198,7 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
   }, [interactive]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none opacity-45 mix-blend-screen overflow-hidden">
+    <div className="fixed inset-0 z-0 pointer-events-none opacity-60 mix-blend-screen overflow-hidden">
       <canvas
         ref={canvasRef}
         id="kinetic-shader-canvas"
