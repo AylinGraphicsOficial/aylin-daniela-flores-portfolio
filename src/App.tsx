@@ -31,14 +31,26 @@ const CVViewerModal = lazy(() =>
 );
 
 export default function App() {
-  const [lang, setLang] = useState<Language>('en');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aylin_portfolio_lang');
+      if (saved === 'en' || saved === 'es') return saved;
+    }
+    return 'es'; // Initial default: Spanish
+  });
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<Project | null>(null);
   const [isProjectPlannerOpen, setIsProjectPlannerOpen] = useState<boolean>(false);
   const [isCVModalOpen, setIsCVModalOpen] = useState<boolean>(false);
 
-  // Toggle language between EN and ES
+  // Toggle language between ES and EN
   const toggleLanguage = () => {
-    setLang((prev) => (prev === 'en' ? 'es' : 'en'));
+    setLang((prev) => {
+      const next = prev === 'es' ? 'en' : 'es';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aylin_portfolio_lang', next);
+      }
+      return next;
+    });
   };
 
   // Close modals on Escape key
