@@ -54,8 +54,31 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Smooth Scroll Reveal Intersection Observer
+  useEffect(() => {
+    const reveals = document.querySelectorAll('.scroll-reveal');
+    if (!reveals.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      {
+        threshold: 0.08,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
+
+    reveals.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="relative min-h-screen bg-[#0A0F14] text-white selection:bg-[#00E5FF] selection:text-[#0A0F14]">
+    <div className="relative min-h-screen bg-[#050B05] text-white selection:bg-[#76FF03] selection:text-[#050B05]">
       {/* Dynamic Background GLSL Liquid WebGL Shader */}
       <WebGLFluidShader interactive={true} />
 
@@ -69,33 +92,47 @@ export default function App() {
         onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
       />
 
-      {/* Main Content Layout */}
+      {/* Main Content Layout with Smooth Scroll Reveal Transitions */}
       <main className="relative z-10 flex flex-col space-y-4">
-        <HeroSection
-          lang={lang}
-          onOpenCVModal={() => setIsCVModalOpen(true)}
-          onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
-        />
+        <div className="scroll-reveal is-visible">
+          <HeroSection
+            lang={lang}
+            onOpenCVModal={() => setIsCVModalOpen(true)}
+            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+          />
+        </div>
 
-        <AboutSection lang={lang} />
+        <div className="scroll-reveal">
+          <AboutSection lang={lang} />
+        </div>
 
-        <Suspense fallback={null}>
-          <Interactive3DViewer lang={lang} />
-        </Suspense>
+        <div className="scroll-reveal">
+          <Suspense fallback={null}>
+            <Interactive3DViewer lang={lang} />
+          </Suspense>
+        </div>
 
-        <WorksBentoGrid
-          lang={lang}
-          onSelectProject={(project) => setSelectedCaseStudy(project)}
-        />
+        <div className="scroll-reveal">
+          <WorksBentoGrid
+            lang={lang}
+            onSelectProject={(project) => setSelectedCaseStudy(project)}
+          />
+        </div>
 
-        <ExperienceTimeline lang={lang} />
+        <div className="scroll-reveal">
+          <ExperienceTimeline lang={lang} />
+        </div>
 
-        <StatsAndMilestones lang={lang} />
+        <div className="scroll-reveal">
+          <StatsAndMilestones lang={lang} />
+        </div>
 
-        <ContactSection
-          lang={lang}
-          onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
-        />
+        <div className="scroll-reveal">
+          <ContactSection
+            lang={lang}
+            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+          />
+        </div>
       </main>
 
       {/* Studio Kinetic Footer */}

@@ -31,7 +31,7 @@ export const StatsAndMilestones: React.FC<StatsAndMilestonesProps> = ({ lang }) 
           {statsData.map((stat, idx) => (
             <div
               key={idx}
-              className="glass-panel p-8 rounded-2xl kinetic-hover flex flex-col justify-between border border-white/10 relative overflow-hidden group"
+              className="arcade-card p-8 rounded-2xl kinetic-hover flex flex-col justify-between relative overflow-hidden group"
             >
               {/* Corner accent */}
               <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#76FF03]/20 to-transparent pointer-events-none" />
@@ -77,7 +77,7 @@ export const StatsAndMilestones: React.FC<StatsAndMilestonesProps> = ({ lang }) 
           {testimonialsData.map((test) => (
             <div
               key={test.id}
-              className="glass-panel p-8 rounded-2xl flex flex-col justify-between border border-white/10 hover:border-[#76FF03]/40 transition-all relative"
+              className="arcade-card p-8 rounded-2xl flex flex-col justify-between hover:border-[#76FF03]/60 transition-all relative"
             >
               <Quote className="w-8 h-8 text-[#76FF03]/40 mb-4" />
 

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, Globe, Menu, X, Sparkles } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
-import { playClickSound, toggleAudio } from '../utils/audio';
+import { playClickSound, toggleAudio, play8BitArcadeSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
+import { GooeyNav } from './GooeyNav';
 
 interface TopNavBarProps {
   lang: Language;
@@ -32,7 +33,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   const handleSoundToggle = () => {
     const nextState = toggleAudio();
     setSoundOn(nextState);
-    if (nextState) playClickSound();
+    if (nextState) play8BitArcadeSound();
   };
 
   const navLinks = [
@@ -49,15 +50,17 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-[#050B05]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl py-3.5'
-          : 'bg-transparent py-5 md:py-6 border-b border-white/5'
+          ? 'bg-[#050B05]/92 backdrop-blur-md border-b border-white/10 shadow-2xl py-3'
+          : 'bg-transparent py-4 md:py-5 border-b border-white/5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
         {/* Brand Logo */}
         <a
           href="#"
-          onClick={playClickSound}
+          onClick={() => {
+            play8BitArcadeSound();
+          }}
           className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white"
         >
           <img src="/logo.webp" alt="Aylin Flores Logo" width={36} height={36} className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
@@ -71,19 +74,16 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
         </a>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center space-x-7">
-          {navLinks.map(link => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={playClickSound}
-              className="text-xs font-bold tracking-[0.15em] text-gray-300 hover:text-[#76FF03] transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-[#76FF03] hover:after:w-full after:transition-all after:duration-300"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
+        {/* Desktop 8-Bit Pixel Arcade Navigation */}
+        <div className="hidden lg:flex items-center">
+          <GooeyNav
+            items={navLinks}
+            particleCount={22}
+            particleDistances={[80, 15]}
+            animationTime={500}
+            timeVariance={200}
+          />
+        </div>
 
         {/* Right Action Tools: Sound, Language, CTA */}
         <div className="hidden sm:flex items-center space-x-3">

@@ -62,7 +62,7 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                 <div className="w-full md:w-[46%] pl-12 md:pl-0">
                   <div
                     onClick={() => toggleExpand(item.id)}
-                    className="glass-panel p-6 rounded-2xl cursor-pointer kinetic-hover border border-white/10 hover:border-[#76FF03]/60 transition-all"
+                    className="arcade-card p-6 rounded-2xl cursor-pointer kinetic-hover hover:border-[#76FF03]/80 transition-all"
                   >
                     {/* Role & Company */}
                     <div className="flex justify-between items-start mb-2">

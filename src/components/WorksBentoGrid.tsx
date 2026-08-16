@@ -83,7 +83,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 playClickSound();
                 onSelectProject(project);
               }}
-              className={`${colSpan} glass-panel rounded-2xl overflow-hidden group cursor-pointer relative kinetic-hover flex flex-col justify-between min-h-[360px] md:min-h-[420px] bg-[#081008]/90 border border-white/10`}
+              className={`${colSpan} arcade-card rounded-2xl overflow-hidden group cursor-pointer relative kinetic-hover flex flex-col justify-between min-h-[360px] md:min-h-[420px]`}
             >
               {/* Background gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#050B05] via-[#050B05]/40 to-transparent z-10 opacity-90 group-hover:opacity-80 transition-opacity" />
