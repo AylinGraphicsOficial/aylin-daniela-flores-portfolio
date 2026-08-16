@@ -45,7 +45,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
   const handleCopyEmail = () => {
     playClickSound();
-    navigator.clipboard.writeText('aylin.flores.design@gmail.com');
+    navigator.clipboard.writeText('Floresaylin2@gmail.com');
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 3000);
   };
@@ -117,7 +117,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               </SpecularButton>
             </div>
             <p className="text-lg md:text-xl font-bold font-mono text-white select-all">
-              aylin.flores.design@gmail.com
+              Floresaylin2@gmail.com
             </p>
           </div>
 

@@ -130,102 +130,103 @@ export const projectsData: Project[] = [
 export const experienceData: ExperienceItem[] = [
   {
     id: 'exp-1',
-    role: 'Senior Graphic Designer & 3D Lead',
-    company: 'Studio Kinetic & Apex Media',
-    location: 'San Salvador, El Salvador (Hybrid / Global)',
-    period: '2020 - PRESENT',
-    isCurrent: true,
-    description: 'Directing creative visual direction, brand strategy, and complex 3D product visualizations for national and international brands.',
+    role: 'Directora del Área de Diseño Gráfico',
+    company: 'Imprenta Bifronte',
+    location: 'El Salvador',
+    period: '2024',
+    isCurrent: false,
+    description: 'Dirección, gestión y ejecución integral del área de diseño gráfico, responsable del desarrollo completo de las piezas visuales y producción publicitaria.',
     responsibilities: [
-      'Spearheading 3D asset pipeline development for automotive, luxury packaging, and digital fintech clients.',
-      'Mentoring junior designers in 3D topography, UV mapping, PBR rendering, and brand guidelines construction.',
-      'Collaborating with global engineering teams to optimize 3D WebGL assets for real-time web experiences.',
-      'Achieving 99% client milestone satisfaction across 40+ delivered corporate identity and 3D visualization projects.'
+      'Creación de artes para camisetas, tazas personalizadas, banners, banderas, anuncios y materiales publicitarios adaptados a distintos formatos y soportes.',
+      'Preparación y optimización de archivos finales en formatos y perfiles de color (CMYK) para impresión, garantizando fidelidad cromática y compatibilidad técnica.',
+      'Realización de retoques, ajustes de color, correcciones visuales y optimización de diseño para asegurar resultados de alta calidad.',
+      'Coordinación directa con el área de producción, supervisando la correcta aplicación de diseños, estándares visuales y calidad final de los productos.'
     ],
-    toolsUsed: ['Blender', 'Cinema 4D', 'Substance 3D', 'Illustrator', 'Photoshop', 'After Effects', 'Figma']
+    toolsUsed: ['Adobe Illustrator', 'Adobe Photoshop', 'Pre-prensa / CMYK', 'Diseño Publicitario', 'Merchandising']
   },
   {
     id: 'exp-2',
-    role: '3D Modeler & Visual Illustrator',
-    company: 'Vanguard Creative Agency',
-    location: 'San Salvador, El Salvador',
-    period: '2018 - 2020',
-    isCurrent: false,
-    description: 'Specialized in photorealistic 3D modeling for advertising campaigns and bespoke digital illustration.',
+    role: 'Diseñadora Gráfica & Modeladora 3D Freelance',
+    company: 'Proyectos Independientes',
+    location: 'Sonsonate, El Salvador (Remoto / Global)',
+    period: '2020 - 2026',
+    isCurrent: true,
+    description: 'Desarrollo de proyectos de diseño gráfico y comunicación visual: branding, logotipos, material publicitario, piezas para redes sociales, modelado 3D y edición de video.',
     responsibilities: [
-      'Developed high-fidelity 3D modeling assets, textures, and lighting setups for commercial print and television spots.',
-      'Created custom vector illustration sets and typography lockups for lifestyle and consumer packaged goods.',
-      'Designed interactive trade show kiosk visual graphics and digital signage.'
+      'Desarrollo de identidades visuales integrales, diseño de logotipos, material corporativo y branding para marcas comerciales.',
+      'Diseño de material publicitario físico y digital (folletos, flyers, menús digitales y físicos) y piezas de alto impacto para redes sociales.',
+      'Modelado 3D de producto y piezas conceptuales, junto con edición de video comercial y promocional.',
+      'Gestión integral de proyectos desde la conceptualización hasta la entrega final, asegurando calidad visual, coherencia gráfica y satisfacción del cliente.'
     ],
-    toolsUsed: ['Maya', 'ZBrush', 'Adobe CC Suite', 'Cinema 4D', 'Octane Render']
+    toolsUsed: ['Blender', 'ZBrush', 'Adobe Illustrator', 'Adobe Photoshop', 'After Effects', 'CapCut', 'DaVinci Resolve']
   },
   {
     id: 'exp-3',
-    role: 'Junior Graphic & Brand Designer',
-    company: 'Pixel Nova Studio',
+    role: 'Atención al Cliente y Gestión Comercial',
+    company: 'Lácteos Adriana',
     location: 'El Salvador',
-    period: '2016 - 2018',
+    period: '2018 - 2024',
     isCurrent: false,
-    description: 'Assisted senior directors in layout composition, editorial design, photo retouching, and vector identity guidelines.',
+    description: 'Responsable de atención directa, asesoría personalizada, manejo integral de ventas y control de calidad operativa y comercial.',
     responsibilities: [
-      'Executed high-precision photo color correction, retouching, and masking for fashion and retail catalogs.',
-      'Designed print-ready collateral including brochures, stationery kits, packaging, and billboard assets.',
-      'Managed brand asset repositories and generated vector iconography sets.'
+      'Manejo integral del proceso de ventas, desde la orientación y asesoría personalizada hasta el cierre exitoso y fidelización del cliente.',
+      'Resolución de situaciones complejas, gestión de reclamos y seguimiento postventa manteniendo altos estándares de servicio.',
+      'Participación activa en toma de decisiones comerciales, selección y compra de insumos, materiales y productos necesarios para el negocio.',
+      'Organización de pedidos, comunicación efectiva con clientes y control riguroso de calidad en la entrega final.'
     ],
-    toolsUsed: ['Illustrator', 'Photoshop', 'InDesign', 'CorelDraw', 'Lightroom']
+    toolsUsed: ['Gestión Comercial', 'Atención al Cliente', 'Resolución de Conflictos', 'Control de Calidad', 'Microsoft Excel']
   }
 ];
 
 export const skillCategoriesData: SkillCategory[] = [
   {
-    id: '3d-modeling',
-    name: '3D Modeling & Visualization',
-    icon: 'view_in_ar',
-    description: 'High-poly sculpting, parametric surface modeling, procedural texturing, and photorealistic PBR rendering.',
-    skills: [
-      { name: 'Hard-Surface Modeling', level: 96, experience: '6+ yrs', isHighlight: true },
-      { name: 'Blender & Cinema 4D', level: 95, experience: '6 yrs', isHighlight: true },
-      { name: 'Substance 3D Painter & Texturing', level: 90, experience: '5 yrs' },
-      { name: 'Lighting, HDR & Octane/Redshift', level: 92, experience: '5 yrs', isHighlight: true },
-      { name: 'ZBrush Digital Sculpting', level: 85, experience: '4 yrs' },
-      { name: 'Real-time WebGL/GLTF Optimization', level: 88, experience: '3 yrs' }
-    ]
-  },
-  {
-    id: 'branding',
-    name: 'Branding & Corporate Identity',
+    id: 'branding-graphic',
+    name: 'Branding & Identidad Visual',
     icon: 'branding_watermark',
-    description: 'Transforming brand visions into recognizable, timeless identity systems, typographic rules, and complete style guides.',
+    description: 'Creación de identidades visuales, logotipos, material corporativo, piezas promocionales y artes finales para impresión.',
     skills: [
-      { name: 'Logo Design & Vector Architecture', level: 98, experience: '6+ yrs', isHighlight: true },
-      { name: 'Brand Strategy & Manual Guidelines', level: 94, experience: '6 yrs', isHighlight: true },
-      { name: 'Typography & Layout Systems', level: 95, experience: '6+ yrs' },
-      { name: 'Design Systems & Figma Componentry', level: 90, experience: '4 yrs' },
-      { name: 'Stationery & Packaging Dielines', level: 92, experience: '5 yrs' }
+      { name: 'Adobe Illustrator', level: 98, experience: '6+ años', isHighlight: true },
+      { name: 'Adobe Photoshop', level: 96, experience: '6+ años', isHighlight: true },
+      { name: 'Creación de Logotipos & Branding', level: 98, experience: '6+ años', isHighlight: true },
+      { name: 'Artes Finales & Pre-prensa (CMYK)', level: 95, experience: '5+ años', isHighlight: true },
+      { name: 'Material Publicitario & Banners', level: 94, experience: '5+ años' },
+      { name: 'Canva & Diseño Ágil', level: 92, experience: '4+ años' }
     ]
   },
   {
-    id: 'illustration',
-    name: 'Digital Art & Vector Illustration',
-    icon: 'draw',
-    description: 'Custom key visuals, conceptual digital paintings, surreal 3D compositions, and crisp vector iconography.',
+    id: '3d-modeling',
+    name: 'Modelado 3D & Esculpido',
+    icon: 'view_in_ar',
+    description: 'Modelado tridimensional, esculpido digital de geometrías, texturizado e iluminación para visualización de producto.',
     skills: [
-      { name: 'Adobe Illustrator Mastery', level: 98, experience: '6+ yrs', isHighlight: true },
-      { name: 'Photoshop Digital Painting & Compositing', level: 95, experience: '6+ yrs', isHighlight: true },
-      { name: 'Concept Art & Moodboards', level: 90, experience: '5 yrs' },
-      { name: 'Isometric & Technical Drawing', level: 88, experience: '4 yrs' }
+      { name: 'Blender 3D Modeling', level: 92, experience: '5+ años', isHighlight: true },
+      { name: 'ZBrush Esculpido Digital', level: 88, experience: '4+ años', isHighlight: true },
+      { name: 'Iluminación & Renderizado', level: 90, experience: '4+ años' },
+      { name: 'Visualización de Producto 3D', level: 91, experience: '4+ años' }
     ]
   },
   {
-    id: 'motion',
-    name: 'Motion Graphics & Video',
+    id: 'video-motion',
+    name: 'Edición de Video & Redes',
     icon: 'movie_edit',
-    description: 'Dynamic kinetic typography, 3D broadcast animation, promo loops, and post-production video editing.',
+    description: 'Edición de video comercial, motion graphics, animación para redes sociales y postproducción audiovisual.',
     skills: [
-      { name: 'After Effects & Motion Design', level: 90, experience: '5 yrs', isHighlight: true },
-      { name: 'Kinetic Typography Sync', level: 92, experience: '5 yrs' },
-      { name: 'Premiere Pro Video Editing', level: 88, experience: '5 yrs' },
-      { name: 'Sound FX & Pacing Timing', level: 85, experience: '4 yrs' }
+      { name: 'Adobe After Effects', level: 90, experience: '5+ años', isHighlight: true },
+      { name: 'CapCut Video Editing', level: 94, experience: '4+ años', isHighlight: true },
+      { name: 'DaVinci Resolve', level: 86, experience: '3+ años' },
+      { name: 'Contenido Dinámico para Redes', level: 95, experience: '5+ años' }
+    ]
+  },
+  {
+    id: 'commercial-mgmt',
+    name: 'Gestión Comercial & Calidad',
+    icon: 'award',
+    description: 'Atención personalizada, control de calidad, negociación, organización de pedidos y gestión integral de proyectos.',
+    skills: [
+      { name: 'Atención al Cliente & Asesoría', level: 98, experience: '6+ años', isHighlight: true },
+      { name: 'Control de Calidad en Entregas', level: 96, experience: '6+ años', isHighlight: true },
+      { name: 'Gestión de Proyectos & Plazos', level: 95, experience: '6+ años' },
+      { name: 'Microsoft Excel & Gestión', level: 88, experience: '5+ años' }
     ]
   }
 ];
@@ -234,58 +235,24 @@ export const statsData: StatItem[] = [
   {
     value: 6,
     suffix: '+',
-    label: 'Years of Mastery',
-    description: 'Delivering world-class graphic design & 3D visualizations.'
+    label: 'Años de Trayectoria',
+    description: 'Diseño gráfico publicitario, branding y modelado 3D.'
   },
   {
-    value: 120,
+    value: 100,
+    suffix: '%',
+    label: 'Fidelidad Cromática',
+    description: 'Artes finales optimizados para impresión técnica.'
+  },
+  {
+    value: 50,
     suffix: '+',
-    label: '3D Projects Rendered',
-    description: 'Automotive, packaging, consumer electronics, and surreal art.'
-  },
-  {
-    value: 45,
-    suffix: '+',
-    label: 'Brand Identities',
-    description: 'Full corporate guidelines, logo systems, and visual kits.'
-  },
-  {
-    value: 99,
-    suffix: '.4%',
-    label: 'Client Satisfaction',
-    description: 'Long-term agency partnerships and international clients.'
+    label: 'Marcas & Proyectos',
+    description: 'Identidades visuales, logotipos y material corporativo.'
   }
 ];
 
-export const testimonialsData: Testimonial[] = [
-  {
-    id: 'test-1',
-    quote: "Aylin's 3D work blew our executive team away. The level of realistic materials and meticulous attention to lighting on our flagship product was second to none.",
-    author: 'Carlos Morales',
-    role: 'Creative Director',
-    company: 'Apex Auto Studio',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    projectRef: 'Retro Mini Classic 3D Render'
-  },
-  {
-    id: 'test-2',
-    quote: "She delivered an entire corporate identity overhaul in record time without compromising an ounce of quality. Her fluid kinetic style defined our new market presence.",
-    author: 'Elena Vance',
-    role: 'Head of Marketing',
-    company: 'Nexus Global Financial',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
-    projectRef: 'Nexus Fintech Corporate Identity System'
-  },
-  {
-    id: 'test-3',
-    quote: "Working with Aylin is effortless. She understands brand storytelling and transforms complex briefs into striking 3D visual reality. Highly recommended!",
-    author: 'Marcus Chen',
-    role: 'Founder & CEO',
-    company: 'Lumina Brews',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-    projectRef: 'Lumina Craft Botanical Beverage'
-  }
-];
+export const testimonialsData: Testimonial[] = [];
 
 export const translations = {
   en: {
@@ -304,19 +271,19 @@ export const translations = {
       titleLine1: 'AYLIN',
       titleLine2: 'DANIELA',
       titleLine3: 'FLORES',
-      subtitle: 'Graphic Designer & 3D Modeler based in El Salvador. Specializing in branding, 3D visualization, and digital kinetic experiences with 6+ years of professional mastery.',
-      badgeAvailable: 'AVAILABLE FOR Q3 / Q4 PROJECTS',
+      subtitle: 'Graphic Designer | 3D Modeler | Branding | Video Editor based in Sonsonate, El Salvador. Bachelor of Fine Arts (Graphic Design Major) from Universidad de El Salvador with 6+ years of professional expertise.',
+      badgeAvailable: 'AVAILABLE FOR NEW PROJECTS',
       viewProjects: 'VIEW PROJECTS',
       downloadCv: 'VIEW CV / RESUME',
       startProjectBtn: 'START PROJECT'
     },
     about: {
       basedIn: 'BASED IN',
-      location: 'EL SALVADOR',
+      location: 'SONSONATE, EL SALVADOR',
       titleSub: 'THE',
       titleHighlight: 'CREATIVE',
-      titleEnd: 'MIND',
-      bio: 'I am a passionate graphic designer with over 6 years of experience in visual communication, branding, and 3D modeling. I thrive on translating abstract concepts into tangible, striking visual solutions that captivate audiences.',
+      titleEnd: 'PROFILE',
+      bio: 'Graphic designer with solid experience in brand identity creation, advertising design, and social media content. Specialized in logo design, corporate collateral, promotional assets, and prepress print production. Proficient in professional design tools and 3D modeling. Responsible, creative, organized, and focused on visual quality and client satisfaction.',
       skillsTabTitle: 'CORE CAPABILITIES',
       proficiency: 'Proficiency Level'
     },
@@ -337,7 +304,7 @@ export const translations = {
     },
     experience: {
       title: 'EXPERIENCE & JOURNEY',
-      subtitle: 'Over 6 years of visual communication and 3D modeling excellence.'
+      subtitle: 'Professional background across design direction, freelance brand projects, and commercial quality management.'
     },
     stats: {
       title: 'BY THE NUMBERS',
@@ -345,9 +312,9 @@ export const translations = {
     },
     contact: {
       title: "LET'S CREATE TOGETHER",
-      subtitle: 'Have a project in mind or want to collaborate on 3D visualization or brand identity? Send a message or use the interactive project estimator.',
-      directEmail: 'Direct Email',
-      localTime: 'Local Time (El Salvador - UTC-6)',
+      subtitle: 'Have a project in mind or want to collaborate on brand identity, advertising design, 3D visualization, or video editing? Send a message or use the interactive project estimator.',
+      directEmail: 'Floresaylin2@gmail.com',
+      localTime: 'Local Time (Sonsonate, El Salvador - UTC-6)',
       namePlaceholder: 'Your Full Name',
       emailPlaceholder: 'your.email@company.com',
       serviceInterest: 'Service of Interest',
@@ -381,19 +348,19 @@ export const translations = {
       titleLine1: 'AYLIN',
       titleLine2: 'DANIELA',
       titleLine3: 'FLORES',
-      subtitle: 'Diseñadora Gráfica & Modeladora 3D radicada en El Salvador. Especializada en branding, visualización 3D y experiencias cinéticas digitales con más de 6 años de maestría profesional.',
-      badgeAvailable: 'DISPONIBLE PARA PROYECTOS T3 / T4',
+      subtitle: 'Diseñadora Gráfica | Modeladora 3D | Branding | Edición de Video radicada en Sonsonate, El Salvador. Licenciada en Artes Plásticas (Opción Diseño Gráfico) por la Universidad de El Salvador.',
+      badgeAvailable: 'DISPONIBLE PARA NUEVOS PROYECTOS',
       viewProjects: 'VER PROYECTOS',
       downloadCv: 'VER CV / RESUMEN',
       startProjectBtn: 'INICIAR PROYECTO'
     },
     about: {
       basedIn: 'RADICADA EN',
-      location: 'EL SALVADOR',
-      titleSub: 'LA',
-      titleHighlight: 'MENTE CREATIVA',
-      titleEnd: '',
-      bio: 'Soy una apasionada diseñadora gráfica con más de 6 años de experiencia en comunicación visual, creación de marcas y modelado 3D. Me apasiona transformar conceptos abstractos en soluciones visuales impactantes y tangibles.',
+      location: 'SONSONATE, EL SALVADOR',
+      titleSub: 'EL',
+      titleHighlight: 'PERFIL',
+      titleEnd: 'PROFESIONAL',
+      bio: 'Diseñadora gráfica con experiencia en creación de identidades visuales, diseño publicitario y contenido para redes sociales. Especializada en logotipos, material corporativo, piezas promocionales y artes finales para impresión. Manejo de herramientas de diseño profesional y conocimientos en modelado 3D. Responsable, creativa, organizada y orientada a la calidad visual y satisfacción del cliente.',
       skillsTabTitle: 'CAPACIDADES CLAVE',
       proficiency: 'Nivel de Dominio'
     },
@@ -414,7 +381,7 @@ export const translations = {
     },
     experience: {
       title: 'EXPERIENCIA Y TRAYECTORIA',
-      subtitle: 'Más de 6 años de excelencia en comunicación visual y modelado 3D.'
+      subtitle: 'Trayectoria profesional en dirección de diseño, proyectos independientes y gestión de calidad.'
     },
     stats: {
       title: 'EN NÚMEROS',
@@ -422,9 +389,9 @@ export const translations = {
     },
     contact: {
       title: 'CREEMOS JUNTOS',
-      subtitle: '¿Tienes un proyecto en mente o deseas colaborar en visualización 3D o identidad de marca? Envíame un mensaje o utiliza el estimador de proyectos.',
-      directEmail: 'Correo Directo',
-      localTime: 'Hora Local (El Salvador - UTC-6)',
+      subtitle: '¿Tienes un proyecto en mente o deseas colaborar en identidad visual, diseño publicitario, modelado 3D o edición de video? Envíame un mensaje o utiliza el estimador de proyectos.',
+      directEmail: 'Floresaylin2@gmail.com',
+      localTime: 'Hora Local (Sonsonate, El Salvador - UTC-6)',
       namePlaceholder: 'Tu Nombre Completo',
       emailPlaceholder: 'tu.correo@empresa.com',
       serviceInterest: 'Servicio de Interés',

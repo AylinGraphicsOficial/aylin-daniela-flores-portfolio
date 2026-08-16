@@ -93,26 +93,28 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
           </p>
 
           <p className="text-sm text-gray-400 leading-relaxed">
-            With a multidisciplinary foundation covering photorealistic 3D modeling, high-poly sculpting, automotive topology, and holistic brand systems, I bridge the gap between creative visual artistry and real-world brand impact.
+            {lang === 'es'
+              ? 'Con sólida formación en la Universidad de El Salvador y dominio de herramientas de diseño profesional, modelado 3D y edición audiovisual, transformo ideas en identidades visuales impactantes, artes finales con fidelidad cromática y contenido que cautiva audiencias.'
+              : 'Backed by academic training at Universidad de El Salvador and mastery in professional design, 3D modeling, and audiovisual postproduction, I transform ideas into striking visual identities, print-ready files, and compelling digital content.'}
           </p>
 
           {/* Software Stack Badges */}
           <div className="pt-2">
             <span className="text-xs font-mono text-gray-400 block mb-3 uppercase tracking-wider">
-              TECH & SOFTWARE STACK
+              {lang === 'es' ? 'HERRAMIENTAS & SOFTWARE DOMINADO' : 'TECH & SOFTWARE STACK'}
             </span>
             <div className="flex flex-wrap gap-2">
               {[
-                'Blender 4.x',
-                'Cinema 4D',
-                'Substance 3D',
-                'Octane / Redshift',
-                'ZBrush',
                 'Adobe Illustrator',
-                'Photoshop',
-                'After Effects',
-                'Figma',
-                'WebGL 3D',
+                'Adobe Photoshop',
+                'Adobe After Effects',
+                'Blender 3D',
+                'ZBrush',
+                'CapCut',
+                'DaVinci Resolve',
+                'Canva',
+                'Pre-prensa (CMYK)',
+                'Microsoft Excel',
               ].map(tool => (
                 <span
                   key={tool}

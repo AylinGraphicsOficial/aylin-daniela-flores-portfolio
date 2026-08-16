@@ -74,28 +74,28 @@ export const CVViewerModal: React.FC<CVViewerModalProps> = ({
           <div className="border-b border-white/15 pb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase mb-1">
-                AYLIN DANIELA FLORES
+                AYLIN DANIELA FLORES CALLES
               </h1>
               <p className="text-sm font-bold text-[#76FF03] font-mono tracking-wide">
-                SENIOR GRAPHIC DESIGNER & 3D MODELER (6+ YEARS)
+                DISEÑADORA GRÁFICA | MODELADORA 3D | BRANDING | EDICIÓN DE VIDEO
               </p>
               <p className="text-xs text-gray-400 max-w-xl mt-2 leading-relaxed">
-                Specializing in hard-surface 3D modeling, automotive visualization, corporate identity architecture, and digital kinetic experiences based in El Salvador.
+                Especializada en creación de identidades visuales, diseño publicitario, modelado 3D, artes finales para impresión (CMYK) y contenido para redes sociales.
               </p>
             </div>
 
             <div className="space-y-1.5 text-xs font-mono text-gray-300">
               <div className="flex items-center space-x-2">
                 <MapPin className="w-3.5 h-3.5 text-[#76FF03]" />
-                <span>San Salvador, El Salvador (UTC-6)</span>
+                <span>Sonsonate, El Salvador</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-3.5 h-3.5 text-[#76FF03]" />
-                <span>aylin.flores.design@gmail.com</span>
+                <span>Floresaylin2@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Globe className="w-3.5 h-3.5 text-[#76FF03]" />
-                <span>studio-kinetic.portfolio</span>
+                <span>Tel: +503 7681-9344</span>
               </div>
             </div>
           </div>
@@ -104,7 +104,7 @@ export const CVViewerModal: React.FC<CVViewerModalProps> = ({
           <div>
             <h3 className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-widest mb-4 flex items-center space-x-2">
               <Award className="w-4 h-4" />
-              <span>PROFESSIONAL EXPERIENCE</span>
+              <span>EXPERIENCIA LABORAL</span>
             </h3>
 
             <div className="space-y-6">
@@ -141,7 +141,7 @@ export const CVViewerModal: React.FC<CVViewerModalProps> = ({
           <div>
             <h3 className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-widest mb-4 flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4" />
-              <span>TECHNICAL PROFICIENCIES</span>
+              <span>HABILIDADES & SOFTWARE</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,27 +165,41 @@ export const CVViewerModal: React.FC<CVViewerModalProps> = ({
             </div>
           </div>
 
-          {/* Education & Language */}
+          {/* Education & References */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/15">
             <div>
               <h4 className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-wider mb-2">
-                EDUCATION & DEGREES
+                EDUCACIÓN
               </h4>
-              <div className="text-xs text-gray-300 space-y-1">
-                <p className="font-bold text-white">Bachelor of Graphic Design & Visual Communication</p>
-                <p className="text-gray-400">Universidad Dr. José Matías Delgado • El Salvador</p>
-                <p className="text-[11px] text-gray-500 font-mono">Graduated with High Honors (Cum Laude)</p>
+              <div className="text-xs text-gray-300 space-y-2">
+                <div>
+                  <p className="font-bold text-white">Licenciatura en Artes Plásticas (Opción: Diseño Gráfico)</p>
+                  <p className="text-gray-400">Universidad de El Salvador • Completado 2025</p>
+                </div>
+                <div>
+                  <p className="font-bold text-white">Certificación de Grado Digital 1 (Con Honores)</p>
+                  <p className="text-gray-400">Ministerio de Educación, Gobierno de El Salvador • 2021</p>
+                </div>
+                <div>
+                  <p className="font-bold text-white">Bachillerato General</p>
+                  <p className="text-gray-400">Colegio Centro América • Completado 2017</p>
+                </div>
               </div>
             </div>
 
             <div>
               <h4 className="text-xs font-bold text-[#76FF03] uppercase font-mono tracking-wider mb-2">
-                LANGUAGES & AVAILABILITY
+                REFERENCIAS LABORALES
               </h4>
-              <div className="text-xs text-gray-300 space-y-1">
-                <p><span className="text-white font-bold">Spanish:</span> Native Proficiency</p>
-                <p><span className="text-white font-bold">English:</span> Professional Working Proficiency (C1)</p>
-                <p className="text-[11px] text-[#76FF03] font-mono mt-1">Available for Remote Global Contracts</p>
+              <div className="text-xs text-gray-300 space-y-2">
+                <div>
+                  <p className="font-bold text-white">Zuyapa Vanegas — Fundadora y Dueña</p>
+                  <p className="text-gray-400">Imprenta Bifronte • Tel: +503 7639-1232</p>
+                </div>
+                <div>
+                  <p className="font-bold text-white">Reina Calles — Dueña</p>
+                  <p className="text-gray-400">Lácteos Adriana • Tel: +503 7548-7738</p>
+                </div>
               </div>
             </div>
           </div>
