@@ -57,33 +57,74 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       onMouseLeave={handleMouseLeave}
       className="relative flex flex-col items-center px-4 md:px-8 max-w-7xl mx-auto overflow-hidden pt-28 md:pt-36 pb-20"
     >
-      {/* Centered Brand Logo + CTA Heading (pushes the name title section down) */}
-      <div className="relative z-10 flex flex-col items-center text-center mb-16 md:mb-24">
-        {/* Soft ambient glow in the logo's brand color */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-52 h-52 bg-[#76FF03]/15 rounded-full blur-[90px] pointer-events-none animate-pulse-glow" />
+      {/* Grand Central 3D Hands + Logo Masterpiece Showcase */}
+      <div className="relative z-10 w-full flex flex-col items-center text-center mb-24 md:mb-36 pt-6 md:pt-10">
+        {/* Deep ambient glow in kinetic neon green */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 md:w-[450px] h-80 md:h-[450px] bg-[#76FF03]/18 rounded-full blur-[130px] pointer-events-none animate-pulse-glow" />
 
-        <div
-          className="group relative w-36 md:w-44 aspect-[2519/2743] mb-7 [filter:drop-shadow(0_0_16px_rgba(118,255,3,0.25))] hover:[filter:drop-shadow(0_0_26px_rgba(118,255,3,0.42))]"
-          style={{
-            transform: `translate(${drift.x}px, ${drift.y}px) rotate(${drift.r}deg)`,
-            transition: 'transform 2.6s ease-in-out, filter 0.6s ease',
-          }}
-        >
-          <img
-            src="/logo.webp"
-            alt="Aylin Flores - Isotipo"
-            width={2519}
-            height={2743}
-            className="w-full h-full object-contain"
-          />
+        {/* 3D Hands & Central Floating Logo Container */}
+        <div className="relative w-full max-w-5xl h-[340px] sm:h-[420px] md:h-[500px] lg:h-[560px] flex items-center justify-center mb-6 select-none">
+          {/* Left Hand reaching for logo */}
+          <div
+            className="absolute left-0 sm:left-4 md:left-12 lg:left-16 bottom-0 sm:bottom-4 md:bottom-8 w-44 sm:w-60 md:w-80 lg:w-96 aspect-[840/1376] z-10 pointer-events-none animate-hand-left"
+            style={{
+              transform: `translate(${tilt.x * 0.9}px, ${tilt.y * 0.9}px)`,
+              transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <img
+              src="/images/mano-2.webp"
+              alt="Mano Izquierda 3D - Arte Kinetic"
+              width={840}
+              height={1376}
+              className="w-full h-full object-contain [filter:drop-shadow(0_20px_35px_rgba(0,0,0,0.85))_drop-shadow(0_0_15px_rgba(118,255,3,0.15))]"
+            />
+          </div>
+
+          {/* Center 3D Logo */}
+          <div
+            className="group relative z-20 w-44 sm:w-56 md:w-64 lg:w-72 aspect-[2519/2743] cursor-pointer"
+            style={{
+              transform: `translate(${drift.x + tilt.x * 0.4}px, ${drift.y + tilt.y * 0.4}px) rotate(${drift.r}deg)`,
+              transition: 'transform 2.4s ease-in-out, filter 0.6s ease',
+            }}
+          >
+            <img
+              src="/logo.webp"
+              alt="Aylin Flores - Isotipo 3D"
+              width={2519}
+              height={2743}
+              className="w-full h-full object-contain [filter:drop-shadow(0_0_24px_rgba(118,255,3,0.45))] group-hover:[filter:drop-shadow(0_0_40px_rgba(118,255,3,0.75))] group-hover:scale-105 transition-all duration-500"
+            />
+          </div>
+
+          {/* Right Hand reaching for logo */}
+          <div
+            className="absolute right-0 sm:right-4 md:right-12 lg:right-16 bottom-0 sm:bottom-4 md:bottom-8 w-44 sm:w-60 md:w-80 lg:w-96 aspect-[840/1376] z-10 pointer-events-none animate-hand-right"
+            style={{
+              transform: `translate(${tilt.x * 0.9}px, ${tilt.y * 0.9}px)`,
+              transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <img
+              src="/images/mano-1.webp"
+              alt="Mano Derecha 3D - Arte Kinetic"
+              width={840}
+              height={1376}
+              className="w-full h-full object-contain [filter:drop-shadow(0_20px_35px_rgba(0,0,0,0.85))_drop-shadow(0_0_15px_rgba(118,255,3,0.15))]"
+            />
+          </div>
         </div>
 
-        <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-[0.18em]">
-          {t.contact.title}
-        </h2>
-        <p className="mt-4 text-sm md:text-base text-gray-400 max-w-xl leading-relaxed">
-          {t.contact.subtitle}
-        </p>
+        {/* Central Text Overlaid & Centered directly below/above composition */}
+        <div className="relative z-30 max-w-2xl px-4 mt-2">
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-[0.16em] leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] glow-text">
+            {t.contact.title}
+          </h2>
+          <p className="mt-4 text-sm sm:text-base md:text-lg text-gray-200 leading-relaxed font-medium drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+            {t.contact.subtitle}
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full relative z-10 items-center">

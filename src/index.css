@@ -123,23 +123,48 @@ body {
   text-shadow: 0 0 12px rgba(118, 255, 3, 0.45);
 }
 
-/* Scroll Reveal Animations */
+/* Ultra Smooth Scroll Reveal Animations */
 .scroll-reveal {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
 }
 
 .js-reveal-active .scroll-reveal {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(32px) scale(0.98);
+  filter: blur(3px);
 }
 
 .js-reveal-active .scroll-reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+}
+
+/* Kinetic Hand Animations */
+@keyframes handReachLeft {
+  0% { transform: translate(0px, 0px) rotate(-6deg); }
+  50% { transform: translate(8px, -12px) rotate(-3deg); }
+  100% { transform: translate(0px, 0px) rotate(-6deg); }
+}
+
+@keyframes handReachRight {
+  0% { transform: translate(0px, 0px) rotate(6deg); }
+  50% { transform: translate(-8px, -12px) rotate(3deg); }
+  100% { transform: translate(0px, 0px) rotate(6deg); }
+}
+
+.animate-hand-left {
+  animation: handReachLeft 6.5s ease-in-out infinite;
+}
+
+.animate-hand-right {
+  animation: handReachRight 6.5s ease-in-out infinite 0.8s;
 }
 
 /* Animations */
