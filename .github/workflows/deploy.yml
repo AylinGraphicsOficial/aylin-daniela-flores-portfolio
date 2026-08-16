@@ -1,33 +1,40 @@
-name: Deploy to Hostinger FTP
+name: Deploy to Hostinger Production
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  web-deploy:
-    name: Deploy to Hostinger
+  build-and-deploy:
+    name: Build and Deploy to Hostinger
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: ⚙️ Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: Install dependencies & Build
-        run: |
-          npm ci
-          npm run build
+      - name: 📦 Install Dependencies
+        run: npm ci || npm install
 
-      - name: Sync files via FTP to Hostinger
+      - name: 🏗️ Compile Production Bundle
+        run: npm run build
+
+      - name: 🚀 Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: 151.106.96.65
+          username: u888615463
+          password: ${{ secrets.FTP_PASSWORD || 'Aylin2026.' }}
+          port: 21
+          protocol: ftp
           local-dir: ./dist/
           server-dir: domains/aylinflores.com/public_html/
+          dangerous-clean-slate: false

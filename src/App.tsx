@@ -56,6 +56,7 @@ export default function App() {
 
   // Smooth Scroll Reveal Intersection Observer
   useEffect(() => {
+    document.body.classList.add('js-reveal-active');
     const reveals = document.querySelectorAll('.scroll-reveal');
     if (!reveals.length) return;
 
@@ -68,13 +69,16 @@ export default function App() {
         });
       },
       {
-        threshold: 0.08,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.05,
+        rootMargin: '0px 0px -20px 0px',
       }
     );
 
     reveals.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      document.body.classList.remove('js-reveal-active');
+    };
   }, []);
 
   return (

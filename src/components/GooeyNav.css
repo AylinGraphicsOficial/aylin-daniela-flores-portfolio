@@ -16,7 +16,7 @@
 
 .gooey-nav-container nav ul {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.5rem;
   list-style: none;
   padding: 0.25rem 0.5rem;
   margin: 0;
@@ -27,14 +27,14 @@
 .gooey-nav-container nav ul li {
   position: relative;
   cursor: pointer;
-  border-radius: 6px;
-  transition: color 0.25s steps(4);
+  border-radius: 8px;
+  transition: all 0.25s ease;
 }
 
 .gooey-nav-container nav ul li a {
   display: inline-block;
-  padding: 0.45rem 0.85rem;
-  font-family: 'Montserrat', monospace, sans-serif;
+  padding: 0.4rem 0.85rem;
+  font-family: 'Montserrat', sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -43,7 +43,7 @@
   text-decoration: none;
   position: relative;
   z-index: 4;
-  transition: color 0.2s steps(4), transform 0.1s steps(2);
+  transition: color 0.2s ease, transform 0.15s ease;
   user-select: none;
 }
 
@@ -56,9 +56,9 @@
 }
 
 .gooey-nav-container nav ul li.active a {
-  color: #050B05;
-  font-weight: 900;
-  text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  color: #76FF03;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(118, 255, 3, 0.6);
 }
 
 /* 8-bit Active Indicator Plaque */
@@ -70,46 +70,39 @@
   height: 0;
   pointer-events: none;
   z-index: 2;
-  transition: left 0.32s cubic-bezier(0.19, 1, 0.22, 1),
-              top 0.32s cubic-bezier(0.19, 1, 0.22, 1),
-              width 0.32s cubic-bezier(0.19, 1, 0.22, 1),
-              height 0.32s cubic-bezier(0.19, 1, 0.22, 1);
+  transition: left 0.3s cubic-bezier(0.19, 1, 0.22, 1),
+              top 0.3s cubic-bezier(0.19, 1, 0.22, 1),
+              width 0.3s cubic-bezier(0.19, 1, 0.22, 1),
+              height 0.3s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .gooey-nav-container .effect.filter {
   display: block;
 }
 
-/* 8-Bit Pixel Bevel Plaque */
+/* 8-Bit Pixel Bevel Plaque (Subtle Frame with Glow, Text Stays 100% Legible) */
 .gooey-nav-container .effect.filter::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: #76FF03;
-  border-radius: 6px;
+  background: rgba(118, 255, 3, 0.12);
+  border: 1px solid #76FF03;
+  border-radius: 8px;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.35),
-    0 0 16px rgba(118, 255, 3, 0.55),
-    0 0 32px rgba(118, 255, 3, 0.25);
-  clip-path: polygon(
-    0 3px, 3px 3px, 3px 0,
-    calc(100% - 3px) 0, calc(100% - 3px) 3px, 100% 3px,
-    100% calc(100% - 3px), calc(100% - 3px) calc(100% - 3px), calc(100% - 3px) 100%,
-    3px 100%, 3px calc(100% - 3px), 0 calc(100% - 3px)
-  );
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(118, 255, 3, 0.35);
   transform: scale(1);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .gooey-nav-container .effect.filter.active::after {
-  animation: arcadePulse 0.35s steps(4) 1;
+  animation: arcadePulse 0.35s ease 1;
 }
 
 @keyframes arcadePulse {
-  0% { transform: scale(0.7); filter: brightness(1.8); }
-  50% { transform: scale(1.15); filter: brightness(1.4); }
-  100% { transform: scale(1); filter: brightness(1); }
+  0% { transform: scale(0.85); box-shadow: 0 0 25px rgba(118, 255, 3, 0.7); }
+  50% { transform: scale(1.08); box-shadow: 0 0 35px rgba(118, 255, 3, 0.9); }
+  100% { transform: scale(1); box-shadow: 0 0 15px rgba(118, 255, 3, 0.35); }
 }
 
 /* =========================================================
@@ -118,8 +111,6 @@
 
 .pixel-particle {
   position: absolute;
-  top: 50%;
-  left: 50%;
   width: var(--px-size, 8px);
   height: var(--px-size, 8px);
   background: var(--color, #76FF03);
@@ -128,7 +119,7 @@
   border-radius: 0 !important;
   box-shadow: 0 0 6px var(--color, #76FF03);
   image-rendering: pixelated;
-  animation: pixelExplode var(--time, 650ms) cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+  animation: pixelExplode var(--time, 600ms) cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
 @keyframes pixelExplode {
@@ -136,16 +127,12 @@
     transform: translate(-50%, -50%) translate(0, 0) scale(1.4) rotate(0deg);
     opacity: 1;
   }
-  40% {
-    transform: translate(-50%, -50%) translate(calc(var(--end-x) * 0.7), calc(var(--end-y) * 0.7)) scale(1.2) rotate(var(--rot, 90deg));
+  50% {
+    transform: translate(-50%, -50%) translate(calc(var(--end-x) * 0.7), calc(var(--end-y) * 0.7)) scale(1.1) rotate(var(--rot, 90deg));
     opacity: 0.95;
   }
-  80% {
-    transform: translate(-50%, -50%) translate(var(--end-x), var(--end-y)) scale(0.8) rotate(var(--rot, 180deg));
-    opacity: 0.8;
-  }
   100% {
-    transform: translate(-50%, -50%) translate(calc(var(--end-x) * 1.2), calc(var(--end-y) * 1.2 + 16px)) scale(0) rotate(var(--rot, 270deg));
+    transform: translate(-50%, -50%) translate(var(--end-x), calc(var(--end-y) + 10px)) scale(0) rotate(var(--rot, 180deg));
     opacity: 0;
   }
 }

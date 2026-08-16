@@ -52,17 +52,17 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
 
         // Interactive mouse glow
         float dist = distance(uv, mouse);
-        float glow = smoothstep(0.45, 0.0, dist) * 0.4;
+        float glow = smoothstep(0.55, 0.0, dist) * 0.65;
 
         // Wave blend factor
         float mixFactor = smoothstep(0.15, 0.85, uv.y + motion * 1.2);
-        vec3 base = mix(colorNavy, colorGreen * 0.4, mixFactor);
+        vec3 base = mix(colorNavy, colorGreen * 0.5, mixFactor);
         base = mix(base, colorDeep, (1.0 - uv.x) * 0.3);
 
         // Ambient cyber shimmer
-        float shimmer = sin(uv.x * 12.0 + uv.y * 6.0 + u_time * 0.8) * 0.04 + 0.04;
-        vec3 finalColor = mix(base, colorLime * 0.5, shimmer);
-        finalColor += glow * colorLime;
+        float shimmer = sin(uv.x * 12.0 + uv.y * 6.0 + u_time * 0.8) * 0.06 + 0.06;
+        vec3 finalColor = mix(base, colorLime * 0.6, shimmer);
+        finalColor += glow * colorLime * 1.2;
 
         gl_FragColor = vec4(finalColor, 1.0);
       }
@@ -198,7 +198,7 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
   }, [interactive]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none opacity-45 mix-blend-screen overflow-hidden">
+    <div className="fixed inset-0 z-0 pointer-events-none opacity-80 mix-blend-screen overflow-hidden">
       <canvas
         ref={canvasRef}
         id="kinetic-shader-canvas"
