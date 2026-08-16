@@ -116,24 +116,23 @@ function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress
     return `${offset}%`;
   });
 
-  // Dynamic 3D Z-Index: Elements in front half (45% to 95%) pass in FRONT of centerContent (zIndex: 25 vs 12)
+  // Dynamic 3D Z-Index: Passes IN FRONT across shoulders/chest (48% to 98%), and BEHIND by the head (0% to 48%)
   const zIndex = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
-    return offset >= 46 && offset <= 96 ? 25 : 5;
+    return offset >= 48 && offset <= 98 ? 25 : 5;
   });
 
-  // Dynamic 3D Scale & Opacity Perspective
+  // Dynamic 3D Scale & Opacity Perspective: 1.24x in front of shoulders, 0.78x behind head
   const scale = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
-    // Front apex is at 71%, back apex is at 21%
-    const normalized = (offset - 21) / 50;
+    const normalized = (offset - 23) / 50;
     const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
-    return 0.78 + depthFactor * 0.42; // Scales between 0.78x (behind) and 1.20x (in front)
+    return 0.78 + depthFactor * 0.46;
   });
 
   const opacity = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
-    const normalized = (offset - 21) / 50;
+    const normalized = (offset - 23) / 50;
     const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
     return 0.75 + depthFactor * 0.25;
   });

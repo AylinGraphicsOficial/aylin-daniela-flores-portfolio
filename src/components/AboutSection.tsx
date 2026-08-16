@@ -58,7 +58,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
             radiusY={175}
             rotation={-6}
             duration={22}
-            itemSize={135}
+            itemSize={142}
             showPath={true}
             pathColor="rgba(118, 255, 3, 0.45)"
             pathWidth={2.5}
@@ -73,6 +73,10 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                   width={800}
                   height={1067}
                   className="relative z-10 w-full h-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.95)] drop-shadow-[0_0_20px_rgba(118,255,3,0.25)]"
+                  style={{
+                    maskImage: 'linear-gradient(to bottom, black 65%, rgba(0,0,0,0.7) 80%, transparent 98%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 65%, rgba(0,0,0,0.7) 80%, transparent 98%)',
+                  }}
                 />
               </div>
             }
