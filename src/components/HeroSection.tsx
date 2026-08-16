@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowDown, Sparkles, FileText, MoveRight } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
@@ -20,6 +20,51 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   // Mouse tilt parallax for hero floating cards
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
+  // Subtle random idle drift for the centered brand logo (stays within its own zone)
+  const [drift, setDrift] = useState({ x: 0, y: 0, r: 0 });
+
+  // 8-bit pixelated variant of the logo, generated once at runtime
+  const [pixelLogo, setPixelLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let timer: number;
+    const driftTick = () => {
+      setDrift({
+        x: Math.random() * 14 - 7, // ±7px horizontal
+        y: Math.random() * 10 - 5, // ±5px vertical
+        r: Math.random() * 3 - 1.5, // ±1.5deg
+      });
+      timer = window.setTimeout(driftTick, 2600 + Math.random() * 1800);
+    };
+    driftTick();
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/logo.webp';
+    img.onload = () => {
+      const CHUNKS = 44; // pixel grid size: subtle but noticeable 8-bit feel
+      const ratio = img.naturalHeight / img.naturalWidth || 1;
+      const small = document.createElement('canvas');
+      small.width = CHUNKS;
+      small.height = Math.max(1, Math.round(CHUNKS * ratio));
+      const sctx = small.getContext('2d');
+      if (!sctx) return;
+      sctx.drawImage(img, 0, 0, small.width, small.height);
+
+      const big = document.createElement('canvas');
+      big.width = img.naturalWidth;
+      big.height = img.naturalHeight;
+      const bctx = big.getContext('2d');
+      if (!bctx) return;
+      bctx.imageSmoothingEnabled = false;
+      bctx.drawImage(small, 0, 0, big.width, big.height);
+      setPixelLogo(big.toDataURL('image/png'));
+    };
+  }, []);
+
   const handleMouseMove = (e: React.MouseEvent) => {
     const { clientX, clientY, currentTarget } = e;
     const rect = currentTarget.getBoundingClientRect();
@@ -36,8 +81,47 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     <section
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-[92vh] flex items-center px-4 md:px-8 max-w-7xl mx-auto overflow-hidden pt-24 md:pt-32 pb-16"
+      className="relative flex flex-col items-center px-4 md:px-8 max-w-7xl mx-auto overflow-hidden pt-28 md:pt-36 pb-20"
     >
+      {/* Centered Brand Logo + CTA Heading (pushes the name title section down) */}
+      <div className="relative z-10 flex flex-col items-center text-center mb-16 md:mb-24">
+        {/* Soft ambient glow in the logo's brand color */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-52 h-52 bg-[#76FF03]/15 rounded-full blur-[90px] pointer-events-none animate-pulse-glow" />
+
+        <div
+          className="group relative w-36 md:w-44 aspect-[2519/2743] mb-7 [filter:drop-shadow(0_0_16px_rgba(118,255,3,0.25))] hover:[filter:drop-shadow(0_0_26px_rgba(118,255,3,0.42))]"
+          style={{
+            transform: `translate(${drift.x}px, ${drift.y}px) rotate(${drift.r}deg)`,
+            transition: 'transform 2.6s ease-in-out, filter 0.6s ease',
+          }}
+        >
+          <img
+            src="/logo.webp"
+            alt="Aylin Flores - Isotipo"
+            width={2519}
+            height={2743}
+            className="w-full h-full object-contain"
+          />
+          {pixelLogo && (
+            <img
+              src={pixelLogo}
+              alt=""
+              aria-hidden="true"
+              width={2519}
+              height={2743}
+              className="absolute inset-0 w-full h-full object-contain opacity-0 group-hover:opacity-100 transition-opacity duration-300 [image-rendering:pixelated]"
+            />
+          )}
+        </div>
+
+        <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-[0.18em]">
+          {t.contact.title}
+        </h2>
+        <p className="mt-4 text-sm md:text-base text-gray-400 max-w-xl leading-relaxed">
+          {t.contact.subtitle}
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full relative z-10 items-center">
         {/* Left Column: Kinetic Text & CTAs */}
         <div className="lg:col-span-8 flex flex-col justify-center">
