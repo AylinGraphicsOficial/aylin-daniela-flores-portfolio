@@ -5,9 +5,18 @@ import { translations, skillCategoriesData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 
+import { OrbitImages } from './OrbitImages';
+
 interface AboutSectionProps {
   lang: Language;
 }
+
+const orbitImagesList = [
+  '/images/orbit-carrito.png',
+  '/images/orbit-stand.webp',
+  '/images/orbit-tablet.webp',
+  '/images/orbit-stand-diana.webp',
+];
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
   const t = translations[lang];
@@ -20,10 +29,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
       case '3d-modeling':
         return <Box className="w-5 h-5" />;
       case 'branding':
+      case 'branding-graphic':
         return <Award className="w-5 h-5" />;
       case 'illustration':
         return <PenTool className="w-5 h-5" />;
       case 'motion':
+      case 'video-motion':
         return <Video className="w-5 h-5" />;
       default:
         return <Sparkles className="w-5 h-5" />;
@@ -32,98 +43,99 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
 
   return (
     <section id="about" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-0 w-80 h-80 bg-[#76FF03]/10 rounded-full blur-[120px] pointer-events-none" />
+      {/* Background ambient glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#76FF03]/10 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center mb-16">
-        {/* Left: Professional Portrait Frame */}
-        <div className="lg:col-span-5 relative group">
-          {/* Ambient Glow */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#38B000] to-[#76FF03] blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none" />
-
-          <div className="glass-panel p-2.5 rounded-2xl relative z-10 overflow-hidden shadow-2xl">
-            <div className="relative overflow-hidden rounded-xl bg-[#081008]">
-              <img
-                src="/images/about-portrait.jpg"
-                alt="Aylin Daniela Flores - Senior Graphic Designer & 3D Modeler"
-                width={512}
-                height={442}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-auto object-cover rounded-lg grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-102"
-              />
-
-              {/* Location Tag */}
-              <div className="absolute bottom-4 left-4 right-4 glass-panel-heavy p-3 rounded-xl flex items-center justify-between border border-white/20">
-                <div>
-                  <span className="text-[10px] font-mono text-[#76FF03] font-bold block uppercase tracking-widest">
-                    {t.about.basedIn}
-                  </span>
-                  <span className="text-sm font-black text-white font-mono">
-                    {t.about.location}
-                  </span>
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-[#76FF03]/20 border border-[#76FF03]/50 flex items-center justify-center">
-                  <Compass className="w-4 h-4 text-[#76FF03]" />
-                </div>
+      {/* Orbit Section: Aylin's Portrait with 3D Project Assets in Orbit */}
+      <div className="w-full max-w-4xl mx-auto mb-12 flex flex-col items-center">
+        <div className="w-full relative py-4">
+          <OrbitImages
+            images={orbitImagesList}
+            altPrefix="Aylin Flores 3D Project"
+            shape="ellipse"
+            baseWidth={1000}
+            radiusX={460}
+            radiusY={175}
+            rotation={-6}
+            duration={22}
+            itemSize={135}
+            responsive={true}
+            centerContent={
+              <div className="relative w-56 sm:w-64 md:w-80 lg:w-96 aspect-[3/4] flex items-center justify-center select-none pointer-events-none">
+                {/* Radial Glow */}
+                <div className="absolute inset-0 bg-[#76FF03]/25 rounded-full blur-[85px] pointer-events-none animate-pulse-glow" />
+                <img
+                  src="/images/fotografia-aylin.png"
+                  alt="Aylin Daniela Flores Calles - Diseñadora Gráfica & Modeladora 3D"
+                  width={800}
+                  height={1067}
+                  className="relative z-10 w-full h-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.95)] drop-shadow-[0_0_20px_rgba(118,255,3,0.25)]"
+                />
               </div>
-            </div>
-          </div>
+            }
+          />
+        </div>
+      </div>
+
+      {/* Bio & Professional Statement Centered Below Orbit */}
+      <div className="w-full max-w-4xl mx-auto space-y-6 text-center mb-16">
+        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 mx-auto">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
+          <span className="text-xs font-bold tracking-[0.25em] text-[#76FF03] uppercase font-mono">
+            {lang === 'es' ? 'PERFIL PROFESIONAL' : 'CREATIVE PROFILE & MASTERY'}
+          </span>
         </div>
 
-        {/* Right: Bio & Creative Statement */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
-            <span className="text-xs font-bold tracking-[0.25em] text-[#76FF03] uppercase font-mono">
-              CREATIVE PROFILE & MASTERY
-            </span>
-          </div>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-none">
+          {t.about.titleSub}{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#76FF03] via-[#A3E635] to-[#38B000]">
+            {t.about.titleHighlight}
+          </span>{' '}
+          {t.about.titleEnd}
+        </h2>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-none">
-            {t.about.titleSub}{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#76FF03] via-[#A3E635] to-[#38B000]">
-              {t.about.titleHighlight}
-            </span>{' '}
-            {t.about.titleEnd}
-          </h2>
+        <p className="text-base md:text-lg text-gray-200 leading-relaxed max-w-3xl mx-auto border-y border-[#76FF03]/30 py-4 font-normal">
+          {t.about.bio}
+        </p>
 
-          <p className="text-base md:text-lg text-gray-300 leading-relaxed border-l-2 border-[#76FF03] pl-6 py-1">
-            {t.about.bio}
-          </p>
+        <p className="text-sm text-gray-400 leading-relaxed max-w-3xl mx-auto">
+          {lang === 'es'
+            ? 'Con sólida formación en la Universidad de El Salvador y dominio de herramientas de diseño profesional, modelado 3D y edición audiovisual, transformo ideas en identidades visuales impactantes, artes finales con fidelidad cromática y contenido que cautiva audiencias.'
+            : 'Backed by academic training at Universidad de El Salvador and mastery in professional design, 3D modeling, and audiovisual postproduction, I transform ideas into striking visual identities, print-ready files, and compelling digital content.'}
+        </p>
 
-          <p className="text-sm text-gray-400 leading-relaxed">
-            {lang === 'es'
-              ? 'Con sólida formación en la Universidad de El Salvador y dominio de herramientas de diseño profesional, modelado 3D y edición audiovisual, transformo ideas en identidades visuales impactantes, artes finales con fidelidad cromática y contenido que cautiva audiencias.'
-              : 'Backed by academic training at Universidad de El Salvador and mastery in professional design, 3D modeling, and audiovisual postproduction, I transform ideas into striking visual identities, print-ready files, and compelling digital content.'}
-          </p>
+        {/* Location Tag */}
+        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 font-mono text-xs text-gray-300">
+          <Compass className="w-4 h-4 text-[#76FF03]" />
+          <span className="text-gray-400 uppercase">{t.about.basedIn}:</span>
+          <span className="text-white font-bold">{t.about.location}</span>
+        </div>
 
-          {/* Software Stack Badges */}
-          <div className="pt-2">
-            <span className="text-xs font-mono text-gray-400 block mb-3 uppercase tracking-wider">
-              {lang === 'es' ? 'HERRAMIENTAS & SOFTWARE DOMINADO' : 'TECH & SOFTWARE STACK'}
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {[
-                'Adobe Illustrator',
-                'Adobe Photoshop',
-                'Adobe After Effects',
-                'Blender 3D',
-                'ZBrush',
-                'CapCut',
-                'DaVinci Resolve',
-                'Canva',
-                'Pre-prensa (CMYK)',
-                'Microsoft Excel',
-              ].map(tool => (
-                <span
-                  key={tool}
-                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#76FF03]/50 text-xs font-mono text-gray-200 hover:text-white transition-colors"
-                >
-                  {tool}
-                </span>
-              ))}
-            </div>
+        {/* Software Stack Badges */}
+        <div className="pt-4 flex flex-col items-center">
+          <span className="text-xs font-mono text-gray-400 block mb-3 uppercase tracking-wider">
+            {lang === 'es' ? 'HERRAMIENTAS & SOFTWARE DOMINADO' : 'TECH & SOFTWARE STACK'}
+          </span>
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl">
+            {[
+              'Adobe Illustrator',
+              'Adobe Photoshop',
+              'Adobe After Effects',
+              'Blender 3D',
+              'ZBrush',
+              'CapCut',
+              'DaVinci Resolve',
+              'Canva',
+              'Pre-prensa (CMYK)',
+              'Microsoft Excel',
+            ].map(tool => (
+              <span
+                key={tool}
+                className="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#76FF03]/50 text-xs font-mono text-gray-200 hover:text-white transition-colors"
+              >
+                {tool}
+              </span>
+            ))}
           </div>
         </div>
       </div>
