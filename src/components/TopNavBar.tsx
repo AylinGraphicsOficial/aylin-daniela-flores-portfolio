@@ -59,15 +59,15 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           onClick={playClickSound}
           className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#38B000] to-[#76FF03] flex items-center justify-center font-mono text-sm font-bold text-[#050B05] shadow-[0_0_15px_rgba(118,255,3,0.4)] group-hover:scale-105 transition-transform">
-            SK
+          <div className="w-9 h-9 rounded-xl overflow-hidden bg-black/40 border border-[#76FF03]/40 flex items-center justify-center shadow-[0_0_15px_rgba(118,255,3,0.3)] group-hover:scale-105 group-hover:border-[#76FF03] transition-all p-0.5">
+            <img src="/logo.webp" alt="Aylin Flores Logo" className="w-full h-full object-contain" />
           </div>
-          <div className="flex flex-col">
-            <span className="leading-none group-hover:text-[#76FF03] transition-colors">
-              STUDIO_KINETIC
+          <div className="flex flex-col justify-center">
+            <span className="leading-tight font-black text-white group-hover:text-[#76FF03] transition-colors text-base md:text-lg">
+              Aylin Flores
             </span>
-            <span className="text-[9px] font-mono text-gray-400 tracking-widest font-normal">
-              AYLIN D. FLORES
+            <span className="text-[10px] font-mono text-gray-300 tracking-wider font-semibold uppercase">
+              Diseñadora Gráfica
             </span>
           </div>
         </a>

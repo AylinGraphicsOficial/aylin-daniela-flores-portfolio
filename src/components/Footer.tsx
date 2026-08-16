@@ -20,13 +20,18 @@ export const Footer: React.FC = () => {
     <footer className="w-full py-16 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-20 flex flex-col justify-between items-center gap-8">
       {/* Top row */}
       <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex flex-col items-center md:items-start">
-          <div className="text-2xl font-black tracking-tighter text-white uppercase font-mono">
-            STUDIO_KINETIC
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/40 border border-[#76FF03]/40 flex items-center justify-center shadow-[0_0_15px_rgba(118,255,3,0.3)] p-0.5">
+            <img src="/logo.webp" alt="Aylin Flores Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="text-xs text-gray-400 font-mono mt-1">
-            Visual Communication & 3D Visualization Studio
-          </span>
+          <div className="flex flex-col items-start">
+            <div className="text-xl font-black tracking-tight text-white uppercase font-sans">
+              AYLIN FLORES
+            </div>
+            <span className="text-xs text-gray-400 font-mono mt-0.5">
+              Diseñadora Gráfica y Modeladora 3D
+            </span>
+          </div>
         </div>
 
         {/* Social Links */}
