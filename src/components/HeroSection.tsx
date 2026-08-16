@@ -23,9 +23,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   // Subtle random idle drift for the centered brand logo (stays within its own zone)
   const [drift, setDrift] = useState({ x: 0, y: 0, r: 0 });
 
-  // 8-bit pixelated variant of the logo, generated once at runtime
-  const [pixelLogo, setPixelLogo] = useState<string | null>(null);
-
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     let timer: number;
@@ -39,30 +36,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     };
     driftTick();
     return () => window.clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const img = new Image();
-    img.src = '/logo.webp';
-    img.onload = () => {
-      const CHUNKS = 44; // pixel grid size: subtle but noticeable 8-bit feel
-      const ratio = img.naturalHeight / img.naturalWidth || 1;
-      const small = document.createElement('canvas');
-      small.width = CHUNKS;
-      small.height = Math.max(1, Math.round(CHUNKS * ratio));
-      const sctx = small.getContext('2d');
-      if (!sctx) return;
-      sctx.drawImage(img, 0, 0, small.width, small.height);
-
-      const big = document.createElement('canvas');
-      big.width = img.naturalWidth;
-      big.height = img.naturalHeight;
-      const bctx = big.getContext('2d');
-      if (!bctx) return;
-      bctx.imageSmoothingEnabled = false;
-      bctx.drawImage(small, 0, 0, big.width, big.height);
-      setPixelLogo(big.toDataURL('image/png'));
-    };
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -102,16 +75,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             height={2743}
             className="w-full h-full object-contain"
           />
-          {pixelLogo && (
-            <img
-              src={pixelLogo}
-              alt=""
-              aria-hidden="true"
-              width={2519}
-              height={2743}
-              className="absolute inset-0 w-full h-full object-contain opacity-0 group-hover:opacity-100 transition-opacity duration-300 [image-rendering:pixelated]"
-            />
-          )}
         </div>
 
         <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-[0.18em]">
