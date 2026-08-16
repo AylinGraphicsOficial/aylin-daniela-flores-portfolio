@@ -4,6 +4,7 @@ import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
+import { WarpText } from './WarpText';
 
 interface HeroSectionProps {
   lang: Language;
@@ -117,11 +118,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
 
         {/* Central Text in Yellow Zone (Nestled cleanly between the lower wrists) */}
-        <div className="relative z-30 max-w-2xl px-4 -mt-10 sm:-mt-14 md:-mt-18 lg:-mt-20">
-          <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-[52px] font-black text-white uppercase tracking-[0.16em] leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] glow-text">
-            {t.contact.title}
-          </h2>
-          <p className="mt-3 text-xs sm:text-sm md:text-base text-gray-300 leading-relaxed font-medium max-w-lg mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
+        <div className="relative z-30 w-full max-w-2xl px-4 -mt-10 sm:-mt-14 md:-mt-18 lg:-mt-20 flex flex-col items-center">
+          <div className="w-full h-16 sm:h-20 md:h-24 lg:h-28 relative">
+            <WarpText
+              text={t.contact.title}
+              color="#ffffff"
+              fontFamily="Montserrat, sans-serif"
+              fontWeight={800}
+              fontSize="clamp(1.8rem, 4.8vw, 3.25rem)"
+              letterSpacing="0.14em"
+              warpStrength={0.08}
+              warpScale={1.7}
+              speed={0.55}
+              pointerInfluence={0.42}
+              pointerStrength={0.38}
+              refraction={0.018}
+              ripple={true}
+              style={{ width: '100%', height: '100%', minHeight: 'unset' }}
+            />
+          </div>
+          <p className="mt-2 text-xs sm:text-sm md:text-base text-gray-300 leading-relaxed font-medium max-w-lg mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
             {t.contact.subtitle}
           </p>
         </div>
