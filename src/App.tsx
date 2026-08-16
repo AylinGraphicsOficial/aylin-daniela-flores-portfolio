@@ -7,6 +7,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Language, Project } from './types';
 import { WebGLFluidShader } from './components/WebGLFluidShader';
 import { CustomCursor } from './components/CustomCursor';
+import { GradualBlur } from './components/GradualBlur';
 import { TopNavBar } from './components/TopNavBar';
 import { HeroSection } from './components/HeroSection';
 import { WorksBentoGrid } from './components/WorksBentoGrid';
@@ -93,6 +94,30 @@ export default function App() {
         lang={lang}
         onLanguageToggle={toggleLanguage}
         onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+      />
+
+      {/* Global Scroll Gradual Blur Overlays (React Bits) */}
+      <GradualBlur
+        target="page"
+        position="top"
+        height="5.5rem"
+        strength={1.6}
+        divCount={6}
+        curve="bezier"
+        exponential={true}
+        opacity={0.92}
+        zIndex={40}
+      />
+      <GradualBlur
+        target="page"
+        position="bottom"
+        height="4.5rem"
+        strength={1.6}
+        divCount={6}
+        curve="bezier"
+        exponential={true}
+        opacity={0.92}
+        zIndex={40}
       />
 
       {/* Main Content Layout with Smooth Scroll Reveal Transitions */}
