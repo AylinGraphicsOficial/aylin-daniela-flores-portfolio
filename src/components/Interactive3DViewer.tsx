@@ -3,6 +3,7 @@ import { RotateCw, Eye, Sparkles, Box, Compass, Layers, ShieldCheck } from 'luci
 import { playClickSound } from '../utils/audio';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
+import { SpecularButton } from './SpecularButton';
 
 interface Interactive3DViewerProps {
   lang: Language;
@@ -418,21 +419,20 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
             const Icon = item.icon;
             const isSelected = currentModel === item.key;
             return (
-              <button
+              <SpecularButton
                 key={item.key}
                 onClick={() => {
                   playClickSound();
                   setCurrentModel(item.key);
                 }}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  isSelected
-                    ? 'bg-[#76FF03] text-[#050B05] shadow-[0_0_15px_rgba(118,255,3,0.4)]'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10'
-                }`}
+                variant={isSelected ? 'solid-lime' : 'glass'}
+                size="sm"
+                radius={10}
+                className="text-xs font-bold"
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{item.label}</span>
-              </button>
+              </SpecularButton>
             );
           })}
         </div>
@@ -453,37 +453,35 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
             </div>
 
             <div className="flex items-center space-x-2">
-              <button
+              <SpecularButton
                 onClick={() => {
                   playClickSound();
                   setAutoRotate(!autoRotate);
                 }}
-                className={`p-2 rounded-lg border text-xs font-medium flex items-center space-x-1.5 transition-all ${
-                  autoRotate
-                    ? 'bg-[#76FF03]/20 border-[#76FF03] text-[#76FF03]'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                }`}
+                variant="glass"
+                size="sm"
+                radius={8}
+                className={autoRotate ? 'border-[#76FF03] text-[#76FF03]' : 'text-gray-400 hover:text-white'}
                 title="Toggle Auto Rotation"
               >
-                <RotateCw className={`w-3.5 h-3.5 ${autoRotate ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }} />
+                <RotateCw className={`w-3.5 h-3.5 ${autoRotate ? 'animate-spin text-[#76FF03]' : ''}`} style={{ animationDuration: '8s' }} />
                 <span className="text-[10px] hidden sm:inline">Auto</span>
-              </button>
+              </SpecularButton>
 
-              <button
+              <SpecularButton
                 onClick={() => {
                   playClickSound();
                   setIsWireframe(!isWireframe);
                 }}
-                className={`p-2 rounded-lg border text-xs font-medium flex items-center space-x-1.5 transition-all ${
-                  isWireframe
-                    ? 'bg-[#38B000]/30 border-[#38B000] text-[#76FF03]'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                }`}
+                variant="glass"
+                size="sm"
+                radius={8}
+                className={isWireframe ? 'border-[#76FF03] text-[#76FF03]' : 'text-gray-400 hover:text-white'}
                 title="Toggle Wireframe / Shaded"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <Eye className="w-3.5 h-3.5 text-[#76FF03]" />
                 <span className="text-[10px] hidden sm:inline">{isWireframe ? 'Wire' : 'Shade'}</span>
-              </button>
+              </SpecularButton>
             </div>
           </div>
 
@@ -528,16 +526,19 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                   { color: '#00E676', name: 'Emerald Neon' },
                   { color: '#FFD700', name: 'Cyber Gold' },
                 ].map(item => (
-                  <button
+                  <SpecularButton
                     key={item.color}
                     onClick={() => {
                       playClickSound();
                       setLightingColor(item.color);
                     }}
-                    className={`p-3 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                    variant="glass"
+                    size="sm"
+                    radius={12}
+                    className={`flex flex-col items-center justify-center p-3 ${
                       lightingColor === item.color
                         ? 'border-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.2)]'
-                        : 'border-white/10 bg-white/5 hover:border-white/30'
+                        : 'border-white/10'
                     }`}
                   >
                     <span
@@ -545,7 +546,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                       style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}` }}
                     />
                     <span className="text-[10px] text-gray-300 font-mono">{item.name.split(' ')[0]}</span>
-                  </button>
+                  </SpecularButton>
                 ))}
               </div>
             </div>

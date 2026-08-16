@@ -3,6 +3,7 @@ import { Calendar, MapPin, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-r
 import { Language } from '../types';
 import { translations, experienceData } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface ExperienceTimelineProps {
   lang: Language;
@@ -81,9 +82,15 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                         </h4>
                       </div>
 
-                      <button className="p-1 rounded bg-white/5 text-gray-400">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </button>
+                      <SpecularButton
+                        variant="glass"
+                        size="icon"
+                        radius={8}
+                        className="text-gray-400"
+                        aria-label={isExpanded ? 'Collapse item' : 'Expand item'}
+                      >
+                        {isExpanded ? <ChevronUp className="w-4 h-4 text-[#76FF03]" /> : <ChevronDown className="w-4 h-4" />}
+                      </SpecularButton>
                     </div>
 
                     {/* Meta info */}

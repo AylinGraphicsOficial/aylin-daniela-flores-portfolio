@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound, playSuccessSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface ContactSectionProps {
   lang: Language;
@@ -95,9 +96,12 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               <span className="text-xs font-mono text-[#76FF03] uppercase font-bold">
                 {t.contact.directEmail}
               </span>
-              <button
+              <SpecularButton
                 onClick={handleCopyEmail}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-mono text-gray-200 transition-colors"
+                variant="glass"
+                size="sm"
+                radius={8}
+                className="text-xs font-mono text-gray-200"
               >
                 {isCopied ? (
                   <>
@@ -110,7 +114,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                     <span>COPY</span>
                   </>
                 )}
-              </button>
+              </SpecularButton>
             </div>
             <p className="text-lg md:text-xl font-bold font-mono text-white select-all">
               aylin.flores.design@gmail.com
@@ -138,15 +142,18 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               <h4 className="text-sm font-bold text-white mb-1">Looking for a tailored quote?</h4>
               <p className="text-xs text-gray-300">Use the step-by-step interactive project calculator.</p>
             </div>
-            <button
+            <SpecularButton
               onClick={() => {
                 playClickSound();
                 onOpenProjectPlanner();
               }}
-              className="px-5 py-2.5 bg-[#76FF03] text-[#050B05] font-bold text-xs rounded-xl shadow-md hover:bg-[#50E310] transition-all whitespace-nowrap"
+              variant="solid-lime"
+              size="sm"
+              radius={12}
+              className="text-xs font-bold whitespace-nowrap"
             >
               LAUNCH ESTIMATOR
-            </button>
+            </SpecularButton>
           </div>
         </div>
 
@@ -163,12 +170,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               <p className="text-sm text-gray-300 max-w-md mx-auto">
                 Thank you, {formName || 'friend'}. I have received your message and will respond within 24 hours.
               </p>
-              <button
+              <SpecularButton
                 onClick={() => setIsSent(false)}
-                className="mt-4 px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-mono font-bold"
+                variant="glass"
+                size="md"
+                radius={12}
+                className="mt-4 text-xs font-mono font-bold"
               >
                 SEND ANOTHER MESSAGE
-              </button>
+              </SpecularButton>
             </div>
           ) : (
             <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -233,13 +243,16 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                 />
               </div>
 
-              <button
+              <SpecularButton
                 type="submit"
-                className="w-full py-4 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:scale-101 active:scale-99 transition-all flex items-center justify-center space-x-2"
+                variant="solid-lime"
+                size="lg"
+                radius={12}
+                className="w-full font-black text-xs md:text-sm tracking-wider"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 text-[#050B05]" />
                 <span>{t.contact.sendBtn}</span>
-              </button>
+              </SpecularButton>
             </form>
           )}
         </div>

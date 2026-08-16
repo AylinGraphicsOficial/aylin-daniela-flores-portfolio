@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2 } from 'lucide-react';
 import { Project, Language } from '../types';
 import { playClickSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface CaseStudyModalProps {
   project: Project | null;
@@ -47,15 +48,18 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
             </span>
           </div>
 
-          <button
+          <SpecularButton
             onClick={() => {
               playClickSound();
               onClose();
             }}
-            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-colors"
+            variant="glass"
+            size="icon"
+            radius={10}
+            className="text-gray-300 hover:text-white"
           >
             <X className="w-5 h-5" />
-          </button>
+          </SpecularButton>
         </div>
 
         {/* Scrollable Modal Body */}
@@ -82,18 +86,24 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
 
             {gallery.length > 1 && (
               <>
-                <button
+                <SpecularButton
                   onClick={handlePrevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 transition-all hover:scale-110"
+                  variant="glass"
+                  size="icon"
+                  radius={999}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white"
                 >
                   <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
+                </SpecularButton>
+                <SpecularButton
                   onClick={handleNextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 transition-all hover:scale-110"
+                  variant="glass"
+                  size="icon"
+                  radius={999}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white"
                 >
                   <ChevronRight className="w-5 h-5" />
-                </button>
+                </SpecularButton>
 
                 {/* Thumbnails Indicator */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
@@ -205,16 +215,19 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
               Ready to create something similar for your company?
             </span>
             <div className="flex space-x-3">
-              <button
+              <SpecularButton
                 onClick={() => {
                   playClickSound();
                   onClose();
                   onOpenProjectPlanner();
                 }}
-                className="px-6 py-3 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(118,255,3,0.4)] transition-all"
+                variant="solid-lime"
+                size="md"
+                radius={12}
+                className="text-xs font-black tracking-wider"
               >
                 START A SIMILAR PROJECT
-              </button>
+              </SpecularButton>
             </div>
           </div>
         </div>

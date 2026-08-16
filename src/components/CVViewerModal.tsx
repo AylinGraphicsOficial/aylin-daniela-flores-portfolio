@@ -3,6 +3,7 @@ import { X, Printer, Mail, MapPin, Globe, Award, CheckCircle2, FileText } from '
 import { Language } from '../types';
 import { experienceData, skillCategoriesData } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface CVViewerModalProps {
   isOpen: boolean;
@@ -41,23 +42,29 @@ export const CVViewerModal: React.FC<CVViewerModalProps> = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            <button
+            <SpecularButton
               onClick={handlePrint}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold font-mono flex items-center space-x-1.5 border border-white/20 transition-all"
+              variant="glass"
+              size="sm"
+              radius={10}
+              className="text-xs font-bold font-mono"
             >
               <Printer className="w-3.5 h-3.5 text-[#76FF03]" />
               <span>PRINT / PDF</span>
-            </button>
+            </SpecularButton>
 
-            <button
+            <SpecularButton
               onClick={() => {
                 playClickSound();
                 onClose();
               }}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-colors"
+              variant="glass"
+              size="icon"
+              radius={10}
+              className="text-gray-300 hover:text-white"
             >
               <X className="w-5 h-5" />
-            </button>
+            </SpecularButton>
           </div>
         </div>
 

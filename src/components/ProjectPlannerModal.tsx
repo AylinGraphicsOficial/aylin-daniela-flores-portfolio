@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound, playSuccessSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface ProjectPlannerModalProps {
   isOpen: boolean;
@@ -122,15 +123,18 @@ ${projectDescription || 'No description provided yet.'}
             </div>
           </div>
 
-          <button
+          <SpecularButton
             onClick={() => {
               playClickSound();
               onClose();
             }}
-            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-colors"
+            variant="glass"
+            size="icon"
+            radius={10}
+            className="text-gray-300 hover:text-white"
           >
             <X className="w-5 h-5" />
-          </button>
+          </SpecularButton>
         </div>
 
         {/* Modal Body */}
@@ -153,13 +157,16 @@ ${projectDescription || 'No description provided yet.'}
               </div>
 
               <div className="flex justify-center space-x-4">
-                <button
+                <SpecularButton
                   onClick={handleCopyBrief}
-                  className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl flex items-center space-x-2 border border-white/20 transition-all"
+                  variant="glass"
+                  size="md"
+                  radius={12}
+                  className="font-bold text-xs"
                 >
                   <Copy className="w-4 h-4 text-[#76FF03]" />
                   <span>{isCopied ? 'COPIED TO CLIPBOARD!' : 'COPY BRIEF TEXT'}</span>
-                </button>
+                </SpecularButton>
 
                 <a
                   href={`mailto:aylin.flores.design@gmail.com?subject=New%20Project%20Inquiry%20from%20${encodeURIComponent(clientName || 'Client')}&body=${encodeURIComponent(generateBriefText())}`}
@@ -182,25 +189,29 @@ ${projectDescription || 'No description provided yet.'}
                     const Icon = srv.icon;
                     const isSelected = selectedServices.includes(srv.label);
                     return (
-                      <button
+                      <SpecularButton
                         type="button"
                         key={srv.id}
                         onClick={() => toggleService(srv.label)}
-                        className={`p-4 rounded-xl border text-left flex items-start space-x-3 transition-all ${
+                        variant={isSelected ? 'primary' : 'glass'}
+                        radius={12}
+                        className={`p-4 text-left justify-start items-start ${
                           isSelected
-                            ? 'bg-[#38B000]/20 border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
-                            : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
+                            ? 'border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
+                            : ''
                         }`}
                       >
-                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#76FF03] text-[#050B05]' : 'bg-white/10 text-gray-300'}`}>
-                          <Icon className="w-4 h-4" />
+                        <div className="flex items-start space-x-3 w-full">
+                          <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#76FF03] text-[#050B05]' : 'bg-white/10 text-gray-300'}`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <span className="text-xs font-bold text-white block">
+                              {srv.label}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <span className="text-xs font-bold text-white block">
-                            {srv.label}
-                          </span>
-                        </div>
-                      </button>
+                      </SpecularButton>
                     );
                   })}
                 </div>
@@ -215,26 +226,30 @@ ${projectDescription || 'No description provided yet.'}
                   {timelineOptions.map((opt) => {
                     const isSelected = selectedTimeline === opt.label;
                     return (
-                      <button
+                      <SpecularButton
                         type="button"
                         key={opt.label}
                         onClick={() => {
                           playClickSound();
                           setSelectedTimeline(opt.label);
                         }}
-                        className={`p-4 rounded-xl border text-left transition-all ${
+                        variant={isSelected ? 'primary' : 'glass'}
+                        radius={12}
+                        className={`p-4 text-left justify-start items-start ${
                           isSelected
-                            ? 'bg-[#38B000]/20 border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
-                            : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
+                            ? 'border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
+                            : ''
                         }`}
                       >
-                        <span className="text-xs font-bold text-white block mb-1">
-                          {opt.label}
-                        </span>
-                        <span className="text-[11px] text-gray-400 font-mono block">
-                          {opt.note}
-                        </span>
-                      </button>
+                        <div className="text-left w-full">
+                          <span className="text-xs font-bold text-white block mb-1">
+                            {opt.label}
+                          </span>
+                          <span className="text-[11px] text-gray-400 font-mono block">
+                            {opt.note}
+                          </span>
+                        </div>
+                      </SpecularButton>
                     );
                   })}
                 </div>
@@ -249,26 +264,30 @@ ${projectDescription || 'No description provided yet.'}
                   {budgetOptions.map((b) => {
                     const isSelected = selectedBudget === b.label;
                     return (
-                      <button
+                      <SpecularButton
                         type="button"
                         key={b.label}
                         onClick={() => {
                           playClickSound();
                           setSelectedBudget(b.label);
                         }}
-                        className={`p-4 rounded-xl border text-left transition-all ${
+                        variant={isSelected ? 'primary' : 'glass'}
+                        radius={12}
+                        className={`p-4 text-left justify-start items-start ${
                           isSelected
-                            ? 'bg-[#38B000]/20 border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
-                            : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
+                            ? 'border-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]'
+                            : ''
                         }`}
                       >
-                        <span className="text-sm font-black text-white font-mono block mb-1">
-                          {b.label}
-                        </span>
-                        <span className="text-[11px] text-gray-400 block">
-                          {b.tier}
-                        </span>
-                      </button>
+                        <div className="text-left w-full">
+                          <span className="text-sm font-black text-white font-mono block mb-1">
+                            {b.label}
+                          </span>
+                          <span className="text-[11px] text-gray-400 block">
+                            {b.tier}
+                          </span>
+                        </div>
+                      </SpecularButton>
                     );
                   })}
                 </div>
@@ -329,13 +348,16 @@ ${projectDescription || 'No description provided yet.'}
                   Includes initial moodboard & creative milestone roadmap.
                 </span>
 
-                <button
+                <SpecularButton
                   type="submit"
-                  className="w-full sm:w-auto px-8 py-3.5 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:scale-102 transition-all flex items-center justify-center space-x-2"
+                  variant="solid-lime"
+                  size="md"
+                  radius={12}
+                  className="w-full sm:w-auto font-black text-xs"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-[#050B05]" />
                   <span>{t.planner.generateInquiry}</span>
-                </button>
+                </SpecularButton>
               </div>
             </form>
           )}

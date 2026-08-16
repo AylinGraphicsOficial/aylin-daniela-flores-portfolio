@@ -3,6 +3,7 @@ import { Box, Sparkles, PenTool, Video, Award, Compass } from 'lucide-react';
 import { Language } from '../types';
 import { translations, skillCategoriesData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface AboutSectionProps {
   lang: Language;
@@ -145,22 +146,21 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
             {skillCategoriesData.map(cat => {
               const isSelected = activeCategory === cat.id;
               return (
-                <button
+                <SpecularButton
                   key={cat.id}
                   onClick={() => {
                     playClickSound();
                     setActiveCategory(cat.id);
                   }}
                   onMouseEnter={playHoverSound}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    isSelected
-                      ? 'bg-[#76FF03] text-[#050B05] shadow-[0_0_20px_rgba(118,255,3,0.4)]'
-                      : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10'
-                  }`}
+                  variant={isSelected ? 'solid-lime' : 'glass'}
+                  size="sm"
+                  radius={12}
+                  className="text-xs font-bold"
                 >
                   {getCategoryIcon(cat.id)}
                   <span>{cat.name.split(' ')[0]}</span>
-                </button>
+                </SpecularButton>
               );
             })}
           </div>

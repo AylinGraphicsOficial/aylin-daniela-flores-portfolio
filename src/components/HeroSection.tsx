@@ -3,6 +3,7 @@ import { ArrowDown, Sparkles, FileText, MoveRight } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface HeroSectionProps {
   lang: Language;
@@ -128,27 +129,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <MoveRight className="w-4 h-4" />
             </a>
 
-            <button
+            <SpecularButton
               onClick={() => {
                 playClickSound();
                 onOpenCVModal();
               }}
-              className="px-6 py-4 border-2 border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] font-bold text-xs md:text-sm tracking-wider rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center space-x-2"
+              variant="glass"
+              size="md"
+              radius={12}
+              className="text-xs md:text-sm font-bold tracking-wider"
             >
               <FileText className="w-4 h-4 text-[#76FF03]" />
               <span>{t.hero.downloadCv}</span>
-            </button>
+            </SpecularButton>
 
-            <button
+            <SpecularButton
               onClick={() => {
                 playClickSound();
                 onOpenProjectPlanner();
               }}
-              className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-[#76FF03]/40 text-[#76FF03] font-bold text-xs md:text-sm tracking-wider rounded-xl transition-all duration-300 flex items-center space-x-2"
+              variant="primary"
+              size="md"
+              radius={12}
+              className="text-xs md:text-sm font-bold tracking-wider text-[#76FF03]"
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 text-[#76FF03]" />
               <span>{t.hero.startProjectBtn}</span>
-            </button>
+            </SpecularButton>
           </div>
 
           {/* Quick Metrics Ticker Under Hero */}

@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { Project, Language } from '../types';
 import { translations, projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface WorksBentoGridProps {
   lang: Language;
@@ -43,21 +44,20 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
           {categories.map((cat) => {
             const isSelected = activeFilter === cat;
             return (
-              <button
+              <SpecularButton
                 key={cat}
                 onClick={() => {
                   playClickSound();
                   setActiveFilter(cat);
                 }}
                 onMouseEnter={playHoverSound}
-                className={`px-4 py-2 rounded-xl text-xs font-bold font-mono tracking-wider transition-all ${
-                  isSelected
-                    ? 'bg-[#76FF03] text-[#050B05] shadow-[0_0_20px_rgba(118,255,3,0.4)]'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10'
-                }`}
+                variant={isSelected ? 'solid-lime' : 'glass'}
+                size="sm"
+                radius={12}
+                className="text-xs font-bold font-mono tracking-wider"
               >
                 {cat}
-              </button>
+              </SpecularButton>
             );
           })}
         </div>

@@ -3,6 +3,7 @@ import { Volume2, VolumeX, Globe, Menu, X, Sparkles } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound, toggleAudio } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 interface TopNavBarProps {
   lang: Language;
@@ -87,64 +88,74 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         {/* Right Action Tools: Sound, Language, CTA */}
         <div className="hidden sm:flex items-center space-x-3">
           {/* Sound FX Toggle */}
-          <button
+          <SpecularButton
             onClick={handleSoundToggle}
-            className={`p-2.5 rounded-lg border text-xs transition-all ${
-              soundOn
-                ? 'bg-[#76FF03]/20 border-[#76FF03] text-[#76FF03] shadow-[0_0_10px_rgba(118,255,3,0.3)]'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-            }`}
+            variant="glass"
+            size="icon"
+            radius={10}
+            className={soundOn ? 'border-[#76FF03] text-[#76FF03]' : 'text-gray-400'}
             title={soundOn ? 'Sound effects enabled' : 'Enable tactile audio'}
           >
-            {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </button>
+            {soundOn ? <Volume2 className="w-4 h-4 text-[#76FF03]" /> : <VolumeX className="w-4 h-4" />}
+          </SpecularButton>
 
           {/* Language Switcher */}
-          <button
+          <SpecularButton
             onClick={() => {
               playClickSound();
               onLanguageToggle();
             }}
-            className="flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-gray-200 transition-all"
+            variant="glass"
+            size="sm"
+            radius={10}
+            className="text-xs font-mono text-gray-200"
             title="Toggle English / Español"
           >
             <Globe className="w-3.5 h-3.5 text-[#76FF03]" />
             <span className="font-bold">{lang.toUpperCase()}</span>
-          </button>
+          </SpecularButton>
 
           {/* Main CTA */}
-          <button
+          <SpecularButton
             onClick={() => {
               playClickSound();
               onOpenProjectPlanner();
             }}
-            className="flex items-center space-x-2 px-5 py-2.5 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-bold text-xs tracking-wider rounded-lg shadow-[0_0_15px_rgba(118,255,3,0.4)] hover:shadow-[0_0_25px_rgba(118,255,3,0.6)] hover:scale-95 active:scale-90 transition-all duration-300"
+            variant="solid-lime"
+            size="sm"
+            radius={10}
+            className="text-xs font-bold tracking-wider"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t.nav.startProject}</span>
-          </button>
+          </SpecularButton>
         </div>
 
         {/* Mobile Hamburger Button */}
         <div className="flex sm:hidden items-center space-x-2">
-          <button
+          <SpecularButton
             onClick={() => {
               playClickSound();
               onLanguageToggle();
             }}
-            className="p-2 bg-white/5 border border-white/10 rounded-lg text-xs font-mono text-[#76FF03]"
+            variant="glass"
+            size="sm"
+            radius={10}
+            className="text-xs font-mono text-[#76FF03]"
           >
             {lang.toUpperCase()}
-          </button>
-          <button
+          </SpecularButton>
+          <SpecularButton
             onClick={() => {
               playClickSound();
               setMobileMenuOpen(!mobileMenuOpen);
             }}
-            className="p-2 text-white bg-white/5 border border-white/10 rounded-lg hover:bg-white/10"
+            variant="glass"
+            size="icon"
+            radius={10}
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </SpecularButton>
         </div>
       </div>
 
@@ -168,26 +179,32 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
 
           <div className="pt-4 flex flex-col gap-3">
-            <button
+            <SpecularButton
               onClick={() => {
                 handleSoundToggle();
               }}
-              className="flex items-center justify-center space-x-2 py-2.5 bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300"
+              variant="glass"
+              size="md"
+              radius={10}
+              className="w-full text-xs text-gray-300"
             >
               {soundOn ? <Volume2 className="w-4 h-4 text-[#76FF03]" /> : <VolumeX className="w-4 h-4" />}
               <span>{soundOn ? 'Tactile Audio: On' : 'Tactile Audio: Off'}</span>
-            </button>
+            </SpecularButton>
 
-            <button
+            <SpecularButton
               onClick={() => {
                 playClickSound();
                 setMobileMenuOpen(false);
                 onOpenProjectPlanner();
               }}
-              className="w-full py-3.5 bg-[#76FF03] text-[#050B05] font-black text-xs tracking-wider rounded-lg shadow-[0_0_20px_rgba(118,255,3,0.4)]"
+              variant="solid-lime"
+              size="md"
+              radius={10}
+              className="w-full text-xs font-black tracking-wider"
             >
               {t.nav.startProject}
-            </button>
+            </SpecularButton>
           </div>
         </div>
       )}

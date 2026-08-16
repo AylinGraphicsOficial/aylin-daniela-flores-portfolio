@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUp } from 'lucide-react';
 import { playClickSound } from '../utils/audio';
+import { SpecularButton } from './SpecularButton';
 
 export const Footer: React.FC = () => {
   const scrollToTop = () => {
@@ -49,13 +50,16 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Back to top */}
-        <button
+        <SpecularButton
           onClick={scrollToTop}
-          className="p-3 rounded-xl bg-white/5 hover:bg-[#76FF03] hover:text-[#050B05] text-white border border-white/10 transition-all duration-300 shadow-md group"
+          variant="glass"
+          size="icon"
+          radius={12}
+          className="text-white hover:text-[#76FF03]"
           title="Scroll back to top"
         >
-          <ArrowUp className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-        </button>
+          <ArrowUp className="w-4 h-4" />
+        </SpecularButton>
       </div>
 
       {/* Bottom row */}
