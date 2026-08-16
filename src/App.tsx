@@ -107,10 +107,6 @@ export default function App() {
         </div>
 
         <div className="scroll-reveal">
-          <AboutSection lang={lang} />
-        </div>
-
-        <div className="scroll-reveal">
           <Suspense fallback={null}>
             <Interactive3DViewer lang={lang} />
           </Suspense>
@@ -129,6 +125,10 @@ export default function App() {
 
         <div className="scroll-reveal">
           <StatsAndMilestones lang={lang} />
+        </div>
+
+        <div className="scroll-reveal">
+          <AboutSection lang={lang} />
         </div>
 
         <div className="scroll-reveal">
