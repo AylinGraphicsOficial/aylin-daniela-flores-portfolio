@@ -19,7 +19,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 }) => {
   const t = translations[lang];
   const [isScrolled, setIsScrolled] = useState(false);
-  const [soundOn, setSoundOn] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -85,15 +85,15 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           />
         </div>
 
-        {/* Right Action Tools: Sound, Language, CTA */}
-        <div className="hidden sm:flex items-center space-x-3">
+        {/* Right Action Tools: Sound, Language, CTA with Unified 38px Height */}
+        <div className="hidden sm:flex items-center space-x-2.5">
           {/* Sound FX Toggle */}
           <SpecularButton
             onClick={handleSoundToggle}
             variant="glass"
             size="icon"
             radius={10}
-            className={soundOn ? 'border-[#76FF03] text-[#76FF03]' : 'text-gray-400'}
+            className={`h-[38px] w-[38px] min-h-[38px] max-h-[38px] p-0 flex items-center justify-center ${soundOn ? 'border-[#76FF03] text-[#76FF03]' : 'text-gray-400'}`}
             title={soundOn ? 'Sound effects enabled' : 'Enable tactile audio'}
           >
             {soundOn ? <Volume2 className="w-4 h-4 text-[#76FF03]" /> : <VolumeX className="w-4 h-4" />}
@@ -108,7 +108,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             variant="glass"
             size="sm"
             radius={10}
-            className="text-xs font-mono text-gray-200"
+            className="h-[38px] min-h-[38px] max-h-[38px] px-3.5 flex items-center space-x-1.5 text-xs font-mono text-gray-200"
             title="Toggle English / Español"
           >
             <Globe className="w-3.5 h-3.5 text-[#76FF03]" />
@@ -124,7 +124,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             variant="solid-lime"
             size="sm"
             radius={10}
-            className="text-xs font-bold tracking-wider"
+            className="h-[38px] min-h-[38px] max-h-[38px] px-4 flex items-center space-x-1.5 text-xs font-bold tracking-wider whitespace-nowrap"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t.nav.startProject}</span>

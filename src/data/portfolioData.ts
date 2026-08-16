@@ -293,8 +293,8 @@ export const translations = {
       work: 'WORK',
       about: 'ABOUT',
       viewer3d: '3D LAB',
-      stats: 'STATS',
       experience: 'EXPERIENCE',
+      stats: 'STATS',
       testimonials: 'REVIEWS',
       contact: 'CONTACT',
       startProject: 'START_PROJECT'
@@ -369,10 +369,10 @@ export const translations = {
     nav: {
       work: 'PROYECTOS',
       about: 'SOBRE MÍ',
-      viewer3d: 'LAB 3D',
-      stats: 'ESTADÍSTICAS',
+      viewer3d: '3D LAB',
       experience: 'EXPERIENCIA',
-      testimonials: 'TESTIMONIOS',
+      stats: 'MÉTRICAS',
+      testimonials: 'RESEÑAS',
       contact: 'CONTACTO',
       startProject: 'INICIAR_PROYECTO'
     },

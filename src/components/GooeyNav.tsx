@@ -162,7 +162,7 @@ export const GooeyNav: React.FC<GooeyNavProps> = ({
 
     resizeObserver.observe(containerRef.current);
     return () => resizeObserver.disconnect();
-  }, [activeIndex, updateEffectPosition]);
+  }, [activeIndex, updateEffectPosition, items]);
 
   return (
     <div className={`gooey-nav-container ${className}`.trim()} ref={containerRef}>

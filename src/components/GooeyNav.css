@@ -16,9 +16,10 @@
 
 .gooey-nav-container nav ul {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.35rem;
   list-style: none;
-  padding: 0.25rem 0.5rem;
+  padding: 0;
   margin: 0;
   position: relative;
   z-index: 3;
@@ -28,21 +29,28 @@
   position: relative;
   cursor: pointer;
   border-radius: 8px;
+  display: flex;
+  align-items: center;
   transition: all 0.25s ease;
 }
 
 .gooey-nav-container nav ul li a {
-  display: inline-block;
-  padding: 0.4rem 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 38px;
+  padding: 0 0.75rem;
   font-family: 'Montserrat', sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #9CA3AF;
   text-decoration: none;
   position: relative;
   z-index: 4;
+  box-sizing: border-box;
   transition: color 0.2s ease, transform 0.15s ease;
   user-select: none;
 }

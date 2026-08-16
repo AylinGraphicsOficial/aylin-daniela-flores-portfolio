@@ -1,7 +1,7 @@
 // Web Audio API lightweight sound synthesizer for kinetic tactile feedback
 
 let audioCtx: AudioContext | null = null;
-let soundEnabled = false;
+let soundEnabled = true;
 
 export function toggleAudio(enable?: boolean): boolean {
   if (typeof enable === 'boolean') {
