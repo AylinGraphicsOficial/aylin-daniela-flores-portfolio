@@ -59,9 +59,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           onClick={playClickSound}
           className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white"
         >
-          <div className="w-9 h-9 rounded-xl overflow-hidden bg-black/40 border border-[#76FF03]/40 flex items-center justify-center shadow-[0_0_15px_rgba(118,255,3,0.3)] group-hover:scale-105 group-hover:border-[#76FF03] transition-all p-0.5">
-            <img src="/logo.webp" alt="Aylin Flores Logo" className="w-full h-full object-contain" />
-          </div>
+          <img src="/logo.webp" alt="Aylin Flores Logo" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
           <div className="flex flex-col justify-center">
             <span className="leading-tight font-black text-white group-hover:text-[#76FF03] transition-colors text-base md:text-lg">
               Aylin Flores
