@@ -59,6 +59,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
             rotation={-6}
             duration={22}
             itemSize={135}
+            showPath={true}
+            pathColor="rgba(118, 255, 3, 0.45)"
+            pathWidth={2.5}
             responsive={true}
             centerContent={
               <div className="relative w-56 sm:w-64 md:w-80 lg:w-96 aspect-[3/4] flex items-center justify-center select-none pointer-events-none">

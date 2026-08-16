@@ -116,6 +116,28 @@ function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress
     return `${offset}%`;
   });
 
+  // Dynamic 3D Z-Index: Elements in front half (45% to 95%) pass in FRONT of centerContent (zIndex: 25 vs 12)
+  const zIndex = useTransform(progress, (p: number) => {
+    const offset = (((p + itemOffset) % 100) + 100) % 100;
+    return offset >= 46 && offset <= 96 ? 25 : 5;
+  });
+
+  // Dynamic 3D Scale & Opacity Perspective
+  const scale = useTransform(progress, (p: number) => {
+    const offset = (((p + itemOffset) % 100) + 100) % 100;
+    // Front apex is at 71%, back apex is at 21%
+    const normalized = (offset - 21) / 50;
+    const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
+    return 0.78 + depthFactor * 0.42; // Scales between 0.78x (behind) and 1.20x (in front)
+  });
+
+  const opacity = useTransform(progress, (p: number) => {
+    const offset = (((p + itemOffset) % 100) + 100) % 100;
+    const normalized = (offset - 21) / 50;
+    const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
+    return 0.75 + depthFactor * 0.25;
+  });
+
   return (
     <motion.div
       className="orbit-item"
@@ -126,6 +148,9 @@ function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress
         offsetRotate: '0deg',
         offsetAnchor: 'center center',
         offsetDistance,
+        zIndex,
+        scale,
+        opacity,
       }}
     >
       <div style={{ transform: `rotate(${-rotation}deg)` }}>{item}</div>
@@ -152,8 +177,8 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
   width = 100,
   height = 100,
   className = '',
-  showPath = false,
-  pathColor = 'rgba(0,0,0,0.1)',
+  showPath = true,
+  pathColor = 'rgba(118,255,3,0.35)',
   pathWidth = 2,
   easing = 'linear',
   paused = false,
@@ -262,8 +287,40 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
               viewBox={`0 0 ${baseWidth} ${baseWidth}`}
               className="orbit-path-svg"
             >
-              <path d={path} fill="none" stroke={pathColor} strokeWidth={pathWidth / (scale ?? 1)} />
+              <defs>
+                <filter id="orbit-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              {/* Glowing Outer Track */}
+              <path
+                d={path}
+                fill="none"
+                stroke={pathColor}
+                strokeWidth={pathWidth / (scale ?? 1)}
+                filter="url(#orbit-glow)"
+                strokeDasharray="8 6"
+              />
+              {/* Inner Crisp Line */}
+              <path
+                d={path}
+                fill="none"
+                stroke="rgba(118, 255, 3, 0.6)"
+                strokeWidth={1.5 / (scale ?? 1)}
+                strokeDasharray="8 6"
+              />
             </svg>
+          )}
+
+          {/* Central Content (Placed inside at z-index 12 so front items pass in front and back items pass behind) */}
+          {centerContent && (
+            <div className="orbit-center-content">
+              {centerContent}
+            </div>
           )}
 
           {items.map((item, index) => (
@@ -281,12 +338,6 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
           ))}
         </div>
       </div>
-
-      {centerContent && (
-        <div className="orbit-center-content">
-          {centerContent}
-        </div>
-      )}
     </div>
   );
 };
