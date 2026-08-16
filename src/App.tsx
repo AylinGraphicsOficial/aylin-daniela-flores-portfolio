@@ -96,23 +96,12 @@ export default function App() {
         onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
       />
 
-      {/* Global Scroll Gradual Blur Overlays (React Bits) */}
-      <GradualBlur
-        target="page"
-        position="top"
-        height="5.5rem"
-        strength={1.6}
-        divCount={6}
-        curve="bezier"
-        exponential={true}
-        opacity={0.92}
-        zIndex={40}
-      />
+      {/* Bottom Scroll Gradual Blur Overlay (React Bits) */}
       <GradualBlur
         target="page"
         position="bottom"
-        height="4.5rem"
-        strength={1.6}
+        height="5rem"
+        strength={1.5}
         divCount={6}
         curve="bezier"
         exponential={true}
