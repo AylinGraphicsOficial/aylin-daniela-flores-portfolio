@@ -85,8 +85,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           />
         </div>
 
-        {/* Right Action Tools: Sound, Language, CTA with Unified 38px Height */}
-        <div className="hidden sm:flex items-center space-x-2.5">
+        {/* Right Action Tools: Sound, Language, CTA with Uniform Gap Spacing */}
+        <div className="hidden sm:flex items-center gap-3.5 sm:gap-4 pl-2">
           {/* Sound FX Toggle */}
           <SpecularButton
             onClick={handleSoundToggle}
@@ -124,7 +124,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             variant="solid-lime"
             size="sm"
             radius={10}
-            className="h-[38px] min-h-[38px] max-h-[38px] px-4 flex items-center space-x-1.5 text-xs font-bold tracking-wider whitespace-nowrap"
+            className="h-[38px] min-h-[38px] max-h-[38px] px-4 flex items-center space-x-1.5 text-xs font-bold tracking-wider whitespace-nowrap shadow-[0_0_15px_rgba(118,255,3,0.3)]"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t.nav.startProject}</span>
