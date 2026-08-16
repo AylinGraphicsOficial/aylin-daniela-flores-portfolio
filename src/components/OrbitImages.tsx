@@ -109,6 +109,7 @@ interface OrbitItemProps {
 }
 
 function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress, fill }: OrbitItemProps) {
+  const itemRef = useRef<HTMLDivElement>(null);
   const itemOffset = fill ? (index / totalItems) * 100 : 0;
 
   const offsetDistance = useTransform(progress, (p: number) => {
@@ -116,29 +117,43 @@ function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress
     return `${offset}%`;
   });
 
-  // Dynamic 3D Z-Index: Passes IN FRONT across shoulders/chest (48% to 98%), and BEHIND by the head (0% to 48%)
-  const zIndex = useTransform(progress, (p: number) => {
-    const offset = (((p + itemOffset) % 100) + 100) % 100;
-    return offset >= 48 && offset <= 98 ? 25 : 5;
-  });
-
-  // Dynamic 3D Scale & Opacity Perspective: 1.24x in front of shoulders, 0.78x behind head
+  // Dynamic 3D Scale & Opacity Perspective: 1.25x in front of shoulders, 0.76x behind head
   const scale = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
     const normalized = (offset - 23) / 50;
     const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
-    return 0.78 + depthFactor * 0.46;
+    return 0.76 + depthFactor * 0.48;
   });
 
   const opacity = useTransform(progress, (p: number) => {
     const offset = (((p + itemOffset) % 100) + 100) % 100;
     const normalized = (offset - 23) / 50;
     const depthFactor = (Math.sin(normalized * Math.PI) + 1) / 2;
-    return 0.75 + depthFactor * 0.25;
+    return 0.72 + depthFactor * 0.28;
   });
+
+  // Directly update DOM element zIndex (2 = behind photo, 30 = in front of photo)
+  useEffect(() => {
+    const updateZ = (p: number) => {
+      if (!itemRef.current) return;
+      const offset = (((p + itemOffset) % 100) + 100) % 100;
+      // Front half = shoulders/chest (approx 48% to 98%) -> zIndex: 30
+      // Back half = head/hair (0% to 48% and 98% to 100%) -> zIndex: 2
+      if (offset >= 48 && offset <= 98) {
+        itemRef.current.style.zIndex = '30';
+      } else {
+        itemRef.current.style.zIndex = '2';
+      }
+    };
+
+    updateZ(progress.get());
+    const unsubscribe = progress.on('change', updateZ);
+    return () => unsubscribe();
+  }, [progress, itemOffset]);
 
   return (
     <motion.div
+      ref={itemRef}
       className="orbit-item"
       style={{
         width: itemSize,
@@ -147,7 +162,6 @@ function OrbitItem({ item, index, totalItems, path, itemSize, rotation, progress
         offsetRotate: '0deg',
         offsetAnchor: 'center center',
         offsetDistance,
-        zIndex,
         scale,
         opacity,
       }}
