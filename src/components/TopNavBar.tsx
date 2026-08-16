@@ -40,7 +40,6 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
     { href: '#work', label: t.nav.work },
     { href: '#viewer3d', label: t.nav.viewer3d },
     { href: '#experience', label: t.nav.experience },
-    { href: '#stats', label: t.nav.stats },
     { href: '#about', label: t.nav.about },
     { href: '#contact', label: t.nav.contact },
   ];

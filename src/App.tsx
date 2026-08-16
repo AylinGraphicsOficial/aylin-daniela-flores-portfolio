@@ -9,10 +9,9 @@ import { WebGLFluidShader } from './components/WebGLFluidShader';
 import { CustomCursor } from './components/CustomCursor';
 import { TopNavBar } from './components/TopNavBar';
 import { HeroSection } from './components/HeroSection';
-import { AboutSection } from './components/AboutSection';
 import { WorksBentoGrid } from './components/WorksBentoGrid';
 import { ExperienceTimeline } from './components/ExperienceTimeline';
-import { StatsAndMilestones } from './components/StatsAndMilestones';
+import { AboutSection } from './components/AboutSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 
@@ -121,10 +120,6 @@ export default function App() {
 
         <div className="scroll-reveal">
           <ExperienceTimeline lang={lang} />
-        </div>
-
-        <div className="scroll-reveal">
-          <StatsAndMilestones lang={lang} />
         </div>
 
         <div className="scroll-reveal">
