@@ -59,12 +59,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     >
       {/* Grand Central 3D Hands + Logo Masterpiece Showcase (Calibrated Composition) */}
       <div className="relative z-10 w-full flex flex-col items-center text-center mb-20 md:mb-32 pt-4 md:pt-8">
-        {/* Deep ambient glow in kinetic neon green */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 md:w-[380px] h-72 md:h-[380px] bg-[#76FF03]/16 rounded-full blur-[110px] pointer-events-none animate-pulse-glow" />
+        {/* Deep ambient glow in kinetic neon green aligned with the elevated logo light source */}
+        <div className="absolute top-[22%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 md:w-[380px] h-72 md:h-[380px] bg-[#76FF03]/20 rounded-full blur-[110px] pointer-events-none animate-pulse-glow" />
 
-        {/* 3D Hands & Smaller Central Floating Logo Container */}
-        <div className="relative w-full max-w-4xl h-[280px] sm:h-[340px] md:h-[400px] lg:h-[430px] flex items-center justify-center select-none">
-          {/* Left Hand (Red Circle Area - Scaled & Positioned closer to logo) */}
+        {/* 3D Hands & Central Floating Logo Container */}
+        <div className="relative w-full max-w-4xl h-[300px] sm:h-[360px] md:h-[420px] lg:h-[460px] flex items-center justify-center select-none">
+          {/* Left Hand (Red Circle Area) */}
           <div
             className="absolute left-4 sm:left-10 md:left-20 lg:left-28 bottom-0 w-36 sm:w-48 md:w-56 lg:w-64 aspect-[840/1376] z-10 pointer-events-none animate-hand-left"
             style={{
@@ -81,9 +81,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             />
           </div>
 
-          {/* Center Smaller 3D Logo (Cyan Circle Area - Compact & Centered in palms) */}
+          {/* Center 3D Logo (Elevated into the exact red circled zone between lit fingertips) */}
           <div
-            className="group relative z-20 w-28 sm:w-36 md:w-44 lg:w-48 aspect-[2519/2743] cursor-pointer -mt-8 sm:-mt-12 md:-mt-14"
+            className="group relative z-20 w-28 sm:w-36 md:w-44 lg:w-48 aspect-[2519/2743] cursor-pointer -mt-24 sm:-mt-32 md:-mt-44 lg:-mt-52"
             style={{
               transform: `translate(${drift.x + tilt.x * 0.35}px, ${drift.y + tilt.y * 0.35}px) rotate(${drift.r}deg)`,
               transition: 'transform 2.4s ease-in-out, filter 0.6s ease',
@@ -94,11 +94,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               alt="Aylin Flores - Isotipo 3D"
               width={2519}
               height={2743}
-              className="w-full h-full object-contain [filter:drop-shadow(0_0_20px_rgba(118,255,3,0.45))] group-hover:[filter:drop-shadow(0_0_35px_rgba(118,255,3,0.75))] group-hover:scale-108 transition-all duration-500"
+              className="w-full h-full object-contain [filter:drop-shadow(0_0_22px_rgba(118,255,3,0.5))] group-hover:[filter:drop-shadow(0_0_38px_rgba(118,255,3,0.8))] group-hover:scale-108 transition-all duration-500"
             />
           </div>
 
-          {/* Right Hand (Red Circle Area - Scaled & Positioned closer to logo) */}
+          {/* Right Hand (Red Circle Area) */}
           <div
             className="absolute right-4 sm:right-10 md:right-20 lg:right-28 bottom-0 w-36 sm:w-48 md:w-56 lg:w-64 aspect-[840/1376] z-10 pointer-events-none animate-hand-right"
             style={{
@@ -116,7 +116,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* Central Text in Yellow Zone (Nestled between the lower wrists with high contrast) */}
+        {/* Central Text in Yellow Zone (Nestled cleanly between the lower wrists) */}
         <div className="relative z-30 max-w-2xl px-4 -mt-10 sm:-mt-14 md:-mt-18 lg:-mt-20">
           <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-[52px] font-black text-white uppercase tracking-[0.16em] leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] glow-text">
             {t.contact.title}
