@@ -8,6 +8,7 @@ export interface OrbitImagesProps {
   shape?: 'ellipse' | 'circle' | 'square' | 'rectangle' | 'triangle' | 'star' | 'heart' | 'infinity' | 'wave' | 'custom';
   customPath?: string;
   baseWidth?: number;
+  baseHeight?: number;
   radiusX?: number;
   radiusY?: number;
   radius?: number;
@@ -177,6 +178,7 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
   shape = 'ellipse',
   customPath,
   baseWidth = 1400,
+  baseHeight,
   radiusX = 700,
   radiusY = 170,
   radius = 300,
@@ -201,8 +203,9 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
 
+  const effectiveHeight = baseHeight || baseWidth;
   const designCenterX = baseWidth / 2;
-  const designCenterY = baseWidth / 2;
+  const designCenterY = effectiveHeight / 2;
 
   const path = useMemo(() => {
     switch (shape) {
@@ -276,7 +279,7 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
       style={{
         width: containerWidth,
         height: containerHeight,
-        aspectRatio: responsive ? '1 / 1' : undefined,
+        aspectRatio: responsive ? `${baseWidth} / ${effectiveHeight}` : undefined,
       }}
       aria-hidden="true"
     >
@@ -284,7 +287,7 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
         className={responsive ? 'orbit-scaling-container orbit-scaling-container--responsive' : 'orbit-scaling-container'}
         style={{
           width: responsive ? baseWidth : '100%',
-          height: responsive ? baseWidth : '100%',
+          height: responsive ? effectiveHeight : '100%',
           transform: responsive && scale !== null ? `translate(-50%, -50%) scale(${scale})` : undefined,
           visibility: responsive && scale === null ? 'hidden' : undefined,
         }}
@@ -297,7 +300,7 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
             <svg
               width="100%"
               height="100%"
-              viewBox={`0 0 ${baseWidth} ${baseWidth}`}
+              viewBox={`0 0 ${baseWidth} ${effectiveHeight}`}
               className="orbit-path-svg"
             >
               <defs>

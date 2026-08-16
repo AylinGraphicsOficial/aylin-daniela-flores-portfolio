@@ -42,18 +42,19 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
   };
 
   return (
-    <section id="about" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
+    <section id="about" className="py-12 md:py-20 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
       {/* Background ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#76FF03]/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Orbit Section: Aylin's Portrait with 3D Project Assets in Orbit */}
-      <div className="w-full max-w-4xl mx-auto mb-12 flex flex-col items-center">
-        <div className="w-full relative py-4">
+      <div className="w-full max-w-4xl mx-auto mb-4 flex flex-col items-center">
+        <div className="w-full relative">
           <OrbitImages
             images={orbitImagesList}
             altPrefix="Aylin Flores 3D Project"
             shape="ellipse"
             baseWidth={1000}
+            baseHeight={540}
             radiusX={460}
             radiusY={175}
             rotation={-6}
@@ -85,7 +86,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
       </div>
 
       {/* Bio & Professional Statement Centered Below Orbit */}
-      <div className="w-full max-w-4xl mx-auto space-y-6 text-center mb-16">
+      <div className="w-full max-w-4xl mx-auto space-y-6 text-center mb-10">
         <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 mx-auto">
           <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
           <span className="text-xs font-bold tracking-[0.25em] text-[#76FF03] uppercase font-mono">
