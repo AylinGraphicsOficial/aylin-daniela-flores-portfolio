@@ -43,8 +43,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
           <div className="glass-panel p-2.5 rounded-2xl relative z-10 overflow-hidden shadow-2xl">
             <div className="relative overflow-hidden rounded-xl bg-[#081008]">
               <img
-                src="https://lh3.googleusercontent.com/aida/AP1WRLvxeIHRvpbdLpeUScKUJ5xTQW7Yq9K0PAFaMTMshS6gmcYiyYK1vopOlC14dLTowETVvN4D3tCgyPOk5XIk3RC_Y7oRZALojwqzWl99WlrxGX81O-F-5cAfOkwiroDu2Vg46gPH9NrXFJhqB2Gnas4F0uAXNlLtkO3HreiYkn9OGpsf0XDHgmu2PZGyh5DsnTyQOnemj2OphXYzsp1_NfIBIyJbnIPU4m1a44RVkm6ADrFN-3Q76fz_eVvF"
+                src="/images/about-portrait.jpg"
                 alt="Aylin Daniela Flores - Senior Graphic Designer & 3D Modeler"
+                width={512}
+                height={442}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto object-cover rounded-lg grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-102"
               />
 

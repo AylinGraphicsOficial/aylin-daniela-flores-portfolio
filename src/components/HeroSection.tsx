@@ -135,8 +135,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           >
             <div className="relative overflow-hidden rounded-xl bg-[#081008] border border-white/10 group">
               <img
-                src="https://lh3.googleusercontent.com/aida/AP1WRLsYcVyHRuT6OeFxHxRfNMHceGT-VD8VVa5gOodzQYkO0ElzN1TTEIZj1hFgNMXqKsuRCCTwVt-gmKgpHwGU1wF49unMKF-ztGc1gu-iT4akzgUS1cBvRndCZQAg8Sjyg1mK1D4Nmp4BIyoLtkgzMrMp_ncGeTfBz1PS0SQNU9zosVp46Gc4NO02BqSfTLRuJnRvMKk2rwcNJllOxGUvn7qKa2teBmwIOspgg3K7WQlQpU-z1t5E0sVfkhs"
+                src="/images/hero-hands.jpg"
                 alt="3D Hands Visualization"
+                width={512}
+                height={298}
+                fetchPriority="high"
+                decoding="async"
                 className="w-full h-auto object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute bottom-3 left-3 right-3 bg-[#050B05]/80 backdrop-blur-md p-3 rounded-lg border border-white/10 flex justify-between items-center">
@@ -160,8 +164,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           >
             <div className="relative overflow-hidden rounded-lg bg-[#081008] border border-white/10">
               <img
-                src="https://lh3.googleusercontent.com/aida/AP1WRLuelUNvB0s29U6Uku7DycUTPiOmYcBUQerJmAAMs3miyC3tX1s57f9KfRNnOgv5PFI8R78531NUvr_jd6jGGme97HR50ewzFufxUgKR3GWIUJrHXLHx9Cokmr75hduUp4NJ-8TJ2DzKQPFhJBHy-sdeEEzJIPCkxBncVdS15cNI3vlAGa1sz_VvlFOuY_9u-QDdJmY1h9R1ulwiN0Jn8n7I7nGhlqZKq0uyEHWvDdNXgqMZg9EDMJhwDWs"
+                src="/images/retro-mini.jpg"
                 alt="3D Car Render"
+                width={462}
+                height={512}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto object-contain"
               />
               <div className="p-2 bg-[#050B05]/90 flex justify-between items-center">

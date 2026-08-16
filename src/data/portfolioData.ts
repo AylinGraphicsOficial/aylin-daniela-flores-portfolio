@@ -9,9 +9,9 @@ export const projectsData: Project[] = [
     client: 'Apex Auto Studio',
     shortDesc: 'Hard-surface 3D modeling, UV unwrapping, and photorealistic octane rendering of a classic British mini cooper.',
     fullDesc: 'An intensive vehicle hard-surface modeling study exploring precise curvature topology, realistic dielectric materials, custom decals, and high-dynamic-range studio lighting setups. Rendered in multiple cinematic angles with custom camera depths of field.',
-    image: 'https://lh3.googleusercontent.com/aida/AP1WRLuelUNvB0s29U6Uku7DycUTPiOmYcBUQerJmAAMs3miyC3tX1s57f9KfRNnOgv5PFI8R78531NUvr_jd6jGGme97HR50ewzFufxUgKR3GWIUJrHXLHx9Cokmr75hduUp4NJ-8TJ2DzKQPFhJBHy-sdeEEzJIPCkxBncVdS15cNI3vlAGa1sz_VvlFOuY_9u-QDdJmY1h9R1ulwiN0Jn8n7I7nGhlqZKq0uyEHWvDdNXgqMZg9EDMJhwDWs',
+    image: '/images/retro-mini.jpg',
     galleryImages: [
-      'https://lh3.googleusercontent.com/aida/AP1WRLuelUNvB0s29U6Uku7DycUTPiOmYcBUQerJmAAMs3miyC3tX1s57f9KfRNnOgv5PFI8R78531NUvr_jd6jGGme97HR50ewzFufxUgKR3GWIUJrHXLHx9Cokmr75hduUp4NJ-8TJ2DzKQPFhJBHy-sdeEEzJIPCkxBncVdS15cNI3vlAGa1sz_VvlFOuY_9u-QDdJmY1h9R1ulwiN0Jn8n7I7nGhlqZKq0uyEHWvDdNXgqMZg9EDMJhwDWs',
+      '/images/retro-mini.jpg',
       'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80'
     ],
@@ -35,9 +35,9 @@ export const projectsData: Project[] = [
     client: 'Cyberpunk Digital Biennial',
     shortDesc: 'Surreal 3D human anatomy visual exploring the intersection between human tactile touch and technological fluidity.',
     fullDesc: 'Conceptual 3D visualization representing human connection through ethereal cybernetic textures and ambient light refraction. Modeled using ZBrush sculpting, textured in Substance Painter with iridescent subsurface scattering, and composited in After Effects.',
-    image: 'https://lh3.googleusercontent.com/aida/AP1WRLsYcVyHRuT6OeFxHxRfNMHceGT-VD8VVa5gOodzQYkO0ElzN1TTEIZj1hFgNMXqKsuRCCTwVt-gmKgpHwGU1wF49unMKF-ztGc1gu-iT4akzgUS1cBvRndCZQAg8Sjyg1mK1D4Nmp4BIyoLtkgzMrMp_ncGeTfBz1PS0SQNU9zosVp46Gc4NO02BqSfTLRuJnRvMKk2rwcNJllOxGUvn7qKa2teBmwIOspgg3K7WQlQpU-z1t5E0sVfkhs',
+    image: '/images/hero-hands.jpg',
     galleryImages: [
-      'https://lh3.googleusercontent.com/aida/AP1WRLsYcVyHRuT6OeFxHxRfNMHceGT-VD8VVa5gOodzQYkO0ElzN1TTEIZj1hFgNMXqKsuRCCTwVt-gmKgpHwGU1wF49unMKF-ztGc1gu-iT4akzgUS1cBvRndCZQAg8Sjyg1mK1D4Nmp4BIyoLtkgzMrMp_ncGeTfBz1PS0SQNU9zosVp46Gc4NO02BqSfTLRuJnRvMKk2rwcNJllOxGUvn7qKa2teBmwIOspgg3K7WQlQpU-z1t5E0sVfkhs',
+      '/images/hero-hands.jpg',
       'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80'
     ],
     tags: ['Digital Art', 'ZBrush', 'Cinema 4D', 'Redshift', 'Iridescence'],

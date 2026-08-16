@@ -3,22 +3,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Language, Project } from './types';
 import { WebGLFluidShader } from './components/WebGLFluidShader';
 import { CustomCursor } from './components/CustomCursor';
 import { TopNavBar } from './components/TopNavBar';
 import { HeroSection } from './components/HeroSection';
 import { AboutSection } from './components/AboutSection';
-import { Interactive3DViewer } from './components/Interactive3DViewer';
 import { WorksBentoGrid } from './components/WorksBentoGrid';
 import { ExperienceTimeline } from './components/ExperienceTimeline';
 import { StatsAndMilestones } from './components/StatsAndMilestones';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
-import { CaseStudyModal } from './components/CaseStudyModal';
-import { ProjectPlannerModal } from './components/ProjectPlannerModal';
-import { CVViewerModal } from './components/CVViewerModal';
+
+// Lazy-loaded: only fetched when scrolled into view or opened on demand
+const Interactive3DViewer = lazy(() =>
+  import('./components/Interactive3DViewer').then((m) => ({ default: m.Interactive3DViewer }))
+);
+const CaseStudyModal = lazy(() =>
+  import('./components/CaseStudyModal').then((m) => ({ default: m.CaseStudyModal }))
+);
+const ProjectPlannerModal = lazy(() =>
+  import('./components/ProjectPlannerModal').then((m) => ({ default: m.ProjectPlannerModal }))
+);
+const CVViewerModal = lazy(() =>
+  import('./components/CVViewerModal').then((m) => ({ default: m.CVViewerModal }))
+);
 
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
@@ -69,7 +79,9 @@ export default function App() {
 
         <AboutSection lang={lang} />
 
-        <Interactive3DViewer lang={lang} />
+        <Suspense fallback={null}>
+          <Interactive3DViewer lang={lang} />
+        </Suspense>
 
         <WorksBentoGrid
           lang={lang}
@@ -89,30 +101,32 @@ export default function App() {
       {/* Studio Kinetic Footer */}
       <Footer />
 
-      {/* Interactive Case Study Detail Modal */}
-      <CaseStudyModal
-        project={selectedCaseStudy}
-        lang={lang}
-        onClose={() => setSelectedCaseStudy(null)}
-        onOpenProjectPlanner={() => {
-          setSelectedCaseStudy(null);
-          setIsProjectPlannerOpen(true);
-        }}
-      />
+      <Suspense fallback={null}>
+        {/* Interactive Case Study Detail Modal */}
+        <CaseStudyModal
+          project={selectedCaseStudy}
+          lang={lang}
+          onClose={() => setSelectedCaseStudy(null)}
+          onOpenProjectPlanner={() => {
+            setSelectedCaseStudy(null);
+            setIsProjectPlannerOpen(true);
+          }}
+        />
 
-      {/* Interactive Project Estimator & Scope Builder Modal */}
-      <ProjectPlannerModal
-        isOpen={isProjectPlannerOpen}
-        lang={lang}
-        onClose={() => setIsProjectPlannerOpen(false)}
-      />
+        {/* Interactive Project Estimator & Scope Builder Modal */}
+        <ProjectPlannerModal
+          isOpen={isProjectPlannerOpen}
+          lang={lang}
+          onClose={() => setIsProjectPlannerOpen(false)}
+        />
 
-      {/* Structured CV / Resume Viewer Modal */}
-      <CVViewerModal
-        isOpen={isCVModalOpen}
-        lang={lang}
-        onClose={() => setIsCVModalOpen(false)}
-      />
+        {/* Structured CV / Resume Viewer Modal */}
+        <CVViewerModal
+          isOpen={isCVModalOpen}
+          lang={lang}
+          onClose={() => setIsCVModalOpen(false)}
+        />
+      </Suspense>
     </div>
   );
 }

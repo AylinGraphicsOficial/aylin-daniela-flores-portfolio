@@ -90,6 +90,10 @@ export const StatsAndMilestones: React.FC<StatsAndMilestonesProps> = ({ lang }) 
                   <img
                     src={test.avatar}
                     alt={test.author}
+                    width={44}
+                    height={44}
+                    loading="lazy"
+                    decoding="async"
                     className="w-11 h-11 rounded-full object-cover border border-[#76FF03]/40"
                   />
                   <div>

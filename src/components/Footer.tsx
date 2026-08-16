@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
       {/* Top row */}
       <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center space-x-3">
-          <img src="/logo.webp" alt="Aylin Flores Logo" className="w-10 h-10 object-contain" />
+          <img src="/logo.webp" alt="Aylin Flores Logo" width={40} height={40} loading="lazy" className="w-10 h-10 object-contain" />
           <div className="flex flex-col items-start">
             <div className="text-xl font-black tracking-tight text-white uppercase font-sans">
               AYLIN FLORES

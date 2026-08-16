@@ -59,7 +59,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           onClick={playClickSound}
           className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white"
         >
-          <img src="/logo.webp" alt="Aylin Flores Logo" className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
+          <img src="/logo.webp" alt="Aylin Flores Logo" width={36} height={36} className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
           <div className="flex flex-col justify-center">
             <span className="leading-tight font-black text-white group-hover:text-[#76FF03] transition-colors text-base md:text-lg">
               Aylin Flores

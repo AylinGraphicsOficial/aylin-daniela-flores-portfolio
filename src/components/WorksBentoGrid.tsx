@@ -93,6 +93,10 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 <img
                   src={project.image}
                   alt={project.title}
+                  width={512}
+                  height={512}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain p-6 group-hover:scale-108 transition-transform duration-700 ease-out"
                 />
               </div>

@@ -75,6 +75,8 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
             <img
               src={gallery[activeImageIndex]}
               alt={project.title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full max-h-[500px] object-contain transition-all duration-500"
             />
 
