@@ -85,7 +85,7 @@ export const BrandsSection: React.FC<BrandsSectionProps> = ({ lang }) => {
       </div>
 
       {/* Interactive Full-Width 100% LogoLoop Track */}
-      <div className="w-full py-6 md:py-8 bg-black/30 border-y border-white/5 backdrop-blur-md overflow-hidden relative">
+      <div className="w-full py-6 md:py-8 bg-white/[0.015] border-y border-white/10 backdrop-blur-sm overflow-hidden relative">
         <LogoLoop
           logos={brandLogos}
           speed={45}
@@ -95,7 +95,6 @@ export const BrandsSection: React.FC<BrandsSectionProps> = ({ lang }) => {
           hoverSpeed={0}
           scaleOnHover={true}
           fadeOut={true}
-          fadeOutColor="#050B05"
           ariaLabel={isEs ? 'Carrusel de marcas colaboradoras' : 'Partner brands carousel'}
         />
       </div>
