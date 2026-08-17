@@ -133,16 +133,16 @@ export default function App() {
         </div>
 
         <div className="scroll-reveal">
-          <Suspense fallback={null}>
-            <Interactive3DViewer lang={lang} />
-          </Suspense>
-        </div>
-
-        <div className="scroll-reveal">
           <WorksBentoGrid
             lang={lang}
             onSelectProject={(project) => setSelectedCaseStudy(project)}
           />
+        </div>
+
+        <div className="scroll-reveal">
+          <Suspense fallback={null}>
+            <Interactive3DViewer lang={lang} />
+          </Suspense>
         </div>
 
         <div className="scroll-reveal">
