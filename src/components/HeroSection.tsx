@@ -147,11 +147,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Left Column: Kinetic Text & CTAs */}
         <div className="lg:col-span-8 flex flex-col justify-center">
           {/* Status Badge */}
-          <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 w-fit mb-6">
+          <div className="section-tag-pill w-fit mb-6">
             <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-ping" />
-            <span className="text-[11px] font-bold font-mono tracking-widest text-[#76FF03] uppercase">
-              {t.hero.badgeAvailable}
-            </span>
+            <span>{t.hero.badgeAvailable}</span>
           </div>
 
           <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase">

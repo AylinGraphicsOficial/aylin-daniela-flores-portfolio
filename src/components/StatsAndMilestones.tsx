@@ -16,11 +16,11 @@ export const StatsAndMilestones: React.FC<StatsAndMilestonesProps> = ({ lang }) 
 
       {/* Numbers / Stats Grid */}
       <div>
-        <div className="flex items-center space-x-3 mb-4 justify-center">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
-          <span className="text-xs font-bold font-mono tracking-[0.25em] text-[#76FF03] uppercase">
-            IMPACT & METRICS
-          </span>
+        <div className="flex justify-center mb-4">
+          <div className="section-tag-pill">
+            <span className="badge-dot" />
+            <span>IMPACT & METRICS</span>
+          </div>
         </div>
         <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight text-center mb-16">
           {t.stats.title}

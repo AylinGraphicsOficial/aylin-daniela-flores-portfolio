@@ -69,9 +69,9 @@ export const BrandsSection: React.FC<BrandsSectionProps> = ({ lang }) => {
 
       <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col items-center text-center mb-8 space-y-3">
         {/* Badge */}
-        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-          <Building2 className="w-3.5 h-3.5 text-[#76FF03]" />
-          <span className="text-xs font-bold tracking-[0.25em] text-[#76FF03] uppercase font-mono">
+        <div className="section-tag-pill">
+          <Building2 className="badge-icon" />
+          <span>
             {isEs ? 'MARCAS Y ALIANZAS' : 'BRANDS & PARTNERSHIPS'}
           </span>
         </div>

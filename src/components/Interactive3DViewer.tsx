@@ -392,11 +392,9 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
-          <div className="flex items-center space-x-3 mb-3">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#76FF03] animate-pulse" />
-            <span className="text-xs font-bold tracking-[0.25em] text-[#76FF03] uppercase">
-              REAL-TIME WEBGL / TOPOLOGY
-            </span>
+          <div className="section-tag-pill mb-3">
+            <span className="badge-dot animate-pulse" />
+            <span>REAL-TIME WEBGL / TOPOLOGY</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white uppercase">
             {t.viewer3d.title}

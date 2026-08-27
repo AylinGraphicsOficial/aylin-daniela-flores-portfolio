@@ -22,11 +22,9 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
     <section id="experience" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-16">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-3">
-          <span className="w-2 h-2 rounded-full bg-[#76FF03]" />
-          <span className="text-[11px] font-bold font-mono tracking-widest text-[#76FF03] uppercase">
-            CAREER TRAJECTORY
-          </span>
+        <div className="section-tag-pill mb-3">
+          <span className="badge-dot" />
+          <span>CAREER TRAJECTORY</span>
         </div>
         <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-4">
           {t.experience.title}

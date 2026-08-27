@@ -76,11 +76,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         {/* Left Column: Direct Info & Time Clock */}
         <div className="lg:col-span-5 space-y-8">
           <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03] animate-ping" />
-              <span className="text-xs font-bold font-mono tracking-widest text-[#76FF03] uppercase">
-                GET IN TOUCH
-              </span>
+            <div className="section-tag-pill mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-ping" />
+              <span>GET IN TOUCH</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-none mb-4">
               {t.contact.title}

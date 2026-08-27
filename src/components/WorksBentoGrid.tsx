@@ -28,11 +28,9 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
       {/* Header & Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
-          <div className="flex items-center space-x-3 mb-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
-            <span className="text-xs font-bold font-mono tracking-[0.25em] text-[#76FF03] uppercase">
-              CURATED PORTFOLIO
-            </span>
+          <div className="section-tag-pill mb-2">
+            <span className="badge-dot" />
+            <span>CURATED PORTFOLIO</span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
             {t.work.title}

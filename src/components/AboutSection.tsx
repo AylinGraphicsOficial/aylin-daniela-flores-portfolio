@@ -87,9 +87,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
 
       {/* Bio & Professional Statement Centered Below Orbit */}
       <div className="w-full max-w-4xl mx-auto space-y-6 text-center mb-10">
-        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 mx-auto">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03]" />
-          <span className="text-xs font-bold tracking-[0.25em] text-[#76FF03] uppercase font-mono">
+        <div className="section-tag-pill mx-auto">
+          <span className="badge-dot" />
+          <span>
             {lang === 'es' ? 'PERFIL PROFESIONAL' : 'CREATIVE PROFILE & MASTERY'}
           </span>
         </div>
@@ -113,9 +113,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
         </p>
 
         {/* Location Tag */}
-        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 font-mono text-xs text-gray-300">
-          <Compass className="w-4 h-4 text-[#76FF03]" />
-          <span className="text-gray-400 uppercase">{t.about.basedIn}:</span>
+        <div className="section-tag-pill mx-auto tracking-normal">
+          <Compass className="badge-icon" />
+          <span className="text-gray-300 font-normal uppercase">{t.about.basedIn}:</span>
           <span className="text-white font-bold">{t.about.location}</span>
         </div>
 
