@@ -75,8 +75,8 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
           logos={diplomadosLogos}
           speed={26}
           direction="right"
-          logoHeight={165}
-          gap={70}
+          logoHeight={215}
+          gap={80}
           hoverSpeed={0}
           scaleOnHover={true}
           fadeOut={true}
