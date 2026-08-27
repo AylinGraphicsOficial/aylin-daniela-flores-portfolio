@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Layers } from 'lucide-react';
 import { Project, Language } from '../types';
 import { translations, projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
@@ -25,20 +25,21 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
 
   return (
     <section id="work" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
-      {/* Header & Filter Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
-        <div>
-          <div className="section-tag-pill mb-2">
-            <span className="badge-dot" />
-            <span>{lang === 'es' ? 'PROYECTOS' : 'PROJECTS'}</span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
-            {t.work.title}
-          </h2>
+      {/* Centered Header & Filter Controls */}
+      <div className="flex flex-col items-center text-center mb-12 space-y-4">
+        {/* Category Pill Tag */}
+        <div className="section-tag-pill">
+          <span className="badge-dot" />
+          <span>{lang === 'es' ? 'PROYECTOS' : 'PROJECTS'}</span>
         </div>
 
-        {/* Filter Pills (Adaptive Single Line, No Slider) */}
-        <div className="flex items-center flex-wrap sm:flex-nowrap gap-1.5 md:gap-2">
+        {/* Section Title */}
+        <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
+          {t.work.title}
+        </h2>
+
+        {/* Filter Pills (Centered Single Line) */}
+        <div className="flex items-center justify-center flex-wrap gap-2 pt-2">
           {categories.map((cat) => {
             const isSelected = activeFilter === cat;
             return (
@@ -52,12 +53,29 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 variant={isSelected ? 'solid-lime' : 'glass'}
                 size="sm"
                 radius={12}
-                className="text-[10px] sm:text-xs font-bold font-mono tracking-wider whitespace-nowrap px-2.5 sm:px-3.5 py-1.5"
+                className="text-[10px] sm:text-xs font-bold font-mono tracking-wider whitespace-nowrap px-3 sm:px-4 py-2"
               >
                 {cat}
               </SpecularButton>
             );
           })}
+        </div>
+
+        {/* Top "VER MÁS PROYECTOS" CTA Button */}
+        <div className="pt-2">
+          <SpecularButton
+            onClick={() => {
+              playClickSound();
+            }}
+            onMouseEnter={playHoverSound}
+            variant="glass"
+            size="md"
+            radius={14}
+            className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-6 py-3 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_25px_rgba(118,255,3,0.35)] transition-all"
+          >
+            <Layers className="w-4 h-4 text-[#76FF03]" />
+            <span>{lang === 'es' ? 'VER MÁS PROYECTOS' : 'VIEW MORE PROJECTS'}</span>
+          </SpecularButton>
         </div>
       </div>
 
@@ -147,6 +165,23 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
             </div>
           );
         })}
+      </div>
+
+      {/* Bottom "VER MÁS PROYECTOS" CTA Button */}
+      <div className="mt-14 flex justify-center">
+        <SpecularButton
+          onClick={() => {
+            playClickSound();
+          }}
+          onMouseEnter={playHoverSound}
+          variant="glass"
+          size="lg"
+          radius={14}
+          className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-8 py-4 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_30px_rgba(118,255,3,0.45)] transition-all"
+        >
+          <Layers className="w-4 h-4 text-[#76FF03]" />
+          <span>{lang === 'es' ? 'VER MÁS PROYECTOS' : 'VIEW MORE PROJECTS'}</span>
+        </SpecularButton>
       </div>
     </section>
   );

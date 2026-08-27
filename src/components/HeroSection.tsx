@@ -146,12 +146,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full relative z-10 items-center">
         {/* Left Column: Kinetic Text & CTAs */}
         <div className="lg:col-span-8 flex flex-col justify-center">
-          {/* Status Badge */}
-          <div className="section-tag-pill w-fit mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-ping" />
-            <span>{t.hero.badgeAvailable}</span>
-          </div>
-
           <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase">
             {t.hero.portfolioOf}
           </h2>
