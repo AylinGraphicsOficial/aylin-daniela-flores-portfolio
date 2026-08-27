@@ -14,7 +14,6 @@ import { HeroSection } from './components/HeroSection';
 import { WorksBentoGrid } from './components/WorksBentoGrid';
 import { ExperienceTimeline } from './components/ExperienceTimeline';
 import { AboutSection } from './components/AboutSection';
-import { SoftwaresSection } from './components/SoftwaresSection';
 import { DiplomadosSection } from './components/DiplomadosSection';
 import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
@@ -157,10 +156,6 @@ export default function App() {
 
         <div className="scroll-reveal">
           <AboutSection lang={lang} />
-        </div>
-
-        <div className="scroll-reveal">
-          <SoftwaresSection lang={lang} />
         </div>
 
         <div className="scroll-reveal">

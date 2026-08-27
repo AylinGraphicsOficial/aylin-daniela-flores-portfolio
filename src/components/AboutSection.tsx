@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Sparkles, PenTool, Video, Award, Compass } from 'lucide-react';
+import { Box, Sparkles, PenTool, Video, Award, Compass, Cpu } from 'lucide-react';
 import { Language } from '../types';
 import { translations, skillCategoriesData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
@@ -18,9 +18,97 @@ const orbitImagesList = [
   '/images/orbit-stand-diana.webp',
 ];
 
+const softwaresData = [
+  {
+    id: 'illustrator',
+    name: 'Adobe Illustrator',
+    shortName: 'Illustrator',
+    logo: '/images/softwares/ai.svg',
+    roleEs: 'Diseño Vectorial & Branding',
+    roleEn: 'Vector Design & Branding',
+    proficiency: 98,
+    levelEs: 'Experto',
+    levelEn: 'Expert',
+    glowColor: 'rgba(253, 153, 0, 0.45)',
+  },
+  {
+    id: 'photoshop',
+    name: 'Adobe Photoshop',
+    shortName: 'Photoshop',
+    logo: '/images/softwares/ps.svg',
+    roleEs: 'Edición & Composición',
+    roleEn: 'Digital Editing & Compositing',
+    proficiency: 96,
+    levelEs: 'Experto',
+    levelEn: 'Expert',
+    glowColor: 'rgba(49, 168, 255, 0.45)',
+  },
+  {
+    id: 'after-effects',
+    name: 'Adobe After Effects',
+    shortName: 'After Effects',
+    logo: '/images/softwares/ae.svg',
+    roleEs: 'Motion Graphics & VFX',
+    roleEn: 'Motion Graphics & VFX',
+    proficiency: 92,
+    levelEs: 'Avanzado',
+    levelEn: 'Advanced',
+    glowColor: 'rgba(153, 153, 255, 0.45)',
+  },
+  {
+    id: 'blender',
+    name: 'Blender 3D',
+    shortName: 'Blender',
+    logo: '/images/softwares/blender.webp',
+    roleEs: 'Modelado 3D & Shading',
+    roleEn: '3D Modeling & Shading',
+    proficiency: 94,
+    levelEs: 'Avanzado',
+    levelEn: 'Advanced',
+    glowColor: 'rgba(234, 118, 0, 0.45)',
+  },
+  {
+    id: 'davinci',
+    name: 'DaVinci Resolve',
+    shortName: 'DaVinci Resolve',
+    logo: '/images/softwares/davinci.webp',
+    roleEs: 'Color Grading & Montaje',
+    roleEn: 'Color Grading & Post',
+    proficiency: 88,
+    levelEs: 'Avanzado',
+    levelEn: 'Advanced',
+    glowColor: 'rgba(255, 85, 85, 0.45)',
+  },
+  {
+    id: 'capcut',
+    name: 'CapCut',
+    shortName: 'CapCut',
+    logo: '/images/softwares/capcut.svg',
+    roleEs: 'Edición Ágil & Social Media',
+    roleEn: 'Fast-Paced Social Video',
+    proficiency: 95,
+    levelEs: 'Experto',
+    levelEn: 'Expert',
+    glowColor: 'rgba(118, 255, 3, 0.45)',
+  },
+  {
+    id: 'canva',
+    name: 'Canva',
+    shortName: 'Canva',
+    logo: '/images/softwares/canva.webp',
+    roleEs: 'Prototipado & Plantillas',
+    roleEn: 'Brand Kits & Rapid Assets',
+    proficiency: 95,
+    levelEs: 'Experto',
+    levelEn: 'Expert',
+    glowColor: 'rgba(0, 196, 204, 0.45)',
+  },
+];
+
 export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
   const t = translations[lang];
   const [activeCategory, setActiveCategory] = useState<string>(skillCategoriesData[0].id);
+  const [hoveredSoftwareId, setHoveredSoftwareId] = useState<string | null>(null);
 
   const currentCategory = skillCategoriesData.find(c => c.id === activeCategory) || skillCategoriesData[0];
 
@@ -119,31 +207,96 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
           <span className="text-white font-bold">{t.about.location}</span>
         </div>
 
-        {/* Software Stack Badges */}
-        <div className="pt-4 flex flex-col items-center">
-          <span className="text-xs font-mono text-gray-400 block mb-3 uppercase tracking-wider">
-            {lang === 'es' ? 'HERRAMIENTAS & SOFTWARE DOMINADO' : 'TECH & SOFTWARE STACK'}
-          </span>
-          <div className="flex flex-wrap justify-center gap-2 max-w-3xl">
-            {[
-              'Adobe Illustrator',
-              'Adobe Photoshop',
-              'Adobe After Effects',
-              'Blender 3D',
-              'ZBrush',
-              'CapCut',
-              'DaVinci Resolve',
-              'Canva',
-              'Pre-prensa (CMYK)',
-              'Microsoft Excel',
-            ].map(tool => (
-              <span
-                key={tool}
-                className="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#76FF03]/50 text-xs font-mono text-gray-200 hover:text-white transition-colors"
-              >
-                {tool}
+        {/* Softwares Dominados - 7 Arcade Cards directly below Location Tag (No bottom detail box) */}
+        <div className="w-full pt-10 pb-2">
+          <div className="flex flex-col items-center text-center mb-8 space-y-2">
+            <div className="section-tag-pill">
+              <Cpu className="badge-icon" />
+              <span>{lang === 'es' ? 'SOFTWARES DOMINADOS' : 'MASTERED SOFTWARE'}</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">
+              {lang === 'es' ? 'Herramientas & Software ' : 'Technical & Creative '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#76FF03] via-[#A3E635] to-[#38B000]">
+                {lang === 'es' ? 'Profesional' : 'Stack'}
               </span>
-            ))}
+            </h3>
+            <p className="text-xs md:text-sm text-gray-300 max-w-xl">
+              {lang === 'es'
+                ? 'Dominio técnico y creativo en herramientas de diseño gráfico, modelado 3D, animación y postproducción audiovisual.'
+                : 'Technical and creative mastery across graphic design, 3D modeling, animation, and audiovisual post-production.'}
+            </p>
+          </div>
+
+          {/* 7 Software Arcade Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-3.5 max-w-6xl mx-auto">
+            {softwaresData.map((software) => {
+              const isHovered = hoveredSoftwareId === software.id;
+              return (
+                <div
+                  key={software.id}
+                  onMouseEnter={() => {
+                    playHoverSound();
+                    setHoveredSoftwareId(software.id);
+                  }}
+                  onMouseLeave={() => setHoveredSoftwareId(null)}
+                  onClick={playClickSound}
+                  className={`arcade-card group relative p-3.5 md:p-4 rounded-2xl flex flex-col items-center justify-between text-center transition-all duration-300 cursor-pointer select-none ${
+                    isHovered
+                      ? 'border-[#76FF03] shadow-[0_0_25px_rgba(118,255,3,0.35)] -translate-y-2 scale-[1.03] z-20'
+                      : 'border-white/10 hover:border-white/30'
+                  }`}
+                  style={{
+                    background: isHovered
+                      ? 'linear-gradient(180deg, rgba(12, 28, 12, 0.95) 0%, rgba(5, 11, 5, 0.98) 100%)'
+                      : 'linear-gradient(180deg, rgba(8, 18, 8, 0.82) 0%, rgba(4, 10, 4, 0.9) 100%)',
+                  }}
+                >
+                  {/* Neon Top Edge Highlight on Hover */}
+                  <div
+                    className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#76FF03] to-transparent transition-opacity duration-300 ${
+                      isHovered ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+
+                  {/* Software Logo Container */}
+                  <div className="w-14 h-14 md:w-16 md:h-16 mb-2.5 flex items-center justify-center relative">
+                    <div
+                      className="absolute inset-0 rounded-2xl blur-lg transition-opacity duration-300 pointer-events-none"
+                      style={{
+                        backgroundColor: software.glowColor,
+                        opacity: isHovered ? 0.65 : 0.15,
+                      }}
+                    />
+                    <img
+                      src={software.logo}
+                      alt={software.name}
+                      className="w-12 h-12 md:w-14 md:h-14 object-contain relative z-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {/* Software Name */}
+                  <div className="space-y-0.5 w-full mb-2.5">
+                    <h4 className="text-xs md:text-sm font-black text-white uppercase tracking-tight leading-tight group-hover:text-[#76FF03] transition-colors">
+                      {software.shortName}
+                    </h4>
+                    <p className="text-[10px] font-mono text-gray-400 leading-snug line-clamp-2">
+                      {lang === 'es' ? software.roleEs : software.roleEn}
+                    </p>
+                  </div>
+
+                  {/* Proficiency Metric Pill */}
+                  <div className="w-full pt-1.5 border-t border-white/10 flex items-center justify-between font-mono text-[9px] sm:text-[10px]">
+                    <span className="text-gray-400 font-medium">
+                      {lang === 'es' ? software.levelEs : software.levelEn}
+                    </span>
+                    <span className="text-[#76FF03] font-bold">
+                      {software.proficiency}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
