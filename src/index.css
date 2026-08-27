@@ -256,3 +256,66 @@ body {
 .animate-pulse-glow {
   animation: pulseGlow 4s ease-in-out infinite;
 }
+
+/* Welcome Curtain Keyframes & Utilities */
+.grid-cols-20 {
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+}
+
+@keyframes handIntroLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-120px) rotate(-10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) rotate(-4deg);
+  }
+}
+
+@keyframes handIntroRight {
+  0% {
+    opacity: 0;
+    transform: translateX(120px) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) rotate(4deg);
+  }
+}
+
+@keyframes handFloatLeft {
+  0% { transform: translateY(0px) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(-2deg); }
+  100% { transform: translateY(0px) rotate(-4deg); }
+}
+
+@keyframes handFloatRight {
+  0% { transform: translateY(0px) rotate(4deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(4deg); }
+}
+
+@keyframes logoIntroPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+    filter: drop-shadow(0 0 5px rgba(118, 255, 3, 0.2));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0px);
+    filter: drop-shadow(0 0 35px rgba(118, 255, 3, 0.85));
+  }
+}
+
+@keyframes logoFloatPulse {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 35px rgba(118, 255, 3, 0.85));
+  }
+  50% {
+    transform: translateY(-10px) scale(1.04);
+    filter: drop-shadow(0 0 50px rgba(118, 255, 3, 1));
+  }
+}

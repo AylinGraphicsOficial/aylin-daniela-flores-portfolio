@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Language, Project } from './types';
+import { WelcomeCurtain } from './components/WelcomeCurtain';
 import { WebGLFluidShader } from './components/WebGLFluidShader';
 import { CustomCursor } from './components/CustomCursor';
 import { GradualBlur } from './components/GradualBlur';
@@ -97,6 +98,9 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#050B05] text-white selection:bg-[#76FF03] selection:text-[#050B05]">
+      {/* 3-Second 8-Bit Cyber Intro Welcome Curtain */}
+      <WelcomeCurtain />
+
       {/* Dynamic Background GLSL Liquid WebGL Shader */}
       <WebGLFluidShader interactive={true} />
 
