@@ -69,14 +69,14 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
         </p>
       </div>
 
-      {/* Infinite LogoLoop Track in Full Color (40% larger diplomas) */}
-      <div className="w-full py-8 md:py-12 bg-white/[0.015] border-y border-white/10 backdrop-blur-sm overflow-hidden relative">
+      {/* Infinite LogoLoop Track in Full Color (Large, sharp & readable diplomas) */}
+      <div className="w-full py-10 md:py-16 bg-white/[0.015] border-y border-white/10 backdrop-blur-sm overflow-hidden relative">
         <LogoLoop
           logos={diplomadosLogos}
-          speed={32}
+          speed={26}
           direction="right"
-          logoHeight={110}
-          gap={80}
+          logoHeight={165}
+          gap={70}
           hoverSpeed={0}
           scaleOnHover={true}
           fadeOut={true}
