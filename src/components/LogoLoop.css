@@ -95,15 +95,18 @@
   filter: grayscale(0) opacity(1) brightness(1) drop-shadow(0 0 12px rgba(118, 255, 3, 0.4));
 }
 
-/* Full color loop variant for diplomas and color badges */
+/* Full color loop variant for diplomas and color badges (30% larger) */
 .logoloop--full-color .logoloop__item img {
-  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.7));
-  opacity: 0.92;
-  max-width: 220px;
+  height: var(--logoloop-logoHeight);
+  max-width: 320px;
+  width: auto;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.75));
+  opacity: 0.95;
+  border-radius: 6px;
 }
 
 .logoloop--full-color .logoloop__item:hover img {
-  filter: drop-shadow(0 0 16px rgba(118, 255, 3, 0.5)) brightness(1.08);
+  filter: drop-shadow(0 0 20px rgba(118, 255, 3, 0.6)) brightness(1.08);
   opacity: 1;
 }
 

@@ -26,7 +26,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   return (
     <section id="work" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
       {/* Header & Filter Controls */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
         <div>
           <div className="section-tag-pill mb-2">
             <span className="badge-dot" />
@@ -37,8 +37,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
           </h2>
         </div>
 
-        {/* Filter Pills (Single Line) */}
-        <div className="flex items-center flex-nowrap gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 max-w-full">
+        {/* Filter Pills (Adaptive Single Line, No Slider) */}
+        <div className="flex items-center flex-wrap sm:flex-nowrap gap-1.5 md:gap-2">
           {categories.map((cat) => {
             const isSelected = activeFilter === cat;
             return (
@@ -52,7 +52,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 variant={isSelected ? 'solid-lime' : 'glass'}
                 size="sm"
                 radius={12}
-                className="text-[11px] sm:text-xs font-bold font-mono tracking-wider whitespace-nowrap px-3 py-1.5 flex-shrink-0"
+                className="text-[10px] sm:text-xs font-bold font-mono tracking-wider whitespace-nowrap px-2.5 sm:px-3.5 py-1.5"
               >
                 {cat}
               </SpecularButton>

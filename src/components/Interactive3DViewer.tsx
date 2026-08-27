@@ -390,7 +390,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
   return (
     <section id="viewer3d" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
       {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
         <div>
           <div className="section-tag-pill mb-3">
             <span className="badge-dot animate-pulse" />
@@ -404,8 +404,8 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
           </p>
         </div>
 
-        {/* Quick Model Switcher Pills (Single Line) */}
-        <div className="flex items-center flex-nowrap gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 max-w-full">
+        {/* Quick Model Switcher Pills (Adaptive Single Line, No Slider) */}
+        <div className="flex items-center flex-wrap sm:flex-nowrap gap-1.5 md:gap-2">
           {(
             [
               { key: 'retroCar', label: 'Retro Mini 3D', icon: Box },
@@ -426,7 +426,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                 variant={isSelected ? 'solid-lime' : 'glass'}
                 size="sm"
                 radius={10}
-                className="text-[11px] sm:text-xs font-bold whitespace-nowrap px-3 py-1.5 flex-shrink-0 flex items-center space-x-1.5"
+                className="text-[10px] sm:text-xs font-bold whitespace-nowrap px-2.5 sm:px-3.5 py-1.5 flex items-center space-x-1.5"
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{item.label}</span>
