@@ -404,8 +404,8 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
           </p>
         </div>
 
-        {/* Quick Model Switcher Pills */}
-        <div className="flex flex-wrap gap-2">
+        {/* Quick Model Switcher Pills (Single Line) */}
+        <div className="flex items-center flex-nowrap gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 max-w-full">
           {(
             [
               { key: 'retroCar', label: 'Retro Mini 3D', icon: Box },
@@ -426,7 +426,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                 variant={isSelected ? 'solid-lime' : 'glass'}
                 size="sm"
                 radius={10}
-                className="text-xs font-bold"
+                className="text-[11px] sm:text-xs font-bold whitespace-nowrap px-3 py-1.5 flex-shrink-0 flex items-center space-x-1.5"
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{item.label}</span>

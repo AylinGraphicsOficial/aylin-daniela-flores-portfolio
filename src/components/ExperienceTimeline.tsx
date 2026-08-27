@@ -24,7 +24,7 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
       <div className="text-center max-w-2xl mx-auto mb-16">
         <div className="section-tag-pill mb-3">
           <span className="badge-dot" />
-          <span>CAREER TRAJECTORY</span>
+          <span>{lang === 'es' ? 'EXPERIENCIA' : 'EXPERIENCE'}</span>
         </div>
         <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-4">
           {t.experience.title}

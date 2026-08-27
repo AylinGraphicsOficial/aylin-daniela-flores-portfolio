@@ -95,6 +95,18 @@
   filter: grayscale(0) opacity(1) brightness(1) drop-shadow(0 0 12px rgba(118, 255, 3, 0.4));
 }
 
+/* Full color loop variant for diplomas and color badges */
+.logoloop--full-color .logoloop__item img {
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.7));
+  opacity: 0.92;
+  max-width: 220px;
+}
+
+.logoloop--full-color .logoloop__item:hover img {
+  filter: drop-shadow(0 0 16px rgba(118, 255, 3, 0.5)) brightness(1.08);
+  opacity: 1;
+}
+
 .logoloop--scale-hover .logoloop__item {
   overflow: visible;
 }
