@@ -8,11 +8,13 @@ import { SpecularButton } from './SpecularButton';
 interface WorksBentoGridProps {
   lang: Language;
   onSelectProject: (project: Project) => void;
+  onNavigateToProjects?: () => void;
 }
 
 export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   lang,
   onSelectProject,
+  onNavigateToProjects,
 }) => {
   const t = translations[lang];
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
@@ -22,6 +24,15 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   const filteredProjects = activeFilter === 'ALL'
     ? projectsData
     : projectsData.filter((p) => p.category === activeFilter);
+
+  const handleOpenAllProjects = () => {
+    playClickSound();
+    if (onNavigateToProjects) {
+      onNavigateToProjects();
+    } else {
+      window.location.hash = '#proyectos';
+    }
+  };
 
   return (
     <section id="work" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
@@ -64,14 +75,12 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
         {/* Top "VER MÁS PROYECTOS" CTA Button */}
         <div className="pt-2">
           <SpecularButton
-            onClick={() => {
-              playClickSound();
-            }}
+            onClick={handleOpenAllProjects}
             onMouseEnter={playHoverSound}
             variant="glass"
             size="md"
             radius={14}
-            className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-6 py-3 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_25px_rgba(118,255,3,0.35)] transition-all"
+            className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-6 py-3 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_25px_rgba(118,255,3,0.35)] transition-all cursor-pointer"
           >
             <Layers className="w-4 h-4 text-[#76FF03]" />
             <span>{lang === 'es' ? 'VER MÁS PROYECTOS' : 'VIEW MORE PROJECTS'}</span>
@@ -170,14 +179,12 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
       {/* Bottom "VER MÁS PROYECTOS" CTA Button */}
       <div className="mt-14 flex justify-center">
         <SpecularButton
-          onClick={() => {
-            playClickSound();
-          }}
+          onClick={handleOpenAllProjects}
           onMouseEnter={playHoverSound}
           variant="glass"
           size="lg"
           radius={14}
-          className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-8 py-4 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_30px_rgba(118,255,3,0.45)] transition-all"
+          className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-8 py-4 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_30px_rgba(118,255,3,0.45)] transition-all cursor-pointer"
         >
           <Layers className="w-4 h-4 text-[#76FF03]" />
           <span>{lang === 'es' ? 'VER MÁS PROYECTOS' : 'VIEW MORE PROJECTS'}</span>

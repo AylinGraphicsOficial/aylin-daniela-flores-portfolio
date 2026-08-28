@@ -10,12 +10,18 @@ interface TopNavBarProps {
   lang: Language;
   onLanguageToggle: () => void;
   onOpenProjectPlanner: () => void;
+  currentView?: 'home' | 'projects';
+  onNavigateHome?: () => void;
+  onNavigateToProjects?: () => void;
 }
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({
   lang,
   onLanguageToggle,
   onOpenProjectPlanner,
+  currentView = 'home',
+  onNavigateHome,
+  onNavigateToProjects,
 }) => {
   const t = translations[lang];
   const [isScrolled, setIsScrolled] = useState(false);
@@ -56,10 +62,13 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         {/* Brand Logo */}
         <a
           href="#"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
             play8BitArcadeSound();
+            if (onNavigateHome) onNavigateHome();
+            else window.location.hash = '';
           }}
-          className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white"
+          className="group flex items-center space-x-2.5 font-black text-lg md:text-xl tracking-tighter text-white cursor-pointer"
         >
           <img src="/logo.webp" alt="Aylin Flores Logo" width={36} height={36} className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" />
           <div className="flex flex-col justify-center">

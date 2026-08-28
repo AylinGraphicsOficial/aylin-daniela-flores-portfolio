@@ -124,6 +124,100 @@ export const projectsData: Project[] = [
       { label: 'Framerate', value: '60 FPS Uncompressed' }
     ],
     colorPalette: ['#38B000', '#76FF03', '#050B05', '#FFFFFF']
+  },
+  {
+    id: 'orbit-stand-exhibition',
+    title: 'Kinetic 3D Stand Exhibition & Architectural Space',
+    category: '3D MODELING',
+    year: '2024',
+    client: 'Orbit Expo & Retail',
+    shortDesc: '3D architectural stand design, commercial lighting simulation, and exhibition space modeling.',
+    fullDesc: 'A full-scale commercial exhibition stand designed for retail and trade show spaces. Incorporates modern kinetic lighting, modular structural display counters, and photorealistic spatial rendering.',
+    image: '/images/orbit-stand.webp',
+    galleryImages: [
+      '/images/orbit-stand.webp',
+      '/images/orbit-stand-diana.webp'
+    ],
+    tags: ['3D Architecture', 'Blender', 'Exhibition Stand', 'Lighting', 'Commercial'],
+    modelType: 'poly',
+    featured: true,
+    bentoSpan: 'md:col-span-6 md:row-span-1',
+    deliverables: ['Spatial 3D Model', 'Rendered Walkthrough Views', 'Construction Floorplan Specifications', 'Branded Graphic Panels'],
+    metrics: [
+      { label: 'Space Footprint', value: '36 m²' },
+      { label: 'Resolution', value: '8K Render Pipeline' }
+    ],
+    colorPalette: ['#050B05', '#76FF03', '#38B000', '#FFFFFF']
+  },
+  {
+    id: 'diana-brand-experience',
+    title: 'Diana Interactive Brand Stand & POP Display',
+    category: 'BRANDING',
+    year: '2024',
+    client: 'Diana Corporativo',
+    shortDesc: 'Interactive point of purchase retail stand, corporate color matching, and 3D architectural mockup.',
+    fullDesc: 'Commercial branding activation stand designed for maximum customer engagement. Features custom 3D typography, branded product showcases, and high-impact visual communication.',
+    image: '/images/orbit-stand-diana.webp',
+    galleryImages: [
+      '/images/orbit-stand-diana.webp',
+      '/images/orbit-stand.webp'
+    ],
+    tags: ['Branding', 'Retail Design', '3D Modeling', 'POP Display', 'Illustrator'],
+    modelType: 'poly',
+    featured: false,
+    bentoSpan: 'md:col-span-6 md:row-span-1',
+    deliverables: ['3D Retail Rendering', 'Vector Graphic Application Kit', 'Manufacturing Ready Specs'],
+    metrics: [
+      { label: 'Foot Traffic Impact', value: '+45%' },
+      { label: 'Color Match Fidelity', value: '100% Pantones' }
+    ],
+    colorPalette: ['#38B000', '#76FF03', '#050B05', '#FFFFFF']
+  },
+  {
+    id: 'orbit-tablet-visual',
+    title: 'Next-Gen Digital Tablet & UI 3D Showcase',
+    category: 'DIGITAL ART',
+    year: '2024',
+    client: 'Nova Interactive Labs',
+    shortDesc: 'Digital device modeling, holographic UI projection, and futuristic interface rendering.',
+    fullDesc: 'Conceptual 3D product showcase demonstrating modern touch UI screens, reflective glass optics, and dynamic digital dashboards for high-tech applications.',
+    image: '/images/orbit-tablet.webp',
+    galleryImages: [
+      '/images/orbit-tablet.webp'
+    ],
+    tags: ['Digital Art', 'Product Design', 'UI 3D', 'Blender', 'Sci-Fi'],
+    modelType: 'poly',
+    featured: false,
+    bentoSpan: 'md:col-span-6 md:row-span-1',
+    deliverables: ['3D Device Asset', 'Holographic UI Elements', 'Interactive Screen Overlays'],
+    metrics: [
+      { label: 'Viewport Latency', value: '< 16ms' },
+      { label: 'Shader Passes', value: '6 Compositing Passes' }
+    ],
+    colorPalette: ['#76FF03', '#050B05', '#38B000', '#FFFFFF']
+  },
+  {
+    id: 'orbit-carrito-render',
+    title: '3D Stand & Carrito Retail Visual Experience',
+    category: '3D MODELING',
+    year: '2024',
+    client: 'Street Craft Gourmet',
+    shortDesc: 'Custom vintage mobile retail cart 3D modeling, weathered textures, and studio product lighting.',
+    fullDesc: 'Detailed hard-surface vehicle and mobile cart visualization with weathered metal shaders, decals, and realistic physical materials for brand activations.',
+    image: '/images/orbit-carrito.png',
+    galleryImages: [
+      '/images/orbit-carrito.png'
+    ],
+    tags: ['3D Modeling', 'Retail', 'Substance 3D', 'Blender', 'Texturing'],
+    modelType: 'car',
+    featured: false,
+    bentoSpan: 'md:col-span-6 md:row-span-1',
+    deliverables: ['3D Asset File', '4K PBR Textures', 'Commercial Renders'],
+    metrics: [
+      { label: 'Texture Resolution', value: '4K Multi-UDIM' },
+      { label: 'Realism Rating', value: 'Photorealistic' }
+    ],
+    colorPalette: ['#050B05', '#76FF03', '#1A301A', '#FFFFFF']
   }
 ];
 
