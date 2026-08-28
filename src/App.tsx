@@ -18,7 +18,9 @@ import { DiplomadosSection } from './components/DiplomadosSection';
 import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
 import { ProjectsGalleryPage } from './components/ProjectsGalleryPage';
+import { ProjectDetailPage } from './components/ProjectDetailPage';
 import { Footer } from './components/Footer';
+import { projectsData } from './data/portfolioData';
 
 // Lazy-loaded: only fetched when scrolled into view or opened on demand
 const Interactive3DViewer = lazy(() =>
@@ -35,9 +37,17 @@ const CVViewerModal = lazy(() =>
 );
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'projects'>(() => {
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [currentView, setCurrentView] = useState<'home' | 'projects' | 'project-detail'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
+      if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
+        const id = hash.replace(/^#(proyecto|project)\//, '');
+        const found = projectsData.find((p) => p.id.toLowerCase() === id.toLowerCase());
+        if (found) {
+          return 'project-detail';
+        }
+      }
       if (
         hash === '#projects' ||
         hash === '#proyectos' ||
@@ -65,6 +75,16 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
+      if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
+        const id = hash.replace(/^#(proyecto|project)\//, '');
+        const found = projectsData.find((p) => p.id.toLowerCase() === id.toLowerCase());
+        if (found) {
+          setActiveProject(found);
+          setCurrentView('project-detail');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      }
       if (
         hash === '#projects' ||
         hash === '#proyectos' ||
@@ -81,6 +101,13 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  const openProjectDetail = (project: Project) => {
+    setActiveProject(project);
+    setCurrentView('project-detail');
+    window.location.hash = `#proyecto/${project.id}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const navigateToProjects = () => {
     setCurrentView('projects');
     window.location.hash = '#proyectos';
@@ -89,7 +116,10 @@ export default function App() {
 
   const navigateHome = () => {
     setCurrentView('home');
-    if (window.location.hash.includes('proyect') || window.location.hash.includes('project')) {
+    if (
+      window.location.hash.includes('proyect') ||
+      window.location.hash.includes('project')
+    ) {
       history.pushState(null, '', window.location.pathname);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -181,12 +211,22 @@ export default function App() {
       />
 
       {/* Main Content Layout with Smooth Transitions */}
-      {currentView === 'projects' ? (
+      {currentView === 'project-detail' && activeProject ? (
+        <main className="relative z-10">
+          <ProjectDetailPage
+            project={activeProject}
+            lang={lang}
+            onBackToPortfolio={navigateToProjects}
+            onSelectProject={openProjectDetail}
+            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+          />
+        </main>
+      ) : currentView === 'projects' ? (
         <main className="relative z-10">
           <ProjectsGalleryPage
             lang={lang}
             onNavigateHome={navigateHome}
-            onSelectProject={(project) => setSelectedCaseStudy(project)}
+            onSelectProject={openProjectDetail}
             onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
           />
         </main>
@@ -197,14 +237,14 @@ export default function App() {
               lang={lang}
               onOpenCVModal={() => setIsCVModalOpen(true)}
               onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
-              onSelectProject={(project) => setSelectedCaseStudy(project)}
+              onSelectProject={openProjectDetail}
             />
           </div>
 
           <div className="scroll-reveal">
             <WorksBentoGrid
               lang={lang}
-              onSelectProject={(project) => setSelectedCaseStudy(project)}
+              onSelectProject={openProjectDetail}
               onNavigateToProjects={navigateToProjects}
             />
           </div>
