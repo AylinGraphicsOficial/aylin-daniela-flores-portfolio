@@ -10,6 +10,9 @@ export interface Project {
   fullDesc: string;
   image: string;
   galleryImages?: string[];
+  videoUrl?: string; // YouTube, Vimeo, direct MP4 URL
+  videoClip?: string; // Small MP4 or WebM video file
+  gifUrl?: string; // Animated GIF
   tags: string[];
   modelType?: 'car' | 'hand' | 'poly' | 'cube';
   featured?: boolean;
@@ -17,6 +20,35 @@ export interface Project {
   deliverables?: string[];
   metrics?: { label: string; value: string }[];
   colorPalette?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DisciplineSlide {
+  id: string;
+  image: string;
+  title?: string;
+  description?: string;
+  visible: boolean;
+  videoUrl?: string;
+}
+
+export interface Discipline {
+  id: string;
+  number: string;
+  verticalTextEs: string;
+  verticalTextEn: string;
+  titleEs: string;
+  titleEn: string;
+  subtitleEs: string;
+  subtitleEn: string;
+  descEs: string;
+  descEn: string;
+  image: string;
+  slides: DisciplineSlide[];
+  targetProjectId: string;
+  visible: boolean;
+  order: number;
 }
 
 export interface ExperienceItem {

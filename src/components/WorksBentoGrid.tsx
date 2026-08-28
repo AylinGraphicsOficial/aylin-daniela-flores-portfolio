@@ -1,7 +1,11 @@
-import React from 'react';
-import { ArrowUpRight } from 'lucide-react';
-import { Project, Language } from '../types';
-import { projectsData } from '../data/portfolioData';
+import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Project, Language, Discipline, DisciplineSlide } from '../types';
+import {
+  getStoredProjects,
+  getStoredDisciplines,
+  subscribeToPortfolioChanges,
+} from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
 
 interface WorksBentoGridProps {
@@ -9,97 +13,161 @@ interface WorksBentoGridProps {
   onSelectProject: (project: Project) => void;
 }
 
-interface DisciplineItem {
-  id: string;
-  number: string;
-  verticalTextEs: string;
-  verticalTextEn: string;
-  titleEs: string;
-  titleEn: string;
-  subtitleEs: string;
-  subtitleEn: string;
-  descEs: string;
-  descEn: string;
-  image: string;
-  targetProjectId: string;
-}
+// Sub-component for interactive image slider in each discipline
+const DisciplineSliderCard: React.FC<{
+  discipline: Discipline;
+  lang: Language;
+  onSelect: () => void;
+}> = ({ discipline, lang, onSelect }) => {
+  const visibleSlides: DisciplineSlide[] =
+    discipline.slides && discipline.slides.length > 0
+      ? discipline.slides.filter((s) => s.visible)
+      : [{ id: 'fallback', image: discipline.image, visible: true }];
+
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  const handlePrevSlide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    playClickSound();
+    setCurrentSlideIndex((prev) =>
+      prev === 0 ? visibleSlides.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextSlide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    playClickSound();
+    setCurrentSlideIndex((prev) =>
+      prev === visibleSlides.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const activeSlide = visibleSlides[currentSlideIndex] || visibleSlides[0];
+
+  return (
+    <div
+      className="flex flex-row items-start gap-4 sm:gap-8 md:gap-12 group cursor-pointer"
+      onClick={onSelect}
+      onMouseEnter={playHoverSound}
+    >
+      {/* Left Side: Bold Italic Number + Vertical Label */}
+      <div className="flex flex-col items-center flex-shrink-0 pt-2 w-10 sm:w-16">
+        <span className="text-3xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-white select-none leading-none">
+          {discipline.number}
+        </span>
+        <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] sm:tracking-[0.3em] text-gray-400 font-bold [writing-mode:vertical-rl] rotate-180 mt-6 sm:mt-10 select-none whitespace-nowrap">
+          {lang === 'es' ? discipline.verticalTextEs : discipline.verticalTextEn}
+        </span>
+      </div>
+
+      {/* Right Side: Main Interactive Slider Card + Typography */}
+      <div className="flex-1 min-w-0">
+        {/* Interactive Image Slider Card */}
+        <div className="relative aspect-[16/8] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_25px_60px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-3 sm:p-5">
+          {/* Active Image Render with smooth transition */}
+          <img
+            key={activeSlide.id || activeSlide.image}
+            src={activeSlide.image}
+            alt={activeSlide.title || discipline.titleEs}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover rounded-xl md:rounded-2xl group-hover:scale-105 transition-all duration-700 ease-out"
+          />
+
+          {/* Slider Prev / Next Arrows (if more than 1 slide) */}
+          {visibleSlides.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevSlide}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-[#76FF03] text-white hover:text-black border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
+                title="Diapositiva Anterior"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNextSlide}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-[#76FF03] text-white hover:text-black border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
+                title="Siguiente Diapositiva"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Dots Indicators */}
+              <div className="absolute bottom-5 right-6 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                {visibleSlides.map((s, idx) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playClickSound();
+                      setCurrentSlideIndex(idx);
+                    }}
+                    className={`h-2 rounded-full transition-all ${
+                      idx === currentSlideIndex
+                        ? 'w-6 bg-[#76FF03]'
+                        : 'w-2 bg-white/40 hover:bg-white'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Below-Card Typography: Title + Arrow + Subtitle + Description */}
+        <div className="mt-6 sm:mt-8">
+          {/* Title & Arrow Row */}
+          <div className="flex items-center gap-3 sm:gap-5">
+            <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight">
+              {lang === 'es' ? discipline.titleEs : discipline.titleEn}
+            </h3>
+            <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-white/20 group-hover:border-[#76FF03] group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 group-hover:rotate-45 flex-shrink-0 shadow-lg">
+              <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <span className="text-[11px] sm:text-xs md:text-sm font-mono font-bold tracking-widest text-[#76FF03] uppercase mt-2.5 mb-2 block">
+            {lang === 'es' ? discipline.subtitleEs : discipline.subtitleEn}
+          </span>
+
+          {/* Description */}
+          <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-3xl leading-relaxed font-normal">
+            {lang === 'es' ? discipline.descEs : discipline.descEn}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   lang,
   onSelectProject,
 }) => {
-  const disciplines: DisciplineItem[] = [
-    {
-      id: 'modelado-3d',
-      number: '01',
-      verticalTextEs: 'MODELADO 3D & RENDERIZADO CGI',
-      verticalTextEn: '3D MODELING & CGI RENDERING',
-      titleEs: 'MODELADO 3D',
-      titleEn: '3D MODELING',
-      subtitleEs: 'DISEÑO & VISUALIZACIÓN COMERCIAL',
-      subtitleEn: 'COMMERCIAL DESIGN & 3D VISUALIZATION',
-      descEs:
-        'Creación de geometría 3D de alta fidelidad, modelado hard-surface, stands comerciales para exposiciones, texturizado PBR e iluminación fotográfica con Blender y Octane Render.',
-      descEn:
-        'High-fidelity 3D geometry creation, hard-surface modeling, commercial exhibition stands, PBR texturing, and photorealistic studio lighting with Blender and Octane Render.',
-      image: '/images/orbit-stand.webp',
-      targetProjectId: 'orbit-stand-exhibition',
-    },
-    {
-      id: 'branding',
-      number: '02',
-      verticalTextEs: 'IDENTIDAD VISUAL & SISTEMAS DE MARCA',
-      verticalTextEn: 'VISUAL IDENTITY & BRAND SYSTEMS',
-      titleEs: 'BRANDING',
-      titleEn: 'BRANDING',
-      subtitleEs: 'DISEÑO DE IDENTIDAD & DIRECCIÓN DE ARTE',
-      subtitleEn: 'IDENTITY DESIGN & ART DIRECTION',
-      descEs:
-        'Desarrollo integral de identidades corporativas, logotipos memorables, manuales de marca, empaques y universos visuales distintivos que posicionan marcas con autoridad en su industria.',
-      descEn:
-        'Comprehensive corporate brand identities, memorable logos, brand style guidelines, packaging, and distinctive visual ecosystems crafted to position brands ahead.',
-      image: '/images/orbit-stand-diana.webp',
-      targetProjectId: 'diana-brand-experience',
-    },
-    {
-      id: 'edicion-video',
-      number: '03',
-      verticalTextEs: 'MOTION GRAPHICS & POST-PRODUCCIÓN',
-      verticalTextEn: 'MOTION GRAPHICS & POST-PRODUCTION',
-      titleEs: 'EDICIÓN DE VIDEO',
-      titleEn: 'VIDEO EDITING',
-      subtitleEs: 'MONTAJE CINEMATOGRÁFICO & RITMO VISUAL',
-      subtitleEn: 'CINEMATIC EDITING & VISUAL PACING',
-      descEs:
-        'Edición audiovisual dinámica, corrección de color profesional, animación tipográfica y motion graphics con After Effects y Premiere Pro para spots publicitarios y campañas de alto impacto.',
-      descEn:
-        'Dynamic audiovisual editing, professional color grading, kinetic typography, and motion graphics with After Effects and Premiere Pro for commercials and high-converting campaigns.',
-      image: '/images/diplomados/diplomado-after-effects-2023.webp',
-      targetProjectId: 'motion-typography',
-    },
-    {
-      id: 'social-media',
-      number: '04',
-      verticalTextEs: 'ESTRATEGIA VISUAL & CONTENIDO DIGITAL',
-      verticalTextEn: 'VISUAL STRATEGY & DIGITAL CONTENT',
-      titleEs: 'SOCIAL MEDIA DESIGNER',
-      titleEn: 'SOCIAL MEDIA DESIGNER',
-      subtitleEs: 'CONTENIDO DE ALTO ENGAGEMENT & DISEÑO DIGITAL',
-      subtitleEn: 'HIGH-ENGAGEMENT CONTENT & DIGITAL DESIGN',
-      descEs:
-        'Diseño estratégico de piezas gráficas para redes sociales, carruseles de alto valor, creatividades publicitarias y feeds optimizados para maximizar la retención, interacción y conversiones.',
-      descEn:
-        'Strategic social media graphic design, high-value educational carousels, ad creatives, and optimized feeds designed to maximize audience retention, engagement, and conversion.',
-      image: '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
-      targetProjectId: 'orbit-tablet-visual',
-    },
-  ];
+  const [projects, setProjects] = useState<Project[]>(getStoredProjects);
+  const [disciplines, setDisciplines] = useState<Discipline[]>(getStoredDisciplines);
 
-  const handleDisciplineClick = (item: DisciplineItem) => {
+  // Subscribe to live changes from storage
+  useEffect(() => {
+    const handleUpdate = () => {
+      setProjects(getStoredProjects());
+      setDisciplines(getStoredDisciplines());
+    };
+    handleUpdate();
+    const unsubscribe = subscribeToPortfolioChanges(handleUpdate);
+    return () => unsubscribe();
+  }, []);
+
+  const handleDisciplineClick = (item: Discipline) => {
     playClickSound();
     const target =
-      projectsData.find((p) => p.id === item.targetProjectId) || projectsData[0];
-    onSelectProject(target);
+      projects.find((p) => p.id === item.targetProjectId) || projects[0];
+    if (target) onSelectProject(target);
   };
 
   return (
@@ -126,63 +194,18 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
         </p>
       </div>
 
-      {/* 4 Hero Discipline Showcase Sections (Matching Wix Game Designer Style) */}
+      {/* 4 Hero Discipline Showcase Sections with Interactive Sliders */}
       <div className="space-y-20 sm:space-y-28">
-        {disciplines.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-row items-start gap-4 sm:gap-8 md:gap-12 group cursor-pointer"
-            onClick={() => handleDisciplineClick(item)}
-            onMouseEnter={playHoverSound}
-          >
-            {/* Left Side: Bold Italic Number + Vertical Label */}
-            <div className="flex flex-col items-center flex-shrink-0 pt-2 w-10 sm:w-16">
-              <span className="text-3xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-white select-none leading-none">
-                {item.number}
-              </span>
-              <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] sm:tracking-[0.3em] text-gray-400 font-bold [writing-mode:vertical-rl] rotate-180 mt-6 sm:mt-10 select-none whitespace-nowrap">
-                {lang === 'es' ? item.verticalTextEs : item.verticalTextEn}
-              </span>
-            </div>
-
-            {/* Right Side: Main Representative Card + Typography */}
-            <div className="flex-1 min-w-0">
-              {/* Representative Large Rounded Card */}
-              <div className="relative aspect-[16/8] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_25px_60px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-3 sm:p-5">
-                <img
-                  src={item.image}
-                  alt={item.titleEs}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-cover rounded-xl md:rounded-2xl group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-              </div>
-
-              {/* Below-Card Typography: Title + Arrow + Subtitle + Description */}
-              <div className="mt-6 sm:mt-8">
-                {/* Title & Arrow Row */}
-                <div className="flex items-center gap-3 sm:gap-5">
-                  <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight">
-                    {lang === 'es' ? item.titleEs : item.titleEn}
-                  </h3>
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-white/20 group-hover:border-[#76FF03] group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 group-hover:rotate-45 flex-shrink-0 shadow-lg">
-                    <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                </div>
-
-                {/* Subtitle */}
-                <span className="text-[11px] sm:text-xs md:text-sm font-mono font-bold tracking-widest text-[#76FF03] uppercase mt-2.5 mb-2 block">
-                  {lang === 'es' ? item.subtitleEs : item.subtitleEn}
-                </span>
-
-                {/* Description */}
-                <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-3xl leading-relaxed font-normal">
-                  {lang === 'es' ? item.descEs : item.descEn}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+        {disciplines
+          .filter((d) => d.visible !== false)
+          .map((item) => (
+            <DisciplineSliderCard
+              key={item.id}
+              discipline={item}
+              lang={lang}
+              onSelect={() => handleDisciplineClick(item)}
+            />
+          ))}
       </div>
 
       {/* Divider to Projects Catalog Grid */}
@@ -201,7 +224,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
 
         {/* 4-Column Grid: Closer Gap (gap-4 sm:gap-5), Larger Ratio (aspect-[16/10]), 15% Reduced Corners (rounded-[8px]) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {projectsData.map((project) => (
+          {projects.map((project) => (
             <div
               key={project.id}
               onClick={() => {

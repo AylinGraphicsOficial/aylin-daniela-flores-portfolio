@@ -1,9 +1,13 @@
 import React from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Lock } from 'lucide-react';
 import { playClickSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onOpenAdminLogin?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
   const scrollToTop = () => {
     playClickSound();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -22,7 +26,14 @@ export const Footer: React.FC = () => {
       {/* Top row */}
       <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center space-x-3">
-          <img src="/logo.webp" alt="Aylin Flores Logo" width={40} height={40} loading="lazy" className="w-10 h-10 object-contain" />
+          <img
+            src="/logo.webp"
+            alt="Aylin Flores Logo"
+            width={40}
+            height={40}
+            loading="lazy"
+            className="w-10 h-10 object-contain"
+          />
           <div className="flex flex-col items-start">
             <div className="text-xl font-black tracking-tight text-white uppercase font-sans">
               AYLIN FLORES
@@ -62,14 +73,30 @@ export const Footer: React.FC = () => {
         </SpecularButton>
       </div>
 
-      {/* Bottom row */}
+      {/* Bottom row with Discreet Admin Login Lock Button */}
       <div className="w-full pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400 font-mono gap-4">
         <span>
           © {new Date().getFullYear()} AYLIN DANIELA FLORES. ALL RIGHTS RESERVED.
         </span>
-        <span className="flex items-center space-x-1.5">
-          <span>DESIGNED & ENGINEERED WITH KINETIC RIGOR</span>
-        </span>
+
+        <div className="flex items-center gap-4">
+          <span className="flex items-center space-x-1.5">
+            <span>DESIGNED & ENGINEERED WITH KINETIC RIGOR</span>
+          </span>
+
+          {/* Discreet Admin Login Trigger */}
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound();
+              if (onOpenAdminLogin) onOpenAdminLogin();
+            }}
+            className="p-1.5 rounded-lg text-gray-500 hover:text-[#76FF03] hover:bg-white/5 transition-all opacity-40 hover:opacity-100 cursor-pointer"
+            title="Acceso Administrativo / Dashboard"
+          >
+            <Lock className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </footer>
   );
