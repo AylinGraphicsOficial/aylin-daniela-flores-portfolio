@@ -81,16 +81,18 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
         </a>
 
-        {/* Desktop 8-Bit Pixel Arcade Navigation */}
-        <div className="hidden lg:flex items-center">
-          <GooeyNav
-            items={navLinks}
-            particleCount={22}
-            particleDistances={[80, 15]}
-            animationTime={500}
-            timeVariance={200}
-          />
-        </div>
+        {/* Desktop 8-Bit Pixel Arcade Navigation (Only on Home Page) */}
+        {currentView === 'home' && (
+          <div className="hidden lg:flex items-center">
+            <GooeyNav
+              items={navLinks}
+              particleCount={22}
+              particleDistances={[80, 15]}
+              animationTime={500}
+              timeVariance={200}
+            />
+          </div>
+        )}
 
         {/* Right Action Tools: Sound, Language, CTA with Uniform Gap Spacing */}
         <div className="hidden sm:flex items-center gap-3.5 sm:gap-4 pl-2">
@@ -138,8 +140,21 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </SpecularButton>
         </div>
 
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Buttons */}
         <div className="flex sm:hidden items-center space-x-2">
+          {/* Mobile Sound Toggle on secondary pages */}
+          {currentView !== 'home' && (
+            <SpecularButton
+              onClick={handleSoundToggle}
+              variant="glass"
+              size="icon"
+              radius={10}
+              className="h-8 w-8 p-0 flex items-center justify-center text-[#76FF03]"
+            >
+              {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            </SpecularButton>
+          )}
+
           <SpecularButton
             onClick={() => {
               playClickSound();
@@ -152,25 +167,28 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           >
             {lang.toUpperCase()}
           </SpecularButton>
-          <SpecularButton
-            onClick={() => {
-              playClickSound();
-              setMobileMenuOpen(!mobileMenuOpen);
-            }}
-            variant="glass"
-            size="icon"
-            radius={10}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </SpecularButton>
+
+          {currentView === 'home' && (
+            <SpecularButton
+              onClick={() => {
+                playClickSound();
+                setMobileMenuOpen(!mobileMenuOpen);
+              }}
+              variant="glass"
+              size="icon"
+              radius={10}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </SpecularButton>
+          )}
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
+      {/* Mobile Drawer (Only on Home Page) */}
+      {currentView === 'home' && mobileMenuOpen && (
         <div className="sm:hidden bg-[#050B05]/98 backdrop-blur-2xl border-b border-white/10 px-6 py-8 space-y-6 animate-fade-in shadow-2xl">
           <div className="flex flex-col space-y-4">
-            {navLinks.map(link => (
+            {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
