@@ -189,7 +189,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
       <div className="my-24 sm:my-32">
         <div className="w-full h-px bg-white/15 mb-16" />
 
-        <div className="mb-14">
+        {/* Centered Catalog Header */}
+        <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
           <span className="text-xs font-mono font-bold tracking-[0.3em] text-[#76FF03] uppercase block mb-2">
             {lang === 'es' ? 'TODAS LAS PRODUCCIONES' : 'ALL PRODUCTIONS'}
           </span>
@@ -198,8 +199,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
           </h3>
         </div>
 
-        {/* 4-Column Wix Game Designer Project Grid with 60% Reduced Rounded Corners */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        {/* 4-Column Grid: Closer Gap (gap-4 sm:gap-5), Larger Ratio (aspect-[16/10]), 15% Reduced Corners (rounded-[8px]) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {projectsData.map((project) => (
             <div
               key={project.id}
@@ -210,8 +211,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
               onMouseEnter={playHoverSound}
               className="group cursor-pointer flex flex-col"
             >
-              {/* Sleek Rounded Image Card (60% reduced roundness: rounded-xl / 10px) */}
-              <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_15px_35px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-3.5 sm:p-4">
+              {/* Refined Image Card (Larger aspect ratio, rounded-[8px], closer spacing) */}
+              <div className="relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_12px_30px_rgba(118,255,3,0.25)] transition-all duration-500 flex items-center justify-center p-3 sm:p-3.5">
                 <img
                   src={project.image}
                   alt={project.title}
@@ -221,12 +222,12 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 />
               </div>
 
-              {/* Below-Card Typography (Title in Bold Italic + Role Subtitle) */}
-              <div className="mt-4">
-                <h4 className="text-lg sm:text-xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight mb-1">
+              {/* Below-Card Typography: Balanced Height and Aesthetic Proportions */}
+              <div className="mt-3">
+                <h4 className="text-base sm:text-[17px] font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-snug line-clamp-2 min-h-[2.6rem] flex items-start">
                   {project.title}
                 </h4>
-                <p className="text-xs text-gray-400 font-normal tracking-wide">
+                <p className="text-[11px] sm:text-xs text-gray-400 font-mono tracking-wide mt-1 truncate">
                   {project.client} • {lang === 'es' ? 'Diseñadora Principal' : 'Lead Designer'}
                 </p>
               </div>
