@@ -147,9 +147,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
 
       {/* Lower Hero: Left-Aligned Text + Expansive Full-Right Projects Slider with Lateral Gradient Feathering */}
-      <div className="w-full flex flex-col lg:flex-row items-center gap-8 lg:gap-4 xl:gap-8 relative z-10">
+      <div className="w-full flex flex-col lg:flex-row items-center relative z-10">
         {/* Left Column: Tightly shifted to the left with generous kinetic typography */}
-        <div className="w-full lg:w-[38%] xl:w-[35%] flex-shrink-0 flex flex-col justify-center text-left items-start z-20">
+        <div className="w-full lg:w-[38%] xl:w-[35%] flex-shrink-0 flex flex-col justify-center text-left items-start z-30 lg:pr-2">
           <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase">
             {t.hero.portfolioOf}
           </h2>
@@ -228,8 +228,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Expansive Featured Works Slider with Left & Right Feathering */}
-        <div className="w-full lg:w-[62%] xl:w-[65%] min-w-0 relative z-10 flex items-center justify-center pt-6 lg:pt-0">
+        {/* Right Column: Expansive Featured Works Slider overlapping left under text and extending full right */}
+        <div className="w-full lg:w-[68%] xl:w-[72%] lg:-ml-20 xl:-ml-28 flex-1 min-w-0 relative z-10 flex items-center justify-end pt-6 lg:pt-0">
           <HeroProjectsSlider onSelectProject={onSelectProject} />
         </div>
       </div>

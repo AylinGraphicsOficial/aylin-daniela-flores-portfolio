@@ -7,22 +7,24 @@
   mask-image: linear-gradient(
     to right,
     transparent 0%,
-    black clamp(28px, 12%, 90px),
-    black calc(100% - clamp(20px, 8%, 70px)),
+    transparent 8%,
+    black clamp(40px, 20%, 140px),
+    black calc(100% - clamp(20px, 6%, 50px)),
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0%,
-    black clamp(28px, 12%, 90px),
-    black calc(100% - clamp(20px, 8%, 70px)),
+    transparent 8%,
+    black clamp(40px, 20%, 140px),
+    black calc(100% - clamp(20px, 6%, 50px)),
     transparent 100%
   );
 }
 
 .hero-slide-fade {
   opacity: 0;
-  transform: scale(0.97) translateX(30px);
+  transform: scale(0.96) translateX(40px);
   transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: 1;
@@ -37,14 +39,14 @@
 
 .hero-slide-fade--prev {
   opacity: 0;
-  transform: scale(0.97) translateX(-30px);
+  transform: scale(0.96) translateX(-40px);
   pointer-events: none;
   z-index: 5;
 }
 
 .hero-slide-fade--next {
   opacity: 0;
-  transform: scale(0.97) translateX(30px);
+  transform: scale(0.96) translateX(40px);
   pointer-events: none;
   z-index: 5;
 }
