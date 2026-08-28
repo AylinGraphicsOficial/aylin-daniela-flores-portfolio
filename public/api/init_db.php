@@ -75,7 +75,16 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // 4. Ensure uploads directory exists and is writable
+    // 4. Create Site Sections Table (About, Experience, Diplomados, 3D Lab, Profile)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `site_sections` (
+            `section_key` VARCHAR(50) NOT NULL PRIMARY KEY,
+            `data` LONGTEXT NOT NULL,
+            `updatedAt` VARCHAR(50) DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
+    // Ensure uploads directory exists and is writable
     if (!file_exists(UPLOAD_DIR)) {
         @mkdir(UPLOAD_DIR, 0777, true);
     }
@@ -421,9 +430,127 @@ try {
         }
     }
 
+    // 7. Seed site_sections (About, Experience, Diplomados, Lab 3D) if empty
+    $stmtSec = $pdo->query("SELECT COUNT(*) as cnt FROM `site_sections`");
+    $secCount = (int)$stmtSec->fetchColumn();
+
+    if ($secCount === 0) {
+        $initialSections = [
+            'about' => [
+                'name' => 'Aylin Daniela Flores',
+                'title' => 'Diseñadora Gráfica & Modeladora 3D',
+                'location' => 'Sonsonate, El Salvador',
+                'bioEs' => 'Licenciada en Artes Plásticas (Opción Diseño Gráfico) graduada de la Universidad de El Salvador. Cuento con más de 6 años de experiencia profesional en identidad visual, modelado 3D, branding, preprensa técnica y edición audiovisual.',
+                'bioEn' => 'Bachelor of Fine Arts (Graphic Design Major) from Universidad de El Salvador with 6+ years of professional expertise in visual identity, 3D CGI modeling, commercial branding, prepress, and video editing.',
+                'photo' => '/images/fotografia-aylin.png',
+                'cvUrl' => '',
+                'whatsapp' => '+503 7000 0000',
+                'email' => 'aylinflores.diseno@gmail.com',
+                'instagram' => 'https://instagram.com/',
+                'behance' => 'https://behance.net/',
+                'linkedin' => 'https://linkedin.com/'
+            ],
+            'experience' => [
+                [
+                    'id' => 'exp-1',
+                    'role' => 'Directora del Área de Diseño Gráfico',
+                    'company' => 'Imprenta Bifronte',
+                    'location' => 'El Salvador',
+                    'period' => '2024',
+                    'isCurrent' => false,
+                    'description' => 'Dirección, gestión y ejecución integral del área de diseño gráfico, responsable del desarrollo completo de piezas visuales y producción publicitaria.',
+                    'toolsUsed' => ['Adobe Illustrator', 'Adobe Photoshop', 'Pre-prensa / CMYK', 'Diseño Publicitario']
+                ],
+                [
+                    'id' => 'exp-2',
+                    'role' => 'Diseñadora Gráfica & Modeladora 3D Freelance',
+                    'company' => 'Proyectos Independientes',
+                    'location' => 'Sonsonate, El Salvador (Remoto / Global)',
+                    'period' => '2020 - 2026',
+                    'isCurrent' => true,
+                    'description' => 'Desarrollo de proyectos de diseño gráfico y comunicación visual: branding, logotipos, material publicitario, modelado 3D y edición de video.',
+                    'toolsUsed' => ['Blender', 'ZBrush', 'Adobe Illustrator', 'Adobe Photoshop', 'After Effects', 'CapCut']
+                ],
+                [
+                    'id' => 'exp-3',
+                    'role' => 'Atención al Cliente y Gestión Comercial',
+                    'company' => 'Lácteos Adriana',
+                    'location' => 'El Salvador',
+                    'period' => '2018 - 2024',
+                    'isCurrent' => false,
+                    'description' => 'Manejo integral del proceso de ventas, orientación personalizada, control riguroso de calidad operativa y servicio al cliente.',
+                    'toolsUsed' => ['Gestión Comercial', 'Atención al Cliente', 'Control de Calidad', 'Microsoft Excel']
+                ]
+            ],
+            'diplomados' => [
+                [
+                    'id' => 'dip-1',
+                    'title' => 'Diplomado Adobe After Effects (2023)',
+                    'src' => '/images/diplomados/diplomado-after-effects-2023.webp',
+                    'year' => '2023',
+                    'visible' => true
+                ],
+                [
+                    'id' => 'dip-2',
+                    'title' => 'Taller de Creación de Contenido (2025)',
+                    'src' => '/images/diplomados/diplomado-creacion-contenido-2025.webp',
+                    'year' => '2025',
+                    'visible' => true
+                ],
+                [
+                    'id' => 'dip-3',
+                    'title' => 'Diseño Gráfico Publicitario (2021)',
+                    'src' => '/images/diplomados/diplomado-diseno-grafico-publicitario-2021.webp',
+                    'year' => '2021',
+                    'visible' => true
+                ],
+                [
+                    'id' => 'dip-4',
+                    'title' => 'Webinar Branding para Diseñadores (2023)',
+                    'src' => '/images/diplomados/diplomado-branding-disenadores-2023.webp',
+                    'year' => '2023',
+                    'visible' => true
+                ],
+                [
+                    'id' => 'dip-5',
+                    'title' => 'Introducción al Diseño Narrativo para Videojuegos',
+                    'src' => '/images/diplomados/diplomado-diseno-narrativo-videojuegos.webp',
+                    'year' => '2023',
+                    'visible' => true
+                ],
+                [
+                    'id' => 'dip-6',
+                    'title' => 'Diseño de Personajes para Animación y Videojuegos (2022)',
+                    'src' => '/images/diplomados/diplomado-diseno-personajes-animacion-2022.webp',
+                    'year' => '2022',
+                    'visible' => true
+                ]
+            ],
+            'lab3d' => [
+                'titleEs' => 'LABORATORIO 3D INTERACTIVO',
+                'titleEn' => 'INTERACTIVE 3D LAB',
+                'subtitleEs' => 'Rota, inspecciona la geometría e interactúa con modelos tridimensionales en tiempo real en tu navegador.',
+                'subtitleEn' => 'Rotate, inspect geometry, and explore real-time materials in the browser.',
+                'defaultModel' => 'retroCar',
+                'lightingColor' => '#76FF03',
+                'autoRotate' => true
+            ]
+        ];
+
+        $stmtSecInsert = $pdo->prepare("INSERT INTO `site_sections` (`section_key`, `data`, `updatedAt`) VALUES (:k, :d, :now)");
+        foreach ($initialSections as $k => $d) {
+            $stmtSecInsert->execute([
+                ':k' => $k,
+                ':d' => json_encode($d, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                ':now' => date('c')
+            ]);
+        }
+    }
+
     // Refresh counts
     $finalProjects = (int)$pdo->query("SELECT COUNT(*) FROM `projects`")->fetchColumn();
     $finalDisciplines = (int)$pdo->query("SELECT COUNT(*) FROM `disciplines`")->fetchColumn();
+    $finalSections = (int)$pdo->query("SELECT COUNT(*) FROM `site_sections`")->fetchColumn();
 
     sendJsonResponse([
         'success'         => true,
@@ -432,6 +559,7 @@ try {
         'user'            => DB_USER,
         'totalProjects'   => $finalProjects,
         'totalDisciplines'=> $finalDisciplines,
+        'totalSections'   => $finalSections,
         'uploadsReady'    => is_writable(UPLOAD_DIR)
     ]);
 

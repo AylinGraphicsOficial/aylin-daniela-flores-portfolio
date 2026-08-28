@@ -29,8 +29,19 @@ import {
   Copy,
   CheckCheck,
   Video,
+  User,
+  Briefcase,
+  Award,
+  Compass,
+  FileText,
+  Loader2,
+  Save,
+  Globe,
+  Eye,
+  EyeOff,
+  X,
 } from 'lucide-react';
-import { Project, Discipline } from '../../types';
+import { Project, Discipline, ExperienceItem } from '../../types';
 import {
   getStoredProjects,
   getStoredDisciplines,
@@ -44,6 +55,18 @@ import {
   checkDatabaseStatus,
   syncFromRemoteServer,
   DatabaseStatusInfo,
+  getStoredAbout,
+  saveStoredAbout,
+  AboutSectionData,
+  getStoredExperience,
+  saveStoredExperience,
+  getStoredDiplomados,
+  saveStoredDiplomados,
+  DiplomadoItem,
+  getStoredLab3D,
+  saveStoredLab3D,
+  Lab3DData,
+  uploadMediaFile,
 } from '../../utils/portfolioStorage';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
@@ -67,13 +90,42 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'disciplines' | 'projects' | 'featured' | 'media' | 'backup'
+    | 'overview'
+    | 'projects'
+    | 'disciplines'
+    | 'featured'
+    | 'about'
+    | 'experience'
+    | 'diplomados'
+    | 'lab3d'
+    | 'media'
+    | 'backup'
   >('overview');
+
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
+
+  // Sections states
+  const [aboutData, setAboutData] = useState<AboutSectionData>(getStoredAbout);
+  const [experiences, setExperiences] = useState<ExperienceItem[]>(getStoredExperience);
+  const [diplomados, setDiplomados] = useState<DiplomadoItem[]>(getStoredDiplomados);
+  const [lab3dData, setLab3dData] = useState<Lab3DData>(getStoredLab3D);
+
+  // New Diplomado Form State
+  const [newDipTitle, setNewDipTitle] = useState('');
+  const [newDipSrc, setNewDipSrc] = useState('');
+  const [newDipYear, setNewDipYear] = useState('2025');
+  const [isUploadingDip, setIsUploadingDip] = useState(false);
+
+  // New Experience Form State
+  const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
+  const [isExpModalOpen, setIsExpModalOpen] = useState(false);
+
+  // Uploading Profile Photo
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // DB Sync Status
   const [dbStatus, setDbStatus] = useState<DatabaseStatusInfo | null>(null);
@@ -94,10 +146,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     const loadData = () => {
       setProjects(getStoredProjects());
       setDisciplines(getStoredDisciplines());
+      setAboutData(getStoredAbout());
+      setExperiences(getStoredExperience());
+      setDiplomados(getStoredDiplomados());
+      setLab3dData(getStoredLab3D());
     };
     loadData();
 
-    // Check DB status on mount
     checkDatabaseStatus().then(setDbStatus);
 
     const unsubscribe = subscribeToPortfolioChanges(loadData);
@@ -118,6 +173,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     }
   }, [activeTab]);
 
+  const showNotification = (msg: string) => {
+    play8BitArcadeSound();
+    setBackupSuccessMsg(msg);
+    setTimeout(() => setBackupSuccessMsg(null), 4000);
+  };
+
   const handleManualSync = async () => {
     playClickSound();
     setIsSyncing(true);
@@ -126,9 +187,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setDbStatus(status);
     setIsSyncing(false);
     if (success) {
-      play8BitArcadeSound();
-      setBackupSuccessMsg('¡Sincronización con Hostinger MySQL completada con éxito!');
-      setTimeout(() => setBackupSuccessMsg(null), 4000);
+      showNotification('¡Sincronización con Hostinger MySQL completada con éxito!');
     }
   };
 
@@ -139,6 +198,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setTimeout(() => setCopiedUrl(null), 2500);
   };
 
+  // Projects Handlers
   const handleCreateNewProject = () => {
     playClickSound();
     setEditingProject(null);
@@ -152,7 +212,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   const handleDeleteProject = (id: string, title: string) => {
-    if (window.confirm(`¿Estás seguro de eliminar el proyecto "${title}"? Se borrará también de Hostinger MySQL.`)) {
+    if (
+      window.confirm(
+        `¿Estás seguro de eliminar el proyecto "${title}"? Se borrará también de Hostinger MySQL.`
+      )
+    ) {
       playClickSound();
       deleteProject(id);
     }
@@ -163,6 +227,120 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     toggleProjectFeatured(id);
   };
 
+  // About Section Handlers
+  const handleSaveAbout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    playClickSound();
+    await saveStoredAbout(aboutData);
+    showNotification('¡Información de Sobre Mí & Perfil guardada en Hostinger MySQL!');
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    const res = await uploadMediaFile(file);
+    setIsUploadingPhoto(false);
+    if (res.success && res.url) {
+      setAboutData((prev) => ({ ...prev, photo: res.url }));
+    } else {
+      alert(res.error || 'Error al subir la fotografía.');
+    }
+  };
+
+  // Experience Handlers
+  const handleSaveExperienceList = async (updatedList: ExperienceItem[]) => {
+    setExperiences(updatedList);
+    await saveStoredExperience(updatedList);
+    showNotification('¡Línea de Experiencia actualizada en Hostinger MySQL!');
+  };
+
+  const handleDeleteExperience = (id: string) => {
+    if (window.confirm('¿Eliminar esta experiencia laboral?')) {
+      const updated = experiences.filter((e) => e.id !== id);
+      handleSaveExperienceList(updated);
+    }
+  };
+
+  const handleSaveSingleExperience = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExp) return;
+    const index = experiences.findIndex((x) => x.id === editingExp.id);
+    let updated: ExperienceItem[];
+    if (index >= 0) {
+      updated = [...experiences];
+      updated[index] = editingExp;
+    } else {
+      updated = [{ ...editingExp, id: editingExp.id || `exp-${Date.now()}` }, ...experiences];
+    }
+    handleSaveExperienceList(updated);
+    setIsExpModalOpen(false);
+    setEditingExp(null);
+  };
+
+  // Diplomados Handlers
+  const handleAddDiplomado = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDipSrc.trim() || !newDipTitle.trim()) {
+      alert('Por favor ingresa un título y una imagen para el diplomado.');
+      return;
+    }
+    const newDip: DiplomadoItem = {
+      id: `dip-${Date.now()}`,
+      title: newDipTitle.trim(),
+      src: newDipSrc.trim(),
+      year: newDipYear.trim() || '2025',
+      visible: true,
+    };
+    const updated = [newDip, ...diplomados];
+    setDiplomados(updated);
+    await saveStoredDiplomados(updated);
+    setNewDipTitle('');
+    setNewDipSrc('');
+    showNotification('¡Diplomado añadido y guardado en Hostinger MySQL!');
+  };
+
+  const handleDiplomadoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingDip(true);
+    const res = await uploadMediaFile(file);
+    setIsUploadingDip(false);
+    if (res.success && res.url) {
+      setNewDipSrc(res.url);
+      if (!newDipTitle) {
+        setNewDipTitle(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    } else {
+      alert(res.error || 'Error al subir imagen del diplomado.');
+    }
+  };
+
+  const handleToggleDiplomado = async (id: string) => {
+    const updated = diplomados.map((d) =>
+      d.id === id ? { ...d, visible: !d.visible } : d
+    );
+    setDiplomados(updated);
+    await saveStoredDiplomados(updated);
+  };
+
+  const handleDeleteDiplomado = async (id: string) => {
+    if (window.confirm('¿Eliminar este diplomado/certificado?')) {
+      const updated = diplomados.filter((d) => d.id !== id);
+      setDiplomados(updated);
+      await saveStoredDiplomados(updated);
+    }
+  };
+
+  // Lab 3D Handlers
+  const handleSaveLab3D = async (e: React.FormEvent) => {
+    e.preventDefault();
+    playClickSound();
+    await saveStoredLab3D(lab3dData);
+    showNotification('¡Configuración del Laboratorio 3D guardada en Hostinger MySQL!');
+  };
+
+  // Backup Handlers
   const handleExportJSON = () => {
     playClickSound();
     const dataStr = exportPortfolioJSON();
@@ -173,7 +351,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     link.download = `aylin-portfolio-backup-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    setBackupSuccessMsg('¡Copia de seguridad exportada con éxito en formato JSON!');
+    showNotification('¡Copia de seguridad exportada con éxito en formato JSON!');
   };
 
   const handleImportJSON = async () => {
@@ -181,8 +359,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     if (!jsonInput.trim()) return;
     const success = await importPortfolioJSON(jsonInput);
     if (success) {
-      play8BitArcadeSound();
-      setBackupSuccessMsg('¡Datos importados y guardados en Hostinger MySQL exitosamente!');
+      showNotification('¡Datos importados y guardados en Hostinger MySQL exitosamente!');
       setJsonInput('');
     } else {
       alert('Error: el formato JSON no es válido.');
@@ -192,12 +369,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const handleResetDefaults = async () => {
     if (
       window.confirm(
-        '¿Deseas restaurar todos los proyectos y sliders a los valores originales de fábrica en Hostinger MySQL?'
+        '¿Deseas restaurar todos los proyectos, sliders y secciones a los valores originales de fábrica en Hostinger MySQL?'
       )
     ) {
       playClickSound();
       await resetPortfolioToDefaults();
-      setBackupSuccessMsg('¡Base de datos restablecida a los valores de fábrica!');
+      showNotification('¡Base de datos restablecida a los valores de fábrica!');
     }
   };
 
@@ -219,7 +396,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     0
   );
 
-  // Professional Theme Variables
+  // Themes
   const bgApp = darkMode ? 'bg-[#0F172A] text-slate-100' : 'bg-[#F8FAFC] text-slate-900';
   const bgSidebar = darkMode ? 'bg-[#1E293B] border-slate-800 text-slate-200' : 'bg-[#00965E] border-transparent text-white';
   const bgCard = darkMode ? 'bg-[#1E293B] border-slate-700/50 text-slate-100 shadow-sm' : 'bg-white border-slate-200 text-slate-900 shadow-sm';
@@ -234,7 +411,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         className={`w-full md:w-64 lg:w-72 flex-shrink-0 flex flex-col justify-between p-6 border-b md:border-b-0 md:border-r ${bgSidebar}`}
       >
         {/* Brand & Menu */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
               A
@@ -244,7 +421,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 AYLIN STUDIO
               </span>
               <span className="text-[11px] font-mono opacity-80 uppercase tracking-wider mt-0.5 block">
-                Dashboard Pro
+                Dashboard Master
               </span>
             </div>
           </div>
@@ -252,7 +429,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           {/* Database Live Status Badge */}
           <div className="p-3 rounded-xl bg-black/20 border border-white/10 space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${dbStatus?.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  dbStatus?.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                }`}
+              />
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider">
                 {dbStatus?.connected ? 'Hostinger MySQL' : 'Caché Activa'}
               </span>
@@ -270,7 +451,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 playClickSound();
                 setActiveTab('overview');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'overview'
                   ? darkMode
                     ? 'bg-emerald-600 text-white shadow-sm font-bold'
@@ -286,9 +467,30 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               type="button"
               onClick={() => {
                 playClickSound();
+                setActiveTab('projects');
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'projects'
+                  ? darkMode
+                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
+                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+              }`}
+            >
+              <FolderKanban className="w-4 h-4" />
+              <span>Proyectos & Galería</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+                {projects.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
                 setActiveTab('disciplines');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'disciplines'
                   ? darkMode
                     ? 'bg-emerald-600 text-white shadow-sm font-bold'
@@ -307,21 +509,78 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               type="button"
               onClick={() => {
                 playClickSound();
-                setActiveTab('projects');
+                setActiveTab('about');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'projects'
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'about'
                   ? darkMode
                     ? 'bg-emerald-600 text-white shadow-sm font-bold'
                     : 'bg-white text-[#007A4D] font-bold shadow-sm'
                   : 'opacity-80 hover:opacity-100 hover:bg-white/10'
               }`}
             >
-              <FolderKanban className="w-4 h-4" />
-              <span>Catálogo de Proyectos</span>
+              <User className="w-4 h-4" />
+              <span>Sobre Mí & Perfil</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('experience');
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'experience'
+                  ? darkMode
+                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
+                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              <span>Experiencia Laboral</span>
               <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
-                {projects.length}
+                {experiences.length}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('diplomados');
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'diplomados'
+                  ? darkMode
+                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
+                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>Diplomados & Cursos</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+                {diplomados.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('lab3d');
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'lab3d'
+                  ? darkMode
+                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
+                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+              }`}
+            >
+              <Box className="w-4 h-4" />
+              <span>Laboratorio 3D</span>
             </button>
 
             <button
@@ -330,7 +589,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 playClickSound();
                 setActiveTab('featured');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'featured'
                   ? darkMode
                     ? 'bg-emerald-600 text-white shadow-sm font-bold'
@@ -339,7 +598,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               }`}
             >
               <Star className="w-4 h-4" />
-              <span>Proyectos Destacados</span>
+              <span>Destacados en Portada</span>
               <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
                 {featuredProjects.length}
               </span>
@@ -351,7 +610,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 playClickSound();
                 setActiveTab('media');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'media'
                   ? darkMode
                     ? 'bg-emerald-600 text-white shadow-sm font-bold'
@@ -360,7 +619,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               }`}
             >
               <ImageIcon className="w-4 h-4" />
-              <span>Medios & Servidor /uploads/</span>
+              <span>Medios /uploads/</span>
             </button>
 
             <button
@@ -369,7 +628,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 playClickSound();
                 setActiveTab('backup');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'backup'
                   ? darkMode
                     ? 'bg-emerald-600 text-white shadow-sm font-bold'
@@ -439,12 +698,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               onClick={handleManualSync}
               disabled={isSyncing}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                darkMode ? 'bg-slate-800 border-slate-700 text-emerald-400 hover:bg-slate-700' : 'bg-slate-100 border-slate-300 text-emerald-700 hover:bg-slate-200'
+                darkMode
+                  ? 'bg-slate-800 border-slate-700 text-emerald-400 hover:bg-slate-700'
+                  : 'bg-slate-100 border-slate-300 text-emerald-700 hover:bg-slate-200'
               }`}
               title="Sincronizar datos con Hostinger MySQL"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
+              <span className="hidden sm:inline">
+                {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+              </span>
             </button>
 
             {/* Dark / Light Mode Switcher */}
@@ -460,7 +723,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   : 'bg-slate-100 border-slate-300 text-slate-700 hover:text-black'
               }`}
             >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
+              {darkMode ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-600" />
+              )}
               <span className="hidden sm:inline">
                 {darkMode ? 'Modo Claro' : 'Modo Oscuro'}
               </span>
@@ -499,86 +766,112 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 {/* Total Projects */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Total Proyectos</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>
+                      Total Proyectos
+                    </span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
                       <FolderKanban className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl sm:text-3xl font-bold">{projects.length}</span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">En Hostinger DB</span>
+                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">
+                      En Hostinger DB
+                    </span>
                   </div>
                 </div>
 
                 {/* Featured */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Destacados</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>
+                      Destacados
+                    </span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
                       <Star className="w-4 h-4 fill-emerald-400" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-2xl sm:text-3xl font-bold">{featuredProjects.length}</span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">En portada</span>
+                    <span className="text-2xl sm:text-3xl font-bold">
+                      {featuredProjects.length}
+                    </span>
+                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">
+                      En portada
+                    </span>
                   </div>
                 </div>
 
                 {/* Disciplines */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Especialidades</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>
+                      Especialidades
+                    </span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
                       <Layers className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl sm:text-3xl font-bold">{disciplines.length}</span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">Categorías</span>
+                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">
+                      Categorías
+                    </span>
                   </div>
                 </div>
 
                 {/* Slides */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Diapositivas</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>
+                      Diapositivas
+                    </span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
                       <ImageIcon className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl sm:text-3xl font-bold">{totalSlides}</span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">En sliders</span>
+                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">
+                      En sliders
+                    </span>
                   </div>
                 </div>
 
-                {/* 3D CGI */}
+                {/* Diplomados */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Modelado 3D</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>
+                      Diplomados
+                    </span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                      <Box className="w-4 h-4" />
+                      <Award className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-2xl sm:text-3xl font-bold">
-                      {projects.filter((p) => p.category === '3D MODELING').length}
+                    <span className="text-2xl sm:text-3xl font-bold">{diplomados.length}</span>
+                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">
+                      Certificaciones
                     </span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">Hard-surface</span>
                   </div>
                 </div>
 
                 {/* Database Status */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Estado DB</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>
+                      Estado DB
+                    </span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
                       <Server className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-lg font-bold text-emerald-400 truncate block">MySQL 2026</span>
-                    <span className="text-[11px] text-slate-400 block font-mono mt-0.5">Sincronizado</span>
+                    <span className="text-lg font-bold text-emerald-400 truncate block">
+                      MySQL 2026
+                    </span>
+                    <span className="text-[11px] text-slate-400 block font-mono mt-0.5">
+                      Sincronizado
+                    </span>
                   </div>
                 </div>
               </div>
@@ -603,17 +896,40 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
                   <div className="space-y-4 pt-2">
                     {[
-                      { name: 'Modelado 3D & Stands', cat: '3D MODELING', color: 'bg-emerald-500', count: projects.filter((p) => p.category === '3D MODELING').length },
-                      { name: 'Branding & Identidad', cat: 'BRANDING', color: 'bg-teal-500', count: projects.filter((p) => p.category === 'BRANDING').length },
-                      { name: 'Digital Art & Retratos', cat: 'DIGITAL ART', color: 'bg-amber-500', count: projects.filter((p) => p.category === 'DIGITAL ART').length },
-                      { name: 'Motion & Edición Video', cat: 'MOTION', color: 'bg-sky-500', count: projects.filter((p) => p.category === 'MOTION').length },
+                      {
+                        name: 'Modelado 3D & Stands',
+                        cat: '3D MODELING',
+                        color: 'bg-emerald-500',
+                        count: projects.filter((p) => p.category === '3D MODELING').length,
+                      },
+                      {
+                        name: 'Branding & Identidad',
+                        cat: 'BRANDING',
+                        color: 'bg-teal-500',
+                        count: projects.filter((p) => p.category === 'BRANDING').length,
+                      },
+                      {
+                        name: 'Digital Art & Retratos',
+                        cat: 'DIGITAL ART',
+                        color: 'bg-amber-500',
+                        count: projects.filter((p) => p.category === 'DIGITAL ART').length,
+                      },
+                      {
+                        name: 'Motion & Edición Video',
+                        cat: 'MOTION',
+                        color: 'bg-sky-500',
+                        count: projects.filter((p) => p.category === 'MOTION').length,
+                      },
                     ].map((item) => {
-                      const percent = projects.length > 0 ? (item.count / projects.length) * 100 : 0;
+                      const percent =
+                        projects.length > 0 ? (item.count / projects.length) * 100 : 0;
                       return (
                         <div key={item.cat} className="space-y-1.5">
                           <div className="flex justify-between text-xs font-mono font-medium">
                             <span>{item.name}</span>
-                            <span>{item.count} proyectos ({Math.round(percent)}%)</span>
+                            <span>
+                              {item.count} proyectos ({Math.round(percent)}%)
+                            </span>
                           </div>
                           <div className="w-full h-3 rounded-full bg-slate-800 overflow-hidden">
                             <div
@@ -711,14 +1027,18 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             <span className="font-semibold truncate max-w-xs">{p.title}</span>
                           </td>
                           <td className="py-3 text-slate-400">{p.client}</td>
-                          <td className="py-3 font-mono text-emerald-400 font-medium">{p.category}</td>
+                          <td className="py-3 font-mono text-emerald-400 font-medium">
+                            {p.category}
+                          </td>
                           <td className="py-3 font-mono text-slate-400">{p.year}</td>
                           <td className="py-3 text-center">
                             <button
                               type="button"
                               onClick={() => handleToggleFeatured(p.id)}
                               className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                p.featured ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'
+                                p.featured
+                                  ? 'text-amber-400'
+                                  : 'text-slate-600 hover:text-slate-400'
                               }`}
                             >
                               <Star className={`w-4 h-4 ${p.featured ? 'fill-amber-400' : ''}`} />
@@ -751,31 +1071,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 2: ESPECIALIDADES & SLIDERS ================= */}
-          {activeTab === 'disciplines' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight">
-                  Editor de Sliders & Especialidades
-                </h2>
-                <p className={`text-xs ${textMuted} mt-1`}>
-                  Configura las 4 disciplinas de la portada, sus diapositivas y textos en español e inglés.
-                </p>
-              </div>
-              <DisciplineSliderEditor disciplines={disciplines} darkMode={darkMode} />
-            </div>
-          )}
-
-          {/* ================= TAB 3: CATÁLOGO DE PROYECTOS ================= */}
+          {/* ================= TAB 2: CATÁLOGO DE PROYECTOS & VISTAS DE DETALLE ================= */}
           {activeTab === 'projects' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold tracking-tight">
-                    Catálogo de Producciones ({filteredProjects.length})
+                    Catálogo de Producciones & Vistas de Detalle ({filteredProjects.length})
                   </h2>
                   <p className={`text-xs ${textMuted} mt-1`}>
-                    Gestiona todos los proyectos visibles en el catálogo general.
+                    Gestiona los proyectos y las galerías de renders de detalle ("VISTAS DE DETALLE & RENDER").
                   </p>
                 </div>
                 <button
@@ -827,7 +1132,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md text-amber-400 cursor-pointer"
                           title={proj.featured ? 'Destacado' : 'Marcar como destacado'}
                         >
-                          <Star className={`w-3.5 h-3.5 ${proj.featured ? 'fill-amber-400' : ''}`} />
+                          <Star
+                            className={`w-3.5 h-3.5 ${proj.featured ? 'fill-amber-400' : ''}`}
+                          />
                         </button>
                       </div>
 
@@ -840,9 +1147,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       <span className="text-xs text-slate-400 block line-clamp-1 font-mono mb-2">
                         {proj.client}
                       </span>
-                      <p className={`text-xs ${textMuted} line-clamp-2 leading-relaxed mb-4`}>
-                        {proj.shortDesc}
-                      </p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                          {(proj.galleryImages || []).length} vistas de detalle
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
@@ -852,7 +1161,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium transition-colors cursor-pointer"
                       >
                         <Edit className="w-3.5 h-3.5" />
-                        <span>Editar</span>
+                        <span>Editar Proyecto & Galería</span>
                       </button>
 
                       <button
@@ -870,7 +1179,500 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 4: DESTACADOS ================= */}
+          {/* ================= TAB 3: ESPECIALIDADES & SLIDERS ================= */}
+          {activeTab === 'disciplines' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Editor de Sliders & Especialidades
+                </h2>
+                <p className={`text-xs ${textMuted} mt-1`}>
+                  Configura las 4 disciplinas de la portada, sus diapositivas y textos en español e inglés.
+                </p>
+              </div>
+              <DisciplineSliderEditor disciplines={disciplines} darkMode={darkMode} />
+            </div>
+          )}
+
+          {/* ================= TAB 4: SOBRE MÍ & PERFIL PROFESIONAL ================= */}
+          {activeTab === 'about' && (
+            <div className="max-w-4xl space-y-6">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Sobre Mí & Perfil Profesional
+                </h2>
+                <p className={`text-xs ${textMuted} mt-1`}>
+                  Edita la biografía, fotografía, redes sociales y datos de presentación personal.
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveAbout} className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-6`}>
+                {/* Photo & Basic Info */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Photo Preview & Upload */}
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="w-36 h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 relative group flex items-center justify-center shadow-md">
+                      <img
+                        src={aboutData.photo || '/images/fotografia-aylin.png'}
+                        alt="Foto de Perfil"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer shadow-sm transition-colors">
+                      {isUploadingPhoto ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isUploadingPhoto ? 'Subiendo...' : 'Subir Nueva Foto'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingPhoto}
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Name, Title, Location */}
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                        Nombre Completo
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.name || ''}
+                        onChange={(e) => setAboutData({ ...aboutData, name: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                        Título Profesional
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.title || ''}
+                        onChange={(e) => setAboutData({ ...aboutData, title: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border ${bgInput} text-xs`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                        Ubicación
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.location || ''}
+                        onChange={(e) => setAboutData({ ...aboutData, location: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border ${bgInput} text-xs`}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Biographies */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-700/50">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Biografía Profesional (Español)
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={aboutData.bioEs || ''}
+                      onChange={(e) => setAboutData({ ...aboutData, bioEs: e.target.value })}
+                      className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Biografía Profesional (Inglés)
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={aboutData.bioEn || ''}
+                      onChange={(e) => setAboutData({ ...aboutData, bioEn: e.target.value })}
+                      className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed`}
+                    />
+                  </div>
+                </div>
+
+                {/* Social Links & Contact */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-slate-700/50">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      WhatsApp
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutData.whatsapp || ''}
+                      onChange={(e) => setAboutData({ ...aboutData, whatsapp: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Email de Contacto
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutData.email || ''}
+                      onChange={(e) => setAboutData({ ...aboutData, email: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Enlace a Behance
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutData.behance || ''}
+                      onChange={(e) => setAboutData({ ...aboutData, behance: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-700/50">
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Guardar Cambios de Perfil</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ================= TAB 5: EXPERIENCIA LABORAL ================= */}
+          {activeTab === 'experience' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight">
+                    Línea de Tiempo & Trayectoria Profesional ({experiences.length})
+                  </h2>
+                  <p className={`text-xs ${textMuted} mt-1`}>
+                    Gestiona los cargos, empresas, periodos y logros de tu trayectoria profesional.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingExp({
+                      id: `exp-${Date.now()}`,
+                      role: '',
+                      company: '',
+                      location: 'El Salvador',
+                      period: '2026',
+                      isCurrent: true,
+                      description: '',
+                      responsibilities: [],
+                      toolsUsed: [],
+                    });
+                    setIsExpModalOpen(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Añadir Experiencia</span>
+                </button>
+              </div>
+
+              {/* Experience Cards */}
+              <div className="space-y-4">
+                {experiences.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`p-6 rounded-2xl border ${bgCard} flex flex-col md:flex-row items-start justify-between gap-4`}
+                  >
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-emerald-400">
+                          #{idx + 1}
+                        </span>
+                        <h4 className="text-base font-bold">{item.role}</h4>
+                        {item.isCurrent && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400">
+                            Actual
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs font-mono text-slate-400">
+                        {item.company} • {item.period} • {item.location}
+                      </p>
+                      <p className={`text-xs ${textMuted} leading-relaxed max-w-2xl`}>
+                        {item.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingExp(item);
+                          setIsExpModalOpen(true);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium cursor-pointer transition-colors flex items-center gap-1"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Editar</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteExperience(item.id)}
+                        className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ================= TAB 6: DIPLOMADOS & CERTIFICACIONES ================= */}
+          {activeTab === 'diplomados' && (
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Diplomados & Certificaciones ({diplomados.length})
+                </h2>
+                <p className={`text-xs ${textMuted} mt-1`}>
+                  Sube y gestiona los certificados que se muestran en el carrusel infinito de la portada.
+                </p>
+              </div>
+
+              {/* Add Diplomado Form */}
+              <form
+                onSubmit={handleAddDiplomado}
+                className={`p-6 rounded-2xl border ${bgCard} space-y-4`}
+              >
+                <span className="text-xs font-mono font-bold uppercase text-emerald-400 flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  <span>Subir Nuevo Diplomado / Certificado a Hostinger</span>
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input
+                    type="text"
+                    required
+                    value={newDipTitle}
+                    onChange={(e) => setNewDipTitle(e.target.value)}
+                    placeholder="Título (ej. Diplomado After Effects 2023)"
+                    className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-semibold`}
+                  />
+
+                  <input
+                    type="text"
+                    required
+                    value={newDipSrc}
+                    onChange={(e) => setNewDipSrc(e.target.value)}
+                    placeholder="URL de la imagen (/uploads/...)"
+                    className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
+                  />
+
+                  <div className="flex items-center gap-2">
+                    <label className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700">
+                      {isUploadingDip ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isUploadingDip ? 'Subiendo...' : 'Subir Certificado'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingDip}
+                        onChange={handleDiplomadoUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase cursor-pointer shadow-sm"
+                    >
+                      Añadir
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              {/* Diplomados Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {diplomados.map((dip) => (
+                  <div
+                    key={dip.id}
+                    className={`p-4 rounded-2xl border ${bgCard} space-y-3 flex flex-col justify-between ${
+                      dip.visible !== false ? '' : 'opacity-50'
+                    }`}
+                  >
+                    <div className="aspect-[16/11] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 flex items-center justify-center p-2">
+                      <img src={dip.src} alt={dip.title} className="w-full h-full object-contain" />
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold line-clamp-2">{dip.title}</h4>
+                      <span className="text-[10px] text-slate-400 font-mono block mt-1">
+                        {dip.year || '2025'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleDiplomado(dip.id)}
+                        className={`flex items-center gap-1 text-xs font-mono cursor-pointer ${
+                          dip.visible !== false ? 'text-emerald-400' : 'text-slate-400'
+                        }`}
+                      >
+                        {dip.visible !== false ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        <span>{dip.visible !== false ? 'Visible' : 'Oculto'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDiplomado(dip.id)}
+                        className="p-1 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ================= TAB 7: LABORATORIO 3D ================= */}
+          {activeTab === 'lab3d' && (
+            <div className="max-w-4xl space-y-6">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Configuración del Laboratorio 3D Interactivo
+                </h2>
+                <p className={`text-xs ${textMuted} mt-1`}>
+                  Ajusta los títulos, color de iluminación y comportamiento del visor 3D en tiempo real.
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveLab3D} className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-6`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Título (Español)
+                    </label>
+                    <input
+                      type="text"
+                      value={lab3dData.titleEs || ''}
+                      onChange={(e) => setLab3dData({ ...lab3dData, titleEs: e.target.value })}
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-bold`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Título (Inglés)
+                    </label>
+                    <input
+                      type="text"
+                      value={lab3dData.titleEn || ''}
+                      onChange={(e) => setLab3dData({ ...lab3dData, titleEn: e.target.value })}
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-bold`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Subtítulo (Español)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={lab3dData.subtitleEs || ''}
+                      onChange={(e) => setLab3dData({ ...lab3dData, subtitleEs: e.target.value })}
+                      className={`w-full p-3 rounded-xl border ${bgInput} text-xs`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Subtítulo (Inglés)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={lab3dData.subtitleEn || ''}
+                      onChange={(e) => setLab3dData({ ...lab3dData, subtitleEn: e.target.value })}
+                      className={`w-full p-3 rounded-xl border ${bgInput} text-xs`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-700/50">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Color de Iluminación
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={lab3dData.lightingColor || '#76FF03'}
+                        onChange={(e) => setLab3dData({ ...lab3dData, lightingColor: e.target.value })}
+                        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0"
+                      />
+                      <span className="text-xs font-mono font-bold text-emerald-400">
+                        {lab3dData.lightingColor || '#76FF03'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Auto-Rotación por Defecto
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setLab3dData({ ...lab3dData, autoRotate: !lab3dData.autoRotate })}
+                      className={`px-4 py-2 rounded-xl border text-xs font-semibold cursor-pointer ${
+                        lab3dData.autoRotate
+                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                          : 'bg-slate-800 border-slate-700 text-slate-400'
+                      }`}
+                    >
+                      {lab3dData.autoRotate ? 'Activada' : 'Pausada'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-700/50">
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Guardar Configuración 3D</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ================= TAB 8: DESTACADOS ================= */}
           {activeTab === 'featured' && (
             <div className="space-y-6">
               <div>
@@ -935,18 +1737,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 5: MEDIOS & CLIPS SUBIDOS ================= */}
+          {/* ================= TAB 9: MEDIOS & CLIPS ================= */}
           {activeTab === 'media' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight">
-                    Archivos Multimedia en Hostinger (/uploads/)
-                  </h2>
-                  <p className={`text-xs ${textMuted} mt-1`}>
-                    Explorador de imágenes WebP/PNG, GIFs animados y clips MP4/WebM alojados en el servidor.
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Archivos Multimedia en Hostinger (/uploads/)
+                </h2>
+                <p className={`text-xs ${textMuted} mt-1`}>
+                  Explorador de imágenes WebP/PNG, GIFs animados y clips MP4/WebM alojados en el servidor.
+                </p>
               </div>
 
               {uploadedFiles.length === 0 ? (
@@ -954,26 +1754,38 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   <ImageIcon className="w-10 h-10 text-slate-500 mx-auto" />
                   <h4 className="font-bold text-sm">No hay archivos subidos en /uploads/ todavía</h4>
                   <p className={`text-xs ${textMuted} max-w-md mx-auto`}>
-                    Al editar un proyecto o diapositiva y presionar "Subir a Hostinger", los archivos aparecerán listados aquí con enlaces directos permanentes.
+                    Al editar un proyecto o diplomado y presionar "Subir a Hostinger", los archivos aparecerán listados aquí.
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {uploadedFiles.map((file) => {
-                    const isVideo = file.type.startsWith('video/') || file.filename.endsWith('.mp4') || file.filename.endsWith('.webm');
+                    const isVideo =
+                      file.type.startsWith('video/') ||
+                      file.filename.endsWith('.mp4') ||
+                      file.filename.endsWith('.webm');
                     const isGif = file.type.includes('gif') || file.filename.endsWith('.gif');
                     const isCopied = copiedUrl === file.url;
 
                     return (
-                      <div key={file.filename} className={`p-4 rounded-2xl border ${bgCard} space-y-3 flex flex-col justify-between`}>
+                      <div
+                        key={file.filename}
+                        className={`p-4 rounded-2xl border ${bgCard} space-y-3 flex flex-col justify-between`}
+                      >
                         <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 flex items-center justify-center">
                           {isVideo ? (
                             <div className="flex flex-col items-center gap-1 text-emerald-400">
                               <Video className="w-8 h-8" />
-                              <span className="text-[10px] font-mono font-bold uppercase">Video Clip</span>
+                              <span className="text-[10px] font-mono font-bold uppercase">
+                                Video Clip
+                              </span>
                             </div>
                           ) : (
-                            <img src={file.url} alt={file.filename} className="w-full h-full object-cover" />
+                            <img
+                              src={file.url}
+                              alt={file.filename}
+                              className="w-full h-full object-cover"
+                            />
                           )}
                         </div>
 
@@ -994,7 +1806,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                                 : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                             }`}
                           >
-                            {isCopied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            {isCopied ? (
+                              <CheckCheck className="w-3.5 h-3.5" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
                             <span>{isCopied ? '¡URL Copiada!' : 'Copiar URL'}</span>
                           </button>
                         </div>
@@ -1006,7 +1822,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 6: RESPALDO JSON ================= */}
+          {/* ================= TAB 10: RESPALDO JSON ================= */}
           {activeTab === 'backup' && (
             <div className="max-w-4xl space-y-6">
               <div>
@@ -1014,7 +1830,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   Respaldo & Transferencia de Datos (JSON + MySQL)
                 </h2>
                 <p className={`text-xs ${textMuted} mt-1`}>
-                  Exporta una copia de seguridad o importa datos para transferirlos entre servidores.
+                  Exporta una copia de seguridad con todos los proyectos, diplomados, experiencia y perfil.
                 </p>
               </div>
 
@@ -1025,7 +1841,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     <h3 className="text-sm font-bold">Exportar Base de Datos</h3>
                   </div>
                   <p className={`text-xs ${textMuted} leading-relaxed`}>
-                    Descarga un archivo JSON con todos los proyectos, especialidades y diapositivas para guardarlo de forma segura.
+                    Descarga un archivo JSON completo con todos los datos para guardarlo de forma segura.
                   </p>
                   <button
                     type="button"
@@ -1067,7 +1883,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   rows={5}
                   value={jsonInput}
                   onChange={(e) => setJsonInput(e.target.value)}
-                  placeholder='{"projects": [...], "disciplines": [...]}'
+                  placeholder='{"projects": [...], "about": {...}, "experience": [...]}'
                   className={`w-full p-4 rounded-xl border text-xs font-mono outline-none ${bgInput}`}
                 />
                 <button
@@ -1082,6 +1898,104 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           )}
         </main>
       </div>
+
+      {/* Experience Edit Modal */}
+      {isExpModalOpen && editingExp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div
+            className={`relative w-full max-w-xl p-6 sm:p-8 rounded-2xl border ${bgCard} shadow-2xl space-y-4`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-700/50">
+              <h3 className="text-lg font-bold">
+                {editingExp.role ? 'Editar Experiencia' : 'Nueva Experiencia'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsExpModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSingleExperience} className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  Cargo / Rol *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingExp.role}
+                  onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })}
+                  placeholder="Ej. Directora de Diseño Gráfico"
+                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                    Empresa / Estudio *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingExp.company}
+                    onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })}
+                    placeholder="Ej. Imprenta Bifronte"
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs`}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                    Periodo *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingExp.period}
+                    onChange={(e) => setEditingExp({ ...editingExp, period: e.target.value })}
+                    placeholder="Ej. 2024 o 2020 - 2026"
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  Descripción General
+                </label>
+                <textarea
+                  rows={3}
+                  value={editingExp.description}
+                  onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })}
+                  placeholder="Resumen del puesto y responsabilidades..."
+                  className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed`}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/50">
+                <button
+                  type="button"
+                  onClick={() => setIsExpModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase"
+                >
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Project Edit Modal */}
       <ProjectEditModal

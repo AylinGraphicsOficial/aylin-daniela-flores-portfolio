@@ -1,47 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
 import { LogoLoop, LogoItem } from './LogoLoop';
 import { Award } from 'lucide-react';
+import {
+  getStoredDiplomados,
+  subscribeToPortfolioChanges,
+  DiplomadoItem,
+} from '../utils/portfolioStorage';
 
 interface DiplomadosSectionProps {
   lang: Language;
 }
 
-const diplomadosLogos: LogoItem[] = [
-  {
-    src: '/images/diplomados/diplomado-after-effects-2023.webp',
-    alt: 'Diplomado Adobe After Effects (2023)',
-    title: 'Diplomado Adobe After Effects (2023)',
-  },
-  {
-    src: '/images/diplomados/diplomado-creacion-contenido-2025.webp',
-    alt: 'Taller de Creación de Contenido (2025)',
-    title: 'Taller de Creación de Contenido (2025)',
-  },
-  {
-    src: '/images/diplomados/diplomado-diseno-grafico-publicitario-2021.webp',
-    alt: 'Diseño Gráfico Publicitario (2021)',
-    title: 'Diseño Gráfico Publicitario (2021)',
-  },
-  {
-    src: '/images/diplomados/diplomado-branding-disenadores-2023.webp',
-    alt: 'Webinar Branding para Diseñadores (2023)',
-    title: 'Webinar Branding para Diseñadores (2023)',
-  },
-  {
-    src: '/images/diplomados/diplomado-diseno-narrativo-videojuegos.webp',
-    alt: 'Introducción al Diseño Narrativo para Videojuegos',
-    title: 'Introducción al Diseño Narrativo para Videojuegos',
-  },
-  {
-    src: '/images/diplomados/diplomado-diseno-personajes-animacion-2022.webp',
-    alt: 'Diseño de Personajes para Animación y Videojuegos (2022)',
-    title: 'Diseño de Personajes para Animación y Videojuegos (2022)',
-  },
-];
-
 export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) => {
   const isEs = lang === 'es';
+  const [diplomados, setDiplomados] = useState<DiplomadoItem[]>(getStoredDiplomados);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setDiplomados(getStoredDiplomados());
+    };
+    handleUpdate();
+    const unsubscribe = subscribeToPortfolioChanges(handleUpdate);
+    return () => unsubscribe();
+  }, []);
+
+  const visibleLogos: LogoItem[] = diplomados
+    .filter((d) => d.visible !== false)
+    .map((d) => ({
+      src: d.src,
+      alt: d.title,
+      title: d.title,
+    }));
+
+  if (visibleLogos.length === 0) return null;
 
   return (
     <section
@@ -72,7 +64,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
       {/* Infinite LogoLoop Track in Full Color (Large, sharp & readable diplomas) */}
       <div className="w-full py-10 md:py-16 bg-white/[0.015] border-y border-white/10 backdrop-blur-sm overflow-hidden relative">
         <LogoLoop
-          logos={diplomadosLogos}
+          logos={visibleLogos}
           speed={26}
           direction="right"
           logoHeight={215}

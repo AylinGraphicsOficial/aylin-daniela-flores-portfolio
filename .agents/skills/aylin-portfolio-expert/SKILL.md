@@ -38,7 +38,10 @@ Esta Skill define los procedimientos, arquitectura, estándares de calidad, cicl
 4. **Iterative Autonomous Auto-Repair**:
    - Si se detecta un error o falla en componentes, estilos o lógica, resolver de forma iterativa y autónoma hasta que compile, construya y funcione con 0 errores y 0 warnings críticos.
 
-5. **Mandatory Pre-Push Verification Protocol**:
+5. **Mandatory Dashboard & Database Synchronization Protocol**:
+   - **REGLA FUNDAMENTAL DE GESTIÓN TOTAL**: Todo cambio, adición o modificación con respecto a imágenes, textos, configuraciones, sliders, galerías o elementos que se integren en cualquier sección del sitio web (Proyectos, Sliders, Sobre Mí, Perfil Profesional, Experiencia, Diplomados, Laboratorio 3D, etc.) DEBE contar obligatoriamente con su ajuste, panel de edición interactivo y soporte de subida multimedia en el **Dashboard de Administración**, garantizando su sincronización y persistencia 100% en la **Base de Datos MySQL de Hostinger**.
+
+6. **Mandatory Pre-Push Verification Protocol**:
    - **REGLA DE ORO**: NUNCA ejecutar `git push` sin haber pasado exitosamente las pruebas de lint y build (`tsc --noEmit` y `vite build`).
 
 ---

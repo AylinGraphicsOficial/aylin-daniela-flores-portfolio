@@ -1,8 +1,9 @@
-import { Project, Discipline } from '../types';
-import { projectsData } from '../data/portfolioData';
+import { Project, Discipline, ExperienceItem } from '../types';
+import { projectsData, experienceData } from '../data/portfolioData';
 
 const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v2';
 const DISCIPLINES_STORAGE_KEY = 'aylin_portfolio_disciplines_v2';
+const SECTIONS_STORAGE_KEY = 'aylin_portfolio_sections_v2';
 const EVENT_NAME = 'aylin_portfolio_data_changed';
 const SYNC_STATUS_KEY = 'aylin_db_sync_status';
 
@@ -10,6 +11,7 @@ const SYNC_STATUS_KEY = 'aylin_db_sync_status';
 const API_BASE = '/api';
 const PROJECTS_API = `${API_BASE}/projects.php`;
 const DISCIPLINES_API = `${API_BASE}/disciplines.php`;
+const SETTINGS_API = `${API_BASE}/settings.php`;
 const UPLOAD_API = `${API_BASE}/upload.php`;
 const INIT_DB_API = `${API_BASE}/init_db.php`;
 
@@ -156,6 +158,114 @@ export const initialDisciplinesData: Discipline[] = [
   },
 ];
 
+export interface AboutSectionData {
+  name: string;
+  title: string;
+  location: string;
+  bioEs: string;
+  bioEn: string;
+  photo: string;
+  cvUrl: string;
+  whatsapp: string;
+  email: string;
+  instagram: string;
+  behance: string;
+  linkedin: string;
+}
+
+export interface DiplomadoItem {
+  id: string;
+  title: string;
+  src: string;
+  year?: string;
+  institution?: string;
+  visible?: boolean;
+}
+
+export interface Lab3DData {
+  titleEs: string;
+  titleEn: string;
+  subtitleEs: string;
+  subtitleEn: string;
+  defaultModel: string;
+  lightingColor: string;
+  autoRotate: boolean;
+}
+
+export const initialAboutData: AboutSectionData = {
+  name: 'Aylin Daniela Flores',
+  title: 'Diseñadora Gráfica & Modeladora 3D',
+  location: 'Sonsonate, El Salvador',
+  bioEs:
+    'Licenciada en Artes Plásticas (Opción Diseño Gráfico) graduada de la Universidad de El Salvador. Cuento con más de 6 años de experiencia profesional en identidad visual, modelado 3D, branding, preprensa técnica y edición audiovisual.',
+  bioEn:
+    'Bachelor of Fine Arts (Graphic Design Major) from Universidad de El Salvador with 6+ years of professional expertise in visual identity, 3D CGI modeling, commercial branding, prepress, and video editing.',
+  photo: '/images/fotografia-aylin.png',
+  cvUrl: '',
+  whatsapp: '+503 7000 0000',
+  email: 'aylinflores.diseno@gmail.com',
+  instagram: 'https://instagram.com/',
+  behance: 'https://behance.net/',
+  linkedin: 'https://linkedin.com/',
+};
+
+export const initialDiplomadosData: DiplomadoItem[] = [
+  {
+    id: 'dip-1',
+    title: 'Diplomado Adobe After Effects (2023)',
+    src: '/images/diplomados/diplomado-after-effects-2023.webp',
+    year: '2023',
+    visible: true,
+  },
+  {
+    id: 'dip-2',
+    title: 'Taller de Creación de Contenido (2025)',
+    src: '/images/diplomados/diplomado-creacion-contenido-2025.webp',
+    year: '2025',
+    visible: true,
+  },
+  {
+    id: 'dip-3',
+    title: 'Diseño Gráfico Publicitario (2021)',
+    src: '/images/diplomados/diplomado-diseno-grafico-publicitario-2021.webp',
+    year: '2021',
+    visible: true,
+  },
+  {
+    id: 'dip-4',
+    title: 'Webinar Branding para Diseñadores (2023)',
+    src: '/images/diplomados/diplomado-branding-disenadores-2023.webp',
+    year: '2023',
+    visible: true,
+  },
+  {
+    id: 'dip-5',
+    title: 'Introducción al Diseño Narrativo para Videojuegos',
+    src: '/images/diplomados/diplomado-diseno-narrativo-videojuegos.webp',
+    year: '2023',
+    visible: true,
+  },
+  {
+    id: 'dip-6',
+    title: 'Diseño de Personajes para Animación y Videojuegos (2022)',
+    src: '/images/diplomados/diplomado-diseno-personajes-animacion-2022.webp',
+    year: '2022',
+    visible: true,
+  },
+];
+
+export const initialLab3DData: Lab3DData = {
+  titleEs: 'LABORATORIO 3D INTERACTIVO',
+  titleEn: 'INTERACTIVE 3D LAB',
+  subtitleEs:
+    'Rota, inspecciona la geometría e interactúa con modelos tridimensionales en tiempo real en tu navegador.',
+  subtitleEn:
+    'Rotate, inspect geometry, and explore real-time materials in the browser.',
+  defaultModel: 'retroCar',
+  lightingColor: '#76FF03',
+  autoRotate: true,
+};
+
 // Helper to notify all subscribers that data has changed
 const notifyDataChanged = () => {
   if (typeof window !== 'undefined') {
@@ -174,16 +284,17 @@ export const subscribeToPortfolioChanges = (callback: () => void) => {
 let isSyncing = false;
 
 /**
- * Fetch latest projects and disciplines from Hostinger MySQL API
+ * Fetch latest projects, disciplines and sections from Hostinger MySQL API
  */
 export const syncFromRemoteServer = async (): Promise<boolean> => {
   if (typeof window === 'undefined' || isSyncing) return false;
   isSyncing = true;
 
   try {
-    const [projRes, discRes] = await Promise.all([
+    const [projRes, discRes, secRes] = await Promise.all([
       fetch(PROJECTS_API, { cache: 'no-store' }),
       fetch(DISCIPLINES_API, { cache: 'no-store' }),
+      fetch(SETTINGS_API, { cache: 'no-store' }),
     ]);
 
     let changed = false;
@@ -204,11 +315,22 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
       }
     }
 
+    if (secRes.ok) {
+      const remoteSections = await secRes.json();
+      if (remoteSections && typeof remoteSections === 'object') {
+        localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(remoteSections));
+        changed = true;
+      }
+    }
+
     if (changed) {
-      localStorage.setItem(SYNC_STATUS_KEY, JSON.stringify({
-        connected: true,
-        lastSync: new Date().toISOString(),
-      }));
+      localStorage.setItem(
+        SYNC_STATUS_KEY,
+        JSON.stringify({
+          connected: true,
+          lastSync: new Date().toISOString(),
+        })
+      );
       notifyDataChanged();
     }
 
@@ -223,11 +345,81 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
 
 // Initial background sync when module loads in browser
 if (typeof window !== 'undefined') {
-  // Run initial remote sync
   setTimeout(() => {
     syncFromRemoteServer();
   }, 100);
 }
+
+// ==================== SECTIONS DATA GETTERS & SETTERS ====================
+
+export const getStoredSection = <T>(sectionKey: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(SECTIONS_STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed[sectionKey] !== undefined ? parsed[sectionKey] : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+export const saveStoredSection = async (
+  sectionKey: string,
+  data: any
+): Promise<void> => {
+  let allSections: Record<string, any> = {};
+  try {
+    const raw = localStorage.getItem(SECTIONS_STORAGE_KEY);
+    if (raw) allSections = JSON.parse(raw);
+  } catch {}
+
+  allSections[sectionKey] = data;
+  localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(allSections));
+  notifyDataChanged();
+
+  try {
+    await fetch(`${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn(`Could not sync section ${sectionKey} with remote API:`, err);
+  }
+};
+
+export const getStoredAbout = (): AboutSectionData => {
+  return getStoredSection<AboutSectionData>('about', initialAboutData);
+};
+
+export const saveStoredAbout = (data: AboutSectionData) => {
+  return saveStoredSection('about', data);
+};
+
+export const getStoredExperience = (): ExperienceItem[] => {
+  return getStoredSection<ExperienceItem[]>('experience', experienceData);
+};
+
+export const saveStoredExperience = (data: ExperienceItem[]) => {
+  return saveStoredSection('experience', data);
+};
+
+export const getStoredDiplomados = (): DiplomadoItem[] => {
+  return getStoredSection<DiplomadoItem[]>('diplomados', initialDiplomadosData);
+};
+
+export const saveStoredDiplomados = (data: DiplomadoItem[]) => {
+  return saveStoredSection('diplomados', data);
+};
+
+export const getStoredLab3D = (): Lab3DData => {
+  return getStoredSection<Lab3DData>('lab3d', initialLab3DData);
+};
+
+export const saveStoredLab3D = (data: Lab3DData) => {
+  return saveStoredSection('lab3d', data);
+};
 
 // ==================== DATABASE STATUS HELPER ====================
 
@@ -254,9 +446,7 @@ export const checkDatabaseStatus = async (): Promise<DatabaseStatusInfo> => {
         message: data.message || 'Conectado a Hostinger MySQL en vivo',
       };
     }
-  } catch {
-    // API not reachable directly (e.g. during local dev)
-  }
+  } catch {}
 
   const projects = getStoredProjects();
   const disciplines = getStoredDisciplines();
@@ -270,7 +460,7 @@ export const checkDatabaseStatus = async (): Promise<DatabaseStatusInfo> => {
   };
 };
 
-// ==================== MEDIA UPLOADER (Images, GIFs, MP4/WebM) ====================
+// ==================== MEDIA UPLOADER ====================
 
 export interface UploadResult {
   success: boolean;
@@ -346,11 +536,9 @@ export const saveProject = async (project: Project): Promise<void> => {
     updated = [finalProject, ...current];
   }
 
-  // 1. Update local cache immediately (instant UI responsiveness)
   localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updated));
   notifyDataChanged();
 
-  // 2. Asynchronously save to remote Hostinger MySQL
   try {
     await fetch(PROJECTS_API, {
       method: 'POST',
@@ -366,11 +554,9 @@ export const deleteProject = async (projectId: string): Promise<void> => {
   const current = getStoredProjects();
   const updated = current.filter((p) => p.id !== projectId);
   
-  // 1. Update local cache immediately
   localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updated));
   notifyDataChanged();
 
-  // 2. Delete on remote Hostinger MySQL
   try {
     await fetch(`${PROJECTS_API}?action=delete&id=${encodeURIComponent(projectId)}`, {
       method: 'POST',
@@ -389,11 +575,9 @@ export const toggleProjectFeatured = async (projectId: string): Promise<boolean>
   project.featured = nextFeatured;
   project.updatedAt = new Date().toISOString();
 
-  // 1. Update local cache immediately
   localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(current));
   notifyDataChanged();
 
-  // 2. Send toggle request to Hostinger MySQL
   try {
     await fetch(`${PROJECTS_API}?action=toggle_featured&id=${encodeURIComponent(projectId)}`, {
       method: 'POST',
@@ -434,11 +618,9 @@ export const saveDiscipline = async (discipline: Discipline): Promise<void> => {
     updated = [...current, discipline];
   }
 
-  // 1. Update local cache
   localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(updated));
   notifyDataChanged();
 
-  // 2. Send to Hostinger MySQL
   try {
     await fetch(DISCIPLINES_API, {
       method: 'POST',
@@ -500,6 +682,10 @@ export const exportPortfolioJSON = (): string => {
     database: 'u888615463_2026_portfolio',
     projects: getStoredProjects(),
     disciplines: getStoredDisciplines(),
+    about: getStoredAbout(),
+    experience: getStoredExperience(),
+    diplomados: getStoredDiplomados(),
+    lab3d: getStoredLab3D(),
   };
   return JSON.stringify(data, null, 2);
 };
@@ -509,7 +695,6 @@ export const importPortfolioJSON = async (jsonString: string): Promise<boolean> 
     const parsed = JSON.parse(jsonString);
     if (parsed.projects && Array.isArray(parsed.projects)) {
       localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(parsed.projects));
-      // Save all to MySQL
       await fetch(PROJECTS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -518,13 +703,17 @@ export const importPortfolioJSON = async (jsonString: string): Promise<boolean> 
     }
     if (parsed.disciplines && Array.isArray(parsed.disciplines)) {
       localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(parsed.disciplines));
-      // Save all to MySQL
       await fetch(DISCIPLINES_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ disciplines: parsed.disciplines }),
       }).catch(() => {});
     }
+    if (parsed.about) saveStoredAbout(parsed.about);
+    if (parsed.experience) saveStoredExperience(parsed.experience);
+    if (parsed.diplomados) saveStoredDiplomados(parsed.diplomados);
+    if (parsed.lab3d) saveStoredLab3D(parsed.lab3d);
+
     notifyDataChanged();
     return true;
   } catch (err) {
@@ -536,9 +725,12 @@ export const importPortfolioJSON = async (jsonString: string): Promise<boolean> 
 export const resetPortfolioToDefaults = async (): Promise<void> => {
   localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
   localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(initialDisciplinesData));
+  saveStoredAbout(initialAboutData);
+  saveStoredExperience(experienceData);
+  saveStoredDiplomados(initialDiplomadosData);
+  saveStoredLab3D(initialLab3DData);
   notifyDataChanged();
 
-  // Reset database via init_db
   try {
     await fetch(INIT_DB_API, { cache: 'no-store' });
   } catch (err) {

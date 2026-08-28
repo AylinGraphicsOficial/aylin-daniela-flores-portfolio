@@ -27,15 +27,30 @@ interface Face3D {
   color?: string;
 }
 
+import { getStoredLab3D, subscribeToPortfolioChanges } from '../utils/portfolioStorage';
+
 export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }) => {
   const t = translations[lang];
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  const [labConfig, setLabConfig] = useState(getStoredLab3D);
   const [currentModel, setCurrentModel] = useState<ModelKey>('retroCar');
   const [isWireframe, setIsWireframe] = useState<boolean>(false);
-  const [autoRotate, setAutoRotate] = useState<boolean>(true);
-  const [lightingColor, setLightingColor] = useState<string>('#76FF03'); // lime default
+  const [autoRotate, setAutoRotate] = useState<boolean>(() => getStoredLab3D().autoRotate !== false);
+  const [lightingColor, setLightingColor] = useState<string>(() => getStoredLab3D().lightingColor || '#76FF03');
   const [zoom, setZoom] = useState<number>(1.1);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const updated = getStoredLab3D();
+      setLabConfig(updated);
+      if (updated.lightingColor) setLightingColor(updated.lightingColor);
+      if (updated.autoRotate !== undefined) setAutoRotate(updated.autoRotate);
+    };
+    handleUpdate();
+    const unsubscribe = subscribeToPortfolioChanges(handleUpdate);
+    return () => unsubscribe();
+  }, []);
 
   // Rotation state
   const rotRef = useRef({ x: 0.25, y: 0.5 });
@@ -397,10 +412,10 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
             <span>REAL-TIME WEBGL / TOPOLOGY</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white uppercase">
-            {t.viewer3d.title}
+            {lang === 'es' ? (labConfig.titleEs || t.viewer3d.title) : (labConfig.titleEn || t.viewer3d.title)}
           </h2>
           <p className="text-gray-400 text-sm md:text-base mt-2 max-w-xl">
-            {t.viewer3d.subtitle}
+            {lang === 'es' ? (labConfig.subtitleEs || t.viewer3d.subtitle) : (labConfig.subtitleEn || t.viewer3d.subtitle)}
           </p>
         </div>
 

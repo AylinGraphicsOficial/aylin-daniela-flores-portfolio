@@ -12,6 +12,7 @@ import {
   CheckCircle,
   Video,
   Loader2,
+  Layers,
 } from 'lucide-react';
 import { Project } from '../../types';
 import { playClickSound } from '../../utils/audio';
@@ -51,13 +52,16 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingClip, setIsUploadingClip] = useState(false);
   const [isUploadingGif, setIsUploadingGif] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     setUploadError(null);
+    setNewGalleryUrl('');
     if (project) {
       setFormData({
         ...project,
@@ -90,7 +94,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Subir imagen Hero directamente al servidor de Hostinger
+  // Subir imagen Hero directamente a Hostinger
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -108,7 +112,50 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     }
   };
 
-  // Subir clip de video MP4/WebM directamente a Hostinger
+  // Subir múltiples imágenes para la galería "Vistas de Detalle & Renders"
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingGallery(true);
+    setUploadError(null);
+
+    const uploadedUrls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const res = await uploadMediaFile(file);
+      if (res.success && res.url) {
+        uploadedUrls.push(res.url);
+      }
+    }
+
+    setIsUploadingGallery(false);
+
+    if (uploadedUrls.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        galleryImages: [...(prev.galleryImages || []), ...uploadedUrls],
+      }));
+    }
+  };
+
+  const handleAddGalleryUrl = () => {
+    if (!newGalleryUrl.trim()) return;
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: [...(prev.galleryImages || []), newGalleryUrl.trim()],
+    }));
+    setNewGalleryUrl('');
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: (prev.galleryImages || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  // Subir clip de video MP4/WebM
   const handleVideoClipUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -126,7 +173,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     }
   };
 
-  // Subir GIF animado directamente a Hostinger
+  // Subir GIF animado
   const handleGifUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -245,12 +292,11 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
           <HelpCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
             <span className="font-bold text-emerald-300 block">
-              💡 Formatos Aceptados en Hostinger:
+              💡 Formatos & Galería de Detalle:
             </span>
             <p className={textMuted}>
-              • <strong>Renders & Fotos:</strong> WebP, PNG, JPG (guardados en servidor remoto).
-              <br />• <strong>Clips de Video:</strong> MP4 o WebM para reproducción directa.
-              <br />• <strong>GIFs:</strong> Animaciones dinámicas para portafolio.
+              • <strong>Vistas de Detalle:</strong> Las imágenes agregadas abajo aparecerán en la sección <em>"VISTAS DE DETALLE & RENDER"</em> del estudio de caso.
+              <br />• <strong>Soporte Completo:</strong> Sube imágenes WebP/PNG, clips MP4/WebM y GIFs directamente al servidor.
             </p>
           </div>
         </div>
@@ -405,7 +451,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                   ) : (
                     <Upload className="w-3.5 h-3.5" />
                   )}
-                  <span>{isUploadingImage ? 'Subiendo...' : 'Subir Imagen a Hostinger'}</span>
+                  <span>{isUploadingImage ? 'Subiendo...' : 'Subir Imagen Principal a Hostinger'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -416,6 +462,84 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 </label>
               </div>
             </div>
+          </div>
+
+          {/* Row 4.5: VISTAS DE DETALLE & RENDER (Sub-Galería de Proyecto) */}
+          <div className="p-4 rounded-xl border border-emerald-500/30 bg-slate-900/50 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label className="text-xs font-bold text-emerald-400 flex items-center gap-2">
+                <Layers className="w-4 h-4" />
+                <span>Vistas de Detalle & Renders (Sub-Galería del Proyecto) ({(formData.galleryImages || []).length})</span>
+              </label>
+
+              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer transition-colors shadow-sm">
+                {isUploadingGallery ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Upload className="w-3.5 h-3.5" />
+                )}
+                <span>{isUploadingGallery ? 'Subiendo Renders...' : '+ Subir Renders de Detalle a Hostinger'}</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  disabled={isUploadingGallery}
+                  onChange={handleGalleryUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Add by URL input */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newGalleryUrl}
+                onChange={(e) => setNewGalleryUrl(e.target.value)}
+                placeholder="O añade URL directa de imagen (/uploads/... o https://...)"
+                className={`flex-1 px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
+              />
+              <button
+                type="button"
+                onClick={handleAddGalleryUrl}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer whitespace-nowrap border border-slate-700"
+              >
+                Añadir URL
+              </button>
+            </div>
+
+            {/* List of Detail Images with Thumbnails */}
+            {(formData.galleryImages || []).length === 0 ? (
+              <p className="text-[11px] text-slate-500 font-mono italic">
+                No hay vistas de detalle añadidas todavía. Sube renders adicionales arriba para que aparezcan en "Vistas de Detalle & Render".
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-2">
+                {(formData.galleryImages || []).map((imgUrl, gIdx) => (
+                  <div
+                    key={gIdx}
+                    className="relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 group flex flex-col justify-between"
+                  >
+                    <div className="aspect-[16/10] w-full overflow-hidden bg-black/40 flex items-center justify-center">
+                      <img src={imgUrl} alt={`Detalle ${gIdx + 1}`} className="w-full h-full object-contain p-1" />
+                    </div>
+                    <div className="p-2 bg-slate-900/90 flex items-center justify-between border-t border-slate-800">
+                      <span className="text-[10px] font-mono text-slate-400 truncate max-w-[100px]">
+                        #{gIdx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGalleryImage(gIdx)}
+                        className="p-1 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                        title="Eliminar render de detalle"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Row 5: Videos & GIFs with Direct Hostinger Uploaders */}
