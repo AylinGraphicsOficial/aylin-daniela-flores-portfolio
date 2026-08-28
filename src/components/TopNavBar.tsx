@@ -10,7 +10,7 @@ interface TopNavBarProps {
   lang: Language;
   onLanguageToggle: () => void;
   onOpenProjectPlanner: () => void;
-  currentView?: 'home' | 'projects';
+  currentView?: 'home' | 'projects' | 'project-detail';
   onNavigateHome?: () => void;
   onNavigateToProjects?: () => void;
 }
