@@ -146,16 +146,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      {/* Lower Hero: Left-Aligned Text + Expansive Full-Right Projects Slider with Lateral Gradient Feathering */}
-      <div className="w-full flex flex-col lg:flex-row items-center relative z-10">
-        {/* Left Column: Tightly shifted to the left with generous kinetic typography */}
-        <div className="w-full lg:w-[38%] xl:w-[35%] flex-shrink-0 flex flex-col justify-center text-left items-start z-30 lg:pr-2">
-          <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase">
+      {/* Lower Hero: Full 100% Width Canvas Slider + Superimposed Typography with Dark Diffusion */}
+      <div className="w-full relative min-h-[560px] sm:min-h-[620px] lg:min-h-[680px] flex items-center justify-between z-10 overflow-visible">
+        
+        {/* Full-Width 100% Slider Canvas in Background */}
+        <div className="absolute inset-0 w-full h-full z-10">
+          <HeroProjectsSlider onSelectProject={onSelectProject} />
+        </div>
+
+        {/* Superimposed Left Content (Typography, CTAs, Metrics) with Dark Diffusion Backdrop */}
+        <div className="relative z-30 w-full lg:w-[48%] xl:w-[44%] flex flex-col justify-center text-left items-start pointer-events-auto py-6">
+          <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             {t.hero.portfolioOf}
           </h2>
 
           {/* Main Giant Kinetic Title */}
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[76px] xl:text-[88px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[76px] xl:text-[88px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             <span>{t.hero.titleLine1}</span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">
@@ -167,7 +173,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-300 max-w-lg mb-8 leading-relaxed font-normal">
+          <p className="text-base sm:text-lg text-gray-200 max-w-lg mb-8 leading-relaxed font-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
             {t.hero.subtitle}
           </p>
 
@@ -212,25 +218,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Quick Metrics Ticker Under Hero */}
-          <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-3 gap-3.5 max-w-lg w-full">
+          <div className="mt-10 pt-6 border-t border-white/15 grid grid-cols-3 gap-3.5 max-w-lg w-full drop-shadow-md">
             <div>
               <div className="text-xl md:text-2xl font-black text-white font-mono">6+ YRS</div>
-              <div className="text-[11px] text-gray-400 font-medium">Professional Experience</div>
+              <div className="text-[11px] text-gray-300 font-medium">Professional Experience</div>
             </div>
             <div>
               <div className="text-xl md:text-2xl font-black text-[#76FF03] font-mono">120+</div>
-              <div className="text-[11px] text-gray-400 font-medium">3D Assets Rendered</div>
+              <div className="text-[11px] text-gray-300 font-medium">3D Assets Rendered</div>
             </div>
             <div>
               <div className="text-xl md:text-2xl font-black text-white font-mono">100%</div>
-              <div className="text-[11px] text-gray-400 font-medium">Original Craft</div>
+              <div className="text-[11px] text-gray-300 font-medium">Original Craft</div>
             </div>
           </div>
-        </div>
-
-        {/* Right Column: Expansive Featured Works Slider overlapping left under text and extending full right */}
-        <div className="w-full lg:w-[68%] xl:w-[72%] lg:-ml-20 xl:-ml-28 flex-1 min-w-0 relative z-10 flex items-center justify-end pt-6 lg:pt-0">
-          <HeroProjectsSlider onSelectProject={onSelectProject} />
         </div>
       </div>
 
