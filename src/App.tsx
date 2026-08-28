@@ -17,7 +17,6 @@ import { AboutSection } from './components/AboutSection';
 import { DiplomadosSection } from './components/DiplomadosSection';
 import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
-import { ProjectsGalleryPage } from './components/ProjectsGalleryPage';
 import { ProjectDetailPage } from './components/ProjectDetailPage';
 import { Footer } from './components/Footer';
 import { projectsData } from './data/portfolioData';
@@ -38,7 +37,7 @@ const CVViewerModal = lazy(() =>
 
 export default function App() {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'projects' | 'project-detail'>(() => {
+  const [currentView, setCurrentView] = useState<'home' | 'project-detail'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
       if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
@@ -47,14 +46,6 @@ export default function App() {
         if (found) {
           return 'project-detail';
         }
-      }
-      if (
-        hash === '#projects' ||
-        hash === '#proyectos' ||
-        hash === '#/proyectos' ||
-        hash === '#/projects'
-      ) {
-        return 'projects';
       }
     }
     return 'home';
@@ -85,17 +76,7 @@ export default function App() {
           return;
         }
       }
-      if (
-        hash === '#projects' ||
-        hash === '#proyectos' ||
-        hash === '#/proyectos' ||
-        hash === '#/projects'
-      ) {
-        setCurrentView('projects');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (!hash || hash === '#' || hash === '#home' || hash === '#inicio') {
-        setCurrentView('home');
-      }
+      setCurrentView('home');
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
@@ -105,12 +86,6 @@ export default function App() {
     setActiveProject(project);
     setCurrentView('project-detail');
     window.location.hash = `#proyecto/${project.id}`;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const navigateToProjects = () => {
-    setCurrentView('projects');
-    window.location.hash = '#proyectos';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -151,6 +126,7 @@ export default function App() {
 
   // Smooth Scroll Reveal Intersection Observer
   useEffect(() => {
+    if (currentView !== 'home') return;
     document.body.classList.add('js-reveal-active');
     const reveals = document.querySelectorAll('.scroll-reveal');
     if (!reveals.length) return;
@@ -174,7 +150,7 @@ export default function App() {
       observer.disconnect();
       document.body.classList.remove('js-reveal-active');
     };
-  }, []);
+  }, [currentView]);
 
   return (
     <div className="relative min-h-screen bg-[#050B05] text-white selection:bg-[#76FF03] selection:text-[#050B05]">
@@ -194,7 +170,6 @@ export default function App() {
         onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
         currentView={currentView}
         onNavigateHome={navigateHome}
-        onNavigateToProjects={navigateToProjects}
       />
 
       {/* Bottom Scroll Gradual Blur Overlay (React Bits) */}
@@ -216,16 +191,7 @@ export default function App() {
           <ProjectDetailPage
             project={activeProject}
             lang={lang}
-            onBackToPortfolio={navigateToProjects}
-            onSelectProject={openProjectDetail}
-            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
-          />
-        </main>
-      ) : currentView === 'projects' ? (
-        <main className="relative z-10">
-          <ProjectsGalleryPage
-            lang={lang}
-            onNavigateHome={navigateHome}
+            onBackToPortfolio={navigateHome}
             onSelectProject={openProjectDetail}
             onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
           />
@@ -245,7 +211,6 @@ export default function App() {
             <WorksBentoGrid
               lang={lang}
               onSelectProject={openProjectDetail}
-              onNavigateToProjects={navigateToProjects}
             />
           </div>
 

@@ -1,195 +1,241 @@
-import React, { useState } from 'react';
-import { ArrowUpRight, Layers } from 'lucide-react';
+import React from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import { Project, Language } from '../types';
-import { translations, projectsData } from '../data/portfolioData';
+import { projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
-import { SpecularButton } from './SpecularButton';
 
 interface WorksBentoGridProps {
   lang: Language;
   onSelectProject: (project: Project) => void;
-  onNavigateToProjects?: () => void;
+}
+
+interface DisciplineItem {
+  id: string;
+  number: string;
+  verticalTextEs: string;
+  verticalTextEn: string;
+  titleEs: string;
+  titleEn: string;
+  subtitleEs: string;
+  subtitleEn: string;
+  descEs: string;
+  descEn: string;
+  image: string;
+  targetProjectId: string;
 }
 
 export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   lang,
   onSelectProject,
-  onNavigateToProjects,
 }) => {
-  const t = translations[lang];
-  const [activeFilter, setActiveFilter] = useState<string>('ALL');
+  const disciplines: DisciplineItem[] = [
+    {
+      id: 'modelado-3d',
+      number: '01',
+      verticalTextEs: 'MODELADO 3D & RENDERIZADO CGI',
+      verticalTextEn: '3D MODELING & CGI RENDERING',
+      titleEs: 'MODELADO 3D',
+      titleEn: '3D MODELING',
+      subtitleEs: 'DISEÑO & VISUALIZACIÓN COMERCIAL',
+      subtitleEn: 'COMMERCIAL DESIGN & 3D VISUALIZATION',
+      descEs:
+        'Creación de geometría 3D de alta fidelidad, modelado hard-surface, stands comerciales para exposiciones, texturizado PBR e iluminación fotográfica con Blender y Octane Render.',
+      descEn:
+        'High-fidelity 3D geometry creation, hard-surface modeling, commercial exhibition stands, PBR texturing, and photorealistic studio lighting with Blender and Octane Render.',
+      image: '/images/orbit-stand.webp',
+      targetProjectId: 'orbit-stand-exhibition',
+    },
+    {
+      id: 'branding',
+      number: '02',
+      verticalTextEs: 'IDENTIDAD VISUAL & SISTEMAS DE MARCA',
+      verticalTextEn: 'VISUAL IDENTITY & BRAND SYSTEMS',
+      titleEs: 'BRANDING',
+      titleEn: 'BRANDING',
+      subtitleEs: 'DISEÑO DE IDENTIDAD & DIRECCIÓN DE ARTE',
+      subtitleEn: 'IDENTITY DESIGN & ART DIRECTION',
+      descEs:
+        'Desarrollo integral de identidades corporativas, logotipos memorables, manuales de marca, empaques y universos visuales distintivos que posicionan marcas con autoridad en su industria.',
+      descEn:
+        'Comprehensive corporate brand identities, memorable logos, brand style guidelines, packaging, and distinctive visual ecosystems crafted to position brands ahead.',
+      image: '/images/orbit-stand-diana.webp',
+      targetProjectId: 'diana-brand-experience',
+    },
+    {
+      id: 'edicion-video',
+      number: '03',
+      verticalTextEs: 'MOTION GRAPHICS & POST-PRODUCCIÓN',
+      verticalTextEn: 'MOTION GRAPHICS & POST-PRODUCTION',
+      titleEs: 'EDICIÓN DE VIDEO',
+      titleEn: 'VIDEO EDITING',
+      subtitleEs: 'MONTAJE CINEMATOGRÁFICO & RITMO VISUAL',
+      subtitleEn: 'CINEMATIC EDITING & VISUAL PACING',
+      descEs:
+        'Edición audiovisual dinámica, corrección de color profesional, animación tipográfica y motion graphics con After Effects y Premiere Pro para spots publicitarios y campañas de alto impacto.',
+      descEn:
+        'Dynamic audiovisual editing, professional color grading, kinetic typography, and motion graphics with After Effects and Premiere Pro for commercials and high-converting campaigns.',
+      image: '/images/diplomados/diplomado-after-effects-2023.webp',
+      targetProjectId: 'motion-typography',
+    },
+    {
+      id: 'social-media',
+      number: '04',
+      verticalTextEs: 'ESTRATEGIA VISUAL & CONTENIDO DIGITAL',
+      verticalTextEn: 'VISUAL STRATEGY & DIGITAL CONTENT',
+      titleEs: 'SOCIAL MEDIA DESIGNER',
+      titleEn: 'SOCIAL MEDIA DESIGNER',
+      subtitleEs: 'CONTENIDO DE ALTO ENGAGEMENT & DISEÑO DIGITAL',
+      subtitleEn: 'HIGH-ENGAGEMENT CONTENT & DIGITAL DESIGN',
+      descEs:
+        'Diseño estratégico de piezas gráficas para redes sociales, carruseles de alto valor, creatividades publicitarias y feeds optimizados para maximizar la retención, interacción y conversiones.',
+      descEn:
+        'Strategic social media graphic design, high-value educational carousels, ad creatives, and optimized feeds designed to maximize audience retention, engagement, and conversion.',
+      image: '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
+      targetProjectId: 'orbit-tablet-visual',
+    },
+  ];
 
-  const categories = ['ALL', '3D MODELING', 'BRANDING', 'DIGITAL ART', 'MOTION'];
-
-  const filteredProjects = activeFilter === 'ALL'
-    ? projectsData
-    : projectsData.filter((p) => p.category === activeFilter);
-
-  const handleOpenAllProjects = () => {
+  const handleDisciplineClick = (item: DisciplineItem) => {
     playClickSound();
-    if (onNavigateToProjects) {
-      onNavigateToProjects();
-    } else {
-      window.location.hash = '#proyectos';
-    }
+    const target =
+      projectsData.find((p) => p.id === item.targetProjectId) || projectsData[0];
+    onSelectProject(target);
   };
 
   return (
-    <section id="work" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
-      {/* Centered Header & Filter Controls */}
-      <div className="flex flex-col items-center text-center mb-12 space-y-4">
+    <section
+      id="work"
+      className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative"
+    >
+      {/* Header Section */}
+      <div className="flex flex-col items-center text-center mb-16 sm:mb-20 space-y-4">
         {/* Category Pill Tag */}
         <div className="section-tag-pill">
           <span className="badge-dot" />
-          <span>{lang === 'es' ? 'PROYECTOS' : 'PROJECTS'}</span>
+          <span>{lang === 'es' ? 'PORTAFOLIO' : 'PORTFOLIO'}</span>
         </div>
 
         {/* Section Title */}
-        <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
-          {t.work.title}
+        <h2 className="text-4xl sm:text-6xl md:text-7xl font-black text-white uppercase italic tracking-tight leading-none">
+          {lang === 'es' ? 'PORTAFOLIO & ESPECIALIDADES' : 'PORTFOLIO & DISCIPLINES'}
         </h2>
-
-        {/* Filter Pills (Centered Single Line) */}
-        <div className="flex items-center justify-center flex-wrap gap-2 pt-2">
-          {categories.map((cat) => {
-            const isSelected = activeFilter === cat;
-            return (
-              <SpecularButton
-                key={cat}
-                onClick={() => {
-                  playClickSound();
-                  setActiveFilter(cat);
-                }}
-                onMouseEnter={playHoverSound}
-                variant={isSelected ? 'solid-lime' : 'glass'}
-                size="sm"
-                radius={12}
-                className="text-[10px] sm:text-xs font-bold font-mono tracking-wider whitespace-nowrap px-3 sm:px-4 py-2"
-              >
-                {cat}
-              </SpecularButton>
-            );
-          })}
-        </div>
-
-        {/* Top "VER MÁS PROYECTOS" CTA Button */}
-        <div className="pt-2">
-          <SpecularButton
-            onClick={handleOpenAllProjects}
-            onMouseEnter={playHoverSound}
-            variant="glass"
-            size="md"
-            radius={14}
-            className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-6 py-3 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_25px_rgba(118,255,3,0.35)] transition-all cursor-pointer"
-          >
-            <Layers className="w-4 h-4 text-[#76FF03]" />
-            <span>{lang === 'es' ? 'VER MÁS PROYECTOS' : 'VIEW MORE PROJECTS'}</span>
-          </SpecularButton>
-        </div>
+        <p className="text-xs sm:text-sm text-gray-400 max-w-xl font-normal leading-relaxed">
+          {lang === 'es'
+            ? 'Explora las disciplinas clave y la colección de proyectos 3D, branding y producción visual creados por Aylin Daniela Flores.'
+            : 'Explore key creative disciplines and the showcase of 3D, branding, and visual productions crafted by Aylin Daniela Flores.'}
+        </p>
       </div>
 
-      {/* Dynamic Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {filteredProjects.map((project, idx) => {
-          const isLarge = project.id === 'retroMini' || idx === 0;
-          const isWide = project.id === 'corporate-identity-system';
-          const isSquare = project.id === 'kinetic-touch-hands';
+      {/* 4 Hero Discipline Showcase Sections (Matching Wix Game Designer Style) */}
+      <div className="space-y-20 sm:space-y-28">
+        {disciplines.map((item) => (
+          <div
+            key={item.id}
+            className="flex flex-row items-start gap-4 sm:gap-8 md:gap-12 group cursor-pointer"
+            onClick={() => handleDisciplineClick(item)}
+            onMouseEnter={playHoverSound}
+          >
+            {/* Left Side: Bold Italic Number + Vertical Label */}
+            <div className="flex flex-col items-center flex-shrink-0 pt-2 w-10 sm:w-16">
+              <span className="text-3xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-white select-none leading-none">
+                {item.number}
+              </span>
+              <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] sm:tracking-[0.3em] text-gray-400 font-bold [writing-mode:vertical-rl] rotate-180 mt-6 sm:mt-10 select-none whitespace-nowrap">
+                {lang === 'es' ? item.verticalTextEs : item.verticalTextEn}
+              </span>
+            </div>
 
-          // Determine responsive bento column span
-          let colSpan = 'md:col-span-6';
-          if (isLarge) colSpan = 'md:col-span-8';
-          else if (isSquare) colSpan = 'md:col-span-4';
-          else if (isWide) colSpan = 'md:col-span-12';
+            {/* Right Side: Main Representative Card + Typography */}
+            <div className="flex-1 min-w-0">
+              {/* Representative Large Rounded Card */}
+              <div className="relative aspect-[16/8] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_25px_60px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-3 sm:p-5">
+                <img
+                  src={item.image}
+                  alt={item.titleEs}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover rounded-xl md:rounded-2xl group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+              </div>
 
-          return (
+              {/* Below-Card Typography: Title + Arrow + Subtitle + Description */}
+              <div className="mt-6 sm:mt-8">
+                {/* Title & Arrow Row */}
+                <div className="flex items-center gap-3 sm:gap-5">
+                  <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight">
+                    {lang === 'es' ? item.titleEs : item.titleEn}
+                  </h3>
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-white/20 group-hover:border-[#76FF03] group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 group-hover:rotate-45 flex-shrink-0 shadow-lg">
+                    <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                </div>
+
+                {/* Subtitle */}
+                <span className="text-[11px] sm:text-xs md:text-sm font-mono font-bold tracking-widest text-[#76FF03] uppercase mt-2.5 mb-2 block">
+                  {lang === 'es' ? item.subtitleEs : item.subtitleEn}
+                </span>
+
+                {/* Description */}
+                <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-3xl leading-relaxed font-normal">
+                  {lang === 'es' ? item.descEs : item.descEn}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Divider to Projects Catalog Grid */}
+      <div className="my-24 sm:my-32">
+        <div className="w-full h-px bg-white/15 mb-16" />
+
+        <div className="mb-14">
+          <span className="text-xs font-mono font-bold tracking-[0.3em] text-[#76FF03] uppercase block mb-2">
+            {lang === 'es' ? 'TODAS LAS PRODUCCIONES' : 'ALL PRODUCTIONS'}
+          </span>
+          <h3 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase italic tracking-tight text-white leading-none">
+            {lang === 'es' ? 'CATÁLOGO DE PROYECTOS' : 'PROJECTS CATALOG'}
+          </h3>
+        </div>
+
+        {/* 2-Column Wix Game Designer Project Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16 lg:gap-x-16 lg:gap-y-20">
+          {projectsData.map((project) => (
             <div
               key={project.id}
               onClick={() => {
                 playClickSound();
                 onSelectProject(project);
               }}
-              className={`${colSpan} arcade-card rounded-2xl overflow-hidden group cursor-pointer relative kinetic-hover flex flex-col justify-between min-h-[360px] md:min-h-[420px]`}
+              onMouseEnter={playHoverSound}
+              className="group cursor-pointer flex flex-col"
             >
-              {/* Background gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#050B05] via-[#050B05]/40 to-transparent z-10 opacity-90 group-hover:opacity-80 transition-opacity" />
-
-              {/* Project Image */}
-              <div className="absolute inset-0 overflow-hidden flex items-center justify-center p-4">
+              {/* Wix-Style Large Rounded Image Card */}
+              <div className="relative aspect-[16/10] w-full rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_20px_50px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-4 sm:p-6">
                 <img
                   src={project.image}
                   alt={project.title}
-                  width={512}
-                  height={512}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-contain p-6 group-hover:scale-108 transition-transform duration-700 ease-out"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
 
-              {/* Top Tags Bar */}
-              <div className="relative z-20 p-6 flex justify-between items-start">
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-[#050B05]/80 backdrop-blur-md border border-[#76FF03]/50 text-[#76FF03] text-[10px] font-mono font-bold rounded-full">
-                    {project.category}
-                  </span>
-                  <span className="px-2.5 py-1 bg-[#050B05]/80 backdrop-blur-md border border-white/10 text-gray-300 text-[10px] font-mono rounded-full">
-                    {project.year}
-                  </span>
-                </div>
-
-                <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 shadow-lg group-hover:rotate-45">
-                  <ArrowUpRight className="w-5 h-5" />
-                </div>
-              </div>
-
-              {/* Bottom Card Content */}
-              <div className="relative z-20 p-6 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                <span className="text-[11px] font-mono text-gray-400 block mb-1">
-                  Client: {project.client}
-                </span>
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white group-hover:text-[#76FF03] transition-colors leading-tight mb-2">
+              {/* Below-Card Typography (Title in Bold Italic + Role Subtitle) */}
+              <div className="mt-6">
+                <h4 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight mb-1.5">
                   {project.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-300 line-clamp-2 mb-4 font-normal">
-                  {project.shortDesc}
+                </h4>
+                <p className="text-sm sm:text-base text-gray-400 font-normal tracking-wide">
+                  {project.client} • {lang === 'es' ? 'Diseñadora Principal' : 'Lead Designer'}
                 </p>
-
-                {/* Sub-tags */}
-                <div className="flex flex-wrap gap-1.5">
-                  {project.tags.slice(0, 3).map((t) => (
-                    <span
-                      key={t}
-                      className="px-2 py-0.5 bg-white/5 rounded text-[10px] font-mono text-gray-300"
-                    >
-                      #{t}
-                    </span>
-                  ))}
-                  {project.tags.length > 3 && (
-                    <span className="px-2 py-0.5 bg-white/5 rounded text-[10px] font-mono text-[#76FF03]">
-                      +{project.tags.length - 3} more
-                    </span>
-                  )}
-                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Bottom "VER MÁS PROYECTOS" CTA Button */}
-      <div className="mt-14 flex justify-center">
-        <SpecularButton
-          onClick={handleOpenAllProjects}
-          onMouseEnter={playHoverSound}
-          variant="glass"
-          size="lg"
-          radius={14}
-          className="font-bold text-xs sm:text-sm tracking-wider flex items-center space-x-2.5 px-8 py-4 border border-[#76FF03]/30 hover:border-[#76FF03] hover:shadow-[0_0_30px_rgba(118,255,3,0.45)] transition-all cursor-pointer"
-        >
-          <Layers className="w-4 h-4 text-[#76FF03]" />
-          <span>{lang === 'es' ? 'VER MÁS PROYECTOS' : 'VIEW MORE PROJECTS'}</span>
-        </SpecularButton>
+          ))}
+        </div>
       </div>
     </section>
   );
 };
+
+export default WorksBentoGrid;
