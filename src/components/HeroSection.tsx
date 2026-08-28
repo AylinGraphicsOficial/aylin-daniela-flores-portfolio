@@ -146,16 +146,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      {/* Lower Hero: Left-Aligned Text + Full-Width Seamless Projects Slider with Left Gradient Fade */}
-      <div className="w-full flex flex-col lg:flex-row items-center gap-10 lg:gap-8 xl:gap-12 relative z-10">
-        {/* Left Column: Shifted to the left with generous kinetic typography */}
-        <div className="w-full lg:w-[46%] xl:w-[42%] flex-shrink-0 flex flex-col justify-center text-left items-start z-20">
+      {/* Lower Hero: Left-Aligned Text + Expansive Full-Right Projects Slider with Lateral Gradient Feathering */}
+      <div className="w-full flex flex-col lg:flex-row items-center gap-8 lg:gap-4 xl:gap-8 relative z-10">
+        {/* Left Column: Tightly shifted to the left with generous kinetic typography */}
+        <div className="w-full lg:w-[38%] xl:w-[35%] flex-shrink-0 flex flex-col justify-center text-left items-start z-20">
           <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase">
             {t.hero.portfolioOf}
           </h2>
 
           {/* Main Giant Kinetic Title */}
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[84px] xl:text-[94px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[76px] xl:text-[88px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6">
             <span>{t.hero.titleLine1}</span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">
@@ -167,12 +167,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-300 max-w-xl mb-8 leading-relaxed font-normal">
+          <p className="text-base sm:text-lg text-gray-300 max-w-lg mb-8 leading-relaxed font-normal">
             {t.hero.subtitle}
           </p>
 
           {/* CTA Group */}
-          <div className="flex flex-wrap gap-3.5 sm:gap-4 items-center">
+          <div className="flex flex-wrap gap-3 sm:gap-3.5 items-center">
             <a
               href="#work"
               onClick={playClickSound}
@@ -212,7 +212,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Quick Metrics Ticker Under Hero */}
-          <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-3 gap-4 max-w-lg w-full">
+          <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-3 gap-3.5 max-w-lg w-full">
             <div>
               <div className="text-xl md:text-2xl font-black text-white font-mono">6+ YRS</div>
               <div className="text-[11px] text-gray-400 font-medium">Professional Experience</div>
@@ -228,8 +228,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Seamless Featured Works Slider with Left Gradient Fade */}
-        <div className="w-full lg:w-[54%] xl:w-[58%] min-w-0 relative z-10 flex items-center overflow-hidden pt-4 lg:pt-0">
+        {/* Right Column: Expansive Featured Works Slider with Left & Right Feathering */}
+        <div className="w-full lg:w-[62%] xl:w-[65%] min-w-0 relative z-10 flex items-center justify-center pt-6 lg:pt-0">
           <HeroProjectsSlider onSelectProject={onSelectProject} />
         </div>
       </div>

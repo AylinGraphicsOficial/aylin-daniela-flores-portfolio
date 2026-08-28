@@ -1,61 +1,73 @@
-.hero-slider-container {
+.hero-cinematic-slider {
   position: relative;
-  contain: layout paint;
+  width: 100%;
 }
 
-.hero-slide {
+.hero-slider-mask-box {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black clamp(28px, 12%, 90px),
+    black calc(100% - clamp(20px, 8%, 70px)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black clamp(28px, 12%, 90px),
+    black calc(100% - clamp(20px, 8%, 70px)),
+    transparent 100%
+  );
+}
+
+.hero-slide-fade {
   opacity: 0;
-  transform: scale(0.96) translateX(40px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(0.97) translateX(30px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: 1;
 }
 
-.hero-slide--active {
+.hero-slide-fade--active {
   opacity: 1;
   transform: scale(1) translateX(0);
   pointer-events: auto;
   z-index: 10;
 }
 
-.hero-slide--prev {
+.hero-slide-fade--prev {
   opacity: 0;
-  transform: scale(0.96) translateX(-40px);
+  transform: scale(0.97) translateX(-30px);
   pointer-events: none;
   z-index: 5;
 }
 
-.hero-slide--next {
+.hero-slide-fade--next {
   opacity: 0;
-  transform: scale(0.96) translateX(40px);
+  transform: scale(0.97) translateX(30px);
   pointer-events: none;
   z-index: 5;
 }
 
-.hero-slider-degradado-left {
-  mask-image: linear-gradient(to right, black 0%, black 60%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black 0%, black 60%, transparent 100%);
-}
-
-.hero-slider-arrow {
+.hero-arrow-btn {
   opacity: 0.85;
 }
 
-.hero-slider-container:hover .hero-slider-arrow {
+.hero-cinematic-slider:hover .hero-arrow-btn {
   opacity: 1;
 }
 
 @media (max-width: 640px) {
-  .hero-slider-arrow--left {
+  .hero-arrow-btn--left {
     left: 8px;
   }
-  .hero-slider-arrow--right {
+  .hero-arrow-btn--right {
     right: 8px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-slide {
+  .hero-slide-fade {
     transition: opacity 0.3s ease;
     transform: none !important;
   }
