@@ -67,7 +67,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
   const modelGroupRef = useRef<THREE.Group>(new THREE.Group());
   const loadRequestIdRef = useRef<number>(0);
 
-  // Lights References
+  // Studio Lights References
   const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
   const keyLightRef = useRef<THREE.DirectionalLight | null>(null);
   const fillLightRef = useRef<THREE.DirectionalLight | null>(null);
@@ -106,6 +106,44 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
         }
       });
     }
+  };
+
+  // Helper to apply wireframe or solid mode to any mesh without destroying materials or colors
+  const updateMeshShading = (mesh: THREE.Mesh, wireframe: boolean, color: THREE.Color) => {
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    materials.forEach((mat: any) => {
+      if (!mat) return;
+      mat.wireframe = wireframe;
+
+      if (wireframe) {
+        // Wireframe mode: neon glowing lines with selected accent color
+        if (mat.color) mat.color.copy(color);
+        if (mat.emissive) {
+          mat.emissive.copy(color);
+          mat.emissiveIntensity = 0.8;
+        }
+      } else {
+        // Solid PBR mode
+        if (mesh.userData.isProcedural) {
+          // Procedural models update to studio accent color
+          if (mat.color) mat.color.copy(color);
+          if (mat.emissive) {
+            mat.emissive.copy(color);
+            mat.emissiveIntensity = 0.15;
+          }
+        } else {
+          // Authentic GLB models restore original textures, diffuse color and base emissive!
+          if (mat.userData.origColor && mat.color) {
+            mat.color.copy(mat.userData.origColor);
+          }
+          if (mat.userData.origEmissive && mat.emissive) {
+            mat.emissive.copy(mat.userData.origEmissive);
+            mat.emissiveIntensity = 0.0;
+          }
+        }
+      }
+      mat.needsUpdate = true;
+    });
   };
 
   // Initialize Three.js WebGL Scene
@@ -151,17 +189,17 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
     controlsRef.current = controls;
 
     // 1. Ambient Light (Soft base fill)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
 
-    // 2. Directional Key Light (Warm highlight)
+    // 2. Directional Key Light (Main highlight)
     const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.8);
     dirLight1.position.set(6, 8, 6);
     scene.add(dirLight1);
     keyLightRef.current = dirLight1;
 
-    // 3. Directional Fill Light (Opposite soft cool fill)
+    // 3. Directional Fill Light (Soft cool fill)
     const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.7);
     dirLight2.position.set(-6, 3, -6);
     scene.add(dirLight2);
@@ -218,7 +256,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
     }
   }, [autoRotate]);
 
-  // Update Studio Lights & Wireframe colors in real-time when lightingColor changes
+  // Update Studio Lights & Mesh Shading in real-time when lightingColor or isWireframe changes
   useEffect(() => {
     const col = new THREE.Color(lightingColor);
 
@@ -238,55 +276,15 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       rimLightRef.current.color.copy(compCol);
     }
 
-    // Update models currently rendered
+    // Apply shading updates cleanly across all child meshes
     if (modelGroupRef.current) {
       modelGroupRef.current.traverse((child: any) => {
         if (child.isMesh) {
-          if (isWireframe && child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach((m: any) => m.color.copy(col));
-            } else {
-              child.material.color.copy(col);
-            }
-          } else if (child.userData.isProcedural && child.material) {
-            child.material.color.copy(col);
-            if (child.material.emissive) {
-              child.material.emissive.copy(col);
-            }
-          }
+          updateMeshShading(child, isWireframe, col);
         }
       });
     }
   }, [lightingColor, isWireframe]);
-
-  // Toggle Wireframe Mode with proper material preservation and bright neon wireframe
-  useEffect(() => {
-    if (!modelGroupRef.current) return;
-    const col = new THREE.Color(lightingColor);
-
-    modelGroupRef.current.traverse((child: any) => {
-      if (child.isMesh) {
-        if (isWireframe) {
-          // Save original material if not saved
-          if (!child.userData.originalMaterial) {
-            child.userData.originalMaterial = child.material;
-          }
-          // Apply bright neon wireframe
-          child.material = new THREE.MeshBasicMaterial({
-            color: col,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.95,
-          });
-        } else {
-          // Restore original materials
-          if (child.userData.originalMaterial) {
-            child.material = child.userData.originalMaterial;
-          }
-        }
-      }
-    });
-  }, [isWireframe, lightingColor]);
 
   // Load Selected 3D Model with Cancellation token to prevent superposition
   useEffect(() => {
@@ -350,17 +348,20 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                 }
               }
 
-              // Save original material for clean wireframe toggle
-              child.userData.originalMaterial = child.material;
+              // Save original colors and emissive for clean restoration
+              const materials = Array.isArray(child.material) ? child.material : [child.material];
+              materials.forEach((mat: any) => {
+                if (mat) {
+                  if (!mat.userData.origColor && mat.color) {
+                    mat.userData.origColor = mat.color.clone();
+                  }
+                  if (!mat.userData.origEmissive && mat.emissive) {
+                    mat.userData.origEmissive = mat.emissive.clone();
+                  }
+                }
+              });
 
-              if (isWireframe) {
-                child.material = new THREE.MeshBasicMaterial({
-                  color: col,
-                  wireframe: true,
-                  transparent: true,
-                  opacity: 0.95,
-                });
-              }
+              updateMeshShading(child, isWireframe, col);
             }
           });
 
@@ -400,12 +401,15 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
     const col = new THREE.Color(lightingColor);
 
     const mat = new THREE.MeshStandardMaterial({
-      color: col,
+      color: col.clone(),
       roughness: 0.25,
       metalness: 0.85,
-      emissive: col,
+      emissive: col.clone(),
       emissiveIntensity: 0.15,
+      wireframe: isWireframe,
     });
+    mat.userData.origColor = col.clone();
+    mat.userData.origEmissive = col.clone();
 
     if (key === 'retroCar') {
       const bodyGeo = new THREE.BoxGeometry(3.2, 0.9, 1.6);
@@ -416,8 +420,6 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       const cabinMesh = new THREE.Mesh(cabinGeo, mat);
       bodyMesh.userData.isProcedural = true;
       cabinMesh.userData.isProcedural = true;
-      bodyMesh.userData.originalMaterial = mat;
-      cabinMesh.userData.originalMaterial = mat;
       group.add(bodyMesh, cabinMesh);
 
       // Wheels
@@ -433,7 +435,6 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       ].forEach(([x, y, z]) => {
         const w = new THREE.Mesh(wheelGeo, wheelMat);
         w.position.set(x, y, z);
-        w.userData.originalMaterial = wheelMat;
         group.add(w);
       });
 
@@ -451,11 +452,9 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
         emissive: 0x00e5ff,
         emissiveIntensity: 0.4,
       });
+      innerMat.userData.origColor = new THREE.Color(0x00e5ff);
       const m2 = new THREE.Mesh(geo2, innerMat);
       m1.userData.isProcedural = true;
-      m2.userData.isProcedural = true;
-      m1.userData.originalMaterial = mat;
-      m2.userData.originalMaterial = innerMat;
       group.add(m1, m2);
       setModelStats({
         name: 'Tesseract 4D Matrix',
@@ -465,7 +464,6 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       const geo = new THREE.IcosahedronGeometry(1.7, 1);
       const m = new THREE.Mesh(geo, mat);
       m.userData.isProcedural = true;
-      m.userData.originalMaterial = mat;
       group.add(m);
       setModelStats({
         name: 'Kinetic Polyhedron',
@@ -476,7 +474,6 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       const palmGeo = new THREE.BoxGeometry(1.6, 1.8, 0.4);
       const palm = new THREE.Mesh(palmGeo, mat);
       palm.userData.isProcedural = true;
-      palm.userData.originalMaterial = mat;
       group.add(palm);
 
       [-0.6, -0.2, 0.2, 0.6].forEach((x, i) => {
@@ -485,26 +482,12 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
         const finger = new THREE.Mesh(fingerGeo, mat);
         finger.position.set(x, 0.9, 0);
         finger.userData.isProcedural = true;
-        finger.userData.originalMaterial = mat;
         group.add(finger);
       });
 
       setModelStats({
         name: 'Cybernetic Tactile Hand',
         stats: '36 Nodos Articulados • Texturizado Cinético',
-      });
-    }
-
-    if (isWireframe) {
-      group.traverse((child: any) => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshBasicMaterial({
-            color: col,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.95,
-          });
-        }
       });
     }
 
