@@ -66,6 +66,7 @@ import {
   getStoredLab3D,
   saveStoredLab3D,
   Lab3DData,
+  Lab3DModelItem,
   uploadMediaFile,
 } from '../../utils/portfolioStorage';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
@@ -119,6 +120,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [newDipSrc, setNewDipSrc] = useState('');
   const [newDipYear, setNewDipYear] = useState('2025');
   const [isUploadingDip, setIsUploadingDip] = useState(false);
+
+  // 3D Model Form State
+  const [newModelName, setNewModelName] = useState('');
+  const [newModelUrl, setNewModelUrl] = useState('');
+  const [newModelStats, setNewModelStats] = useState('');
+  const [isUploadingModel, setIsUploadingModel] = useState(false);
 
   // New Experience Form State
   const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
@@ -333,6 +340,63 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   // Lab 3D Handlers
+  const handleGlbFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingModel(true);
+    const res = await uploadMediaFile(file);
+    setIsUploadingModel(false);
+    if (res.success && res.url) {
+      setNewModelUrl(res.url);
+      if (!newModelName) {
+        setNewModelName(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    } else {
+      alert(res.error || 'Error al subir el modelo 3D GLB.');
+    }
+  };
+
+  const handleAddModel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newModelName.trim() || !newModelUrl.trim()) {
+      alert('Ingresa el nombre y la URL/archivo del modelo 3D.');
+      return;
+    }
+    const newModel: Lab3DModelItem = {
+      id: `m3d-${Date.now()}`,
+      name: newModelName.trim(),
+      url: newModelUrl.trim(),
+      type: 'glb',
+      stats: newModelStats.trim() || 'Modelado 3D GLB • Geometría & Shaders PBR',
+      visible: true,
+    };
+    const updatedModels = [...(lab3dData.models || []), newModel];
+    const updatedLabData: Lab3DData = { ...lab3dData, models: updatedModels };
+    setLab3dData(updatedLabData);
+    await saveStoredLab3D(updatedLabData);
+    setNewModelName('');
+    setNewModelUrl('');
+    setNewModelStats('');
+    showNotification('¡Modelo 3D añadido y guardado en Hostinger MySQL!');
+  };
+
+  const handleDeleteModel = async (id: string) => {
+    if (window.confirm('¿Eliminar este modelo 3D del laboratorio?')) {
+      const updatedModels = (lab3dData.models || []).filter((m) => m.id !== id);
+      const updatedLabData: Lab3DData = { ...lab3dData, models: updatedModels };
+      setLab3dData(updatedLabData);
+      await saveStoredLab3D(updatedLabData);
+      showNotification('¡Modelo 3D eliminado!');
+    }
+  };
+
+  const handleSetDefaultModel = async (id: string) => {
+    const updatedLabData: Lab3DData = { ...lab3dData, defaultModelId: id };
+    setLab3dData(updatedLabData);
+    await saveStoredLab3D(updatedLabData);
+    showNotification('¡Modelo 3D establecido como predeterminado en el visor!');
+  };
+
   const handleSaveLab3D = async (e: React.FormEvent) => {
     e.preventDefault();
     playClickSound();
@@ -1560,17 +1624,193 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
           {/* ================= TAB 7: LABORATORIO 3D ================= */}
           {activeTab === 'lab3d' && (
-            <div className="max-w-4xl space-y-6">
+            <div className="space-y-8 max-w-5xl">
               <div>
                 <h2 className="text-xl font-bold tracking-tight">
-                  Configuración del Laboratorio 3D Interactivo
+                  Laboratorio 3D Interactivo & Gestión de Modelos GLB
                 </h2>
                 <p className={`text-xs ${textMuted} mt-1`}>
-                  Ajusta los títulos, color de iluminación y comportamiento del visor 3D en tiempo real.
+                  Sube y administra tus propios archivos 3D (.GLB/.GLTF), rota, mueve y personaliza los modelos disponibles en el visor.
                 </p>
               </div>
 
+              {/* Add New 3D Model Form */}
+              <form
+                onSubmit={handleAddModel}
+                className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-4`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold uppercase text-emerald-400 flex items-center gap-2">
+                    <Box className="w-4 h-4" />
+                    <span>Subir Nuevo Modelo 3D (.GLB / .GLTF) a Hostinger</span>
+                  </span>
+                  {isUploadingModel && (
+                    <span className="text-xs text-emerald-400 flex items-center gap-1.5 font-mono">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Subiendo archivo 3D a Hostinger...</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Nombre del Modelo 3D *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newModelName}
+                      onChange={(e) => setNewModelName(e.target.value)}
+                      placeholder="Ej. Torre Castillo 3D, Stand Diana 3D"
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-semibold`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Ruta / URL del archivo .GLB *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newModelUrl}
+                      onChange={(e) => setNewModelUrl(e.target.value)}
+                      placeholder="/uploads/modelo.glb o /models/..."
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Subir archivo desde PC (.GLB)
+                    </label>
+                    <label className="w-full py-2.5 px-3 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-emerald-500/40 transition-colors shadow-sm">
+                      {isUploadingModel ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isUploadingModel ? 'Subiendo GLB...' : 'Subir Archivo .GLB'}</span>
+                      <input
+                        type="file"
+                        accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+                        disabled={isUploadingModel}
+                        onChange={handleGlbFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex-1 w-full">
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Estadísticas / Detalles Técnicos (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={newModelStats}
+                      onChange={(e) => setNewModelStats(e.target.value)}
+                      placeholder="Ej. 120k Polígonos • Materiales PBR • Blender 3D"
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs`}
+                    />
+                  </div>
+
+                  <div className="self-end">
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Guardar Modelo 3D</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              {/* Models Catalog List */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-emerald-400">
+                    Modelos 3D Disponibles en el Visor ({(lab3dData.models || []).length})
+                  </h3>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Predeterminado: {lab3dData.defaultModelId}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(lab3dData.models || []).map((model) => {
+                    const isDefault = lab3dData.defaultModelId === model.id;
+                    const isGlb = model.type === 'glb';
+
+                    return (
+                      <div
+                        key={model.id}
+                        className={`p-5 rounded-2xl border ${bgCard} space-y-3 flex flex-col justify-between ${
+                          isDefault ? 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : ''
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700">
+                              {isGlb ? 'ARCHIVO GLB 3D' : 'PROCEDURAL 3D'}
+                            </span>
+                            {isDefault && (
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500 text-white">
+                                ⭐ Activo
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="text-sm font-bold text-white tracking-tight">
+                            {model.name}
+                          </h4>
+
+                          <p className="text-[11px] text-slate-400 font-mono truncate">
+                            {model.url ? model.url : 'Geometría generativa WebGL'}
+                          </p>
+
+                          <p className="text-[11px] text-slate-300">
+                            {model.stats || 'Geometría tridimensional interactiva'}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                          <button
+                            type="button"
+                            onClick={() => handleSetDefaultModel(model.id)}
+                            className={`text-xs font-semibold cursor-pointer ${
+                              isDefault
+                                ? 'text-emerald-400 font-bold'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {isDefault ? '✓ Por Defecto' : 'Fijar por Defecto'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteModel(model.id)}
+                            className="p-1 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer"
+                            title="Eliminar Modelo"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* General 3D Lab Settings Form */}
               <form onSubmit={handleSaveLab3D} className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-6`}>
+                <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-emerald-400">
+                  Títulos, Iluminación & Parámetros Generales
+                </h3>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-medium text-slate-300 block mb-1.5">
@@ -1665,7 +1905,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <Save className="w-4 h-4" />
-                    <span>Guardar Configuración 3D</span>
+                    <span>Guardar Configuración 3D en MySQL</span>
                   </button>
                 </div>
               </form>

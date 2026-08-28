@@ -182,14 +182,25 @@ export interface DiplomadoItem {
   visible?: boolean;
 }
 
+export interface Lab3DModelItem {
+  id: string;
+  name: string;
+  url: string;
+  type: 'glb' | 'procedural';
+  proceduralKey?: string;
+  stats?: string;
+  visible?: boolean;
+}
+
 export interface Lab3DData {
   titleEs: string;
   titleEn: string;
   subtitleEs: string;
   subtitleEn: string;
-  defaultModel: string;
+  defaultModelId: string;
   lightingColor: string;
   autoRotate: boolean;
+  models: Lab3DModelItem[];
 }
 
 export const initialAboutData: AboutSectionData = {
@@ -261,9 +272,55 @@ export const initialLab3DData: Lab3DData = {
     'Rota, inspecciona la geometría e interactúa con modelos tridimensionales en tiempo real en tu navegador.',
   subtitleEn:
     'Rotate, inspect geometry, and explore real-time materials in the browser.',
-  defaultModel: 'retroCar',
+  defaultModelId: 'torre-castillo',
   lightingColor: '#76FF03',
   autoRotate: true,
+  models: [
+    {
+      id: 'torre-castillo',
+      name: 'Torre Castillo 3D',
+      url: '/models/torre-castillo.glb',
+      type: 'glb',
+      stats: 'Modelado GLB • Geometría & Texturas PBR',
+      visible: true,
+    },
+    {
+      id: 'retro-car',
+      name: 'Retro Mini 3D',
+      url: '',
+      type: 'procedural',
+      proceduralKey: 'retroCar',
+      stats: '24 Vertices • 28 Structural Edges • 4-Wheel Axle Grid',
+      visible: true,
+    },
+    {
+      id: 'cyber-hand',
+      name: 'Tactile Hand',
+      url: '',
+      type: 'procedural',
+      proceduralKey: 'cyberHand',
+      stats: '36 Articulated Joints • 42 Phalange Nodes',
+      visible: true,
+    },
+    {
+      id: 'brand-poly',
+      name: 'Polyhedron',
+      url: '',
+      type: 'procedural',
+      proceduralKey: 'brandPoly',
+      stats: '12 Facets • 30 Kinetic Edges • Icosahedral Symmetry',
+      visible: true,
+    },
+    {
+      id: 'hyper-cube',
+      name: 'Tesseract 4D',
+      url: '',
+      type: 'procedural',
+      proceduralKey: 'hyperCube',
+      stats: '16 Vertices • 32 Isometric Hyper-Edges',
+      visible: true,
+    },
+  ],
 };
 
 // Helper to notify all subscribers that data has changed
