@@ -11,9 +11,11 @@ import {
   HelpCircle,
   CheckCircle,
   Video,
+  Loader2,
 } from 'lucide-react';
 import { Project } from '../../types';
 import { playClickSound } from '../../utils/audio';
+import { uploadMediaFile } from '../../utils/portfolioStorage';
 
 interface ProjectEditModalProps {
   isOpen: boolean;
@@ -49,8 +51,13 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingClip, setIsUploadingClip] = useState(false);
+  const [isUploadingGif, setIsUploadingGif] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
+    setUploadError(null);
     if (project) {
       setFormData({
         ...project,
@@ -83,14 +90,57 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Subir imagen Hero directamente al servidor de Hostinger
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    setUploadError(null);
+
+    const result = await uploadMediaFile(file);
+    setIsUploadingImage(false);
+
+    if (result.success && result.url) {
+      setFormData((prev) => ({ ...prev, image: result.url }));
+    } else {
+      setUploadError(result.error || 'Error al subir la imagen.');
+    }
+  };
+
+  // Subir clip de video MP4/WebM directamente a Hostinger
+  const handleVideoClipUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingClip(true);
+    setUploadError(null);
+
+    const result = await uploadMediaFile(file);
+    setIsUploadingClip(false);
+
+    if (result.success && result.url) {
+      setFormData((prev) => ({ ...prev, videoClip: result.url }));
+    } else {
+      setUploadError(result.error || 'Error al subir el clip de video.');
+    }
+  };
+
+  // Subir GIF animado directamente a Hostinger
+  const handleGifUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingGif(true);
+    setUploadError(null);
+
+    const result = await uploadMediaFile(file);
+    setIsUploadingGif(false);
+
+    if (result.success && result.url) {
+      setFormData((prev) => ({ ...prev, gifUrl: result.url }));
+    } else {
+      setUploadError(result.error || 'Error al subir el GIF animado.');
     }
   };
 
@@ -165,7 +215,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-700/50">
           <div>
             <span className="text-[11px] font-mono font-bold tracking-[0.2em] text-emerald-400 uppercase block mb-1">
-              EDITOR DE PROYECTO
+              EDITOR DE PROYECTO (HOSTINGER SYNC)
             </span>
             <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
               {project ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}
@@ -183,17 +233,24 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
           </button>
         </div>
 
+        {/* Upload error banner if any */}
+        {uploadError && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+            <span>⚠️ {uploadError}</span>
+          </div>
+        )}
+
         {/* Suggestion Banner */}
         <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-start gap-3">
           <HelpCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
             <span className="font-bold text-emerald-300 block">
-              💡 Guía de Formatos & Sugerencias:
+              💡 Formatos Aceptados en Hostinger:
             </span>
             <p className={textMuted}>
-              • <strong>Renders:</strong> WebP o PNG recomendados (1920×1080 px o 1200×800 px).
-              <br />• <strong>Videos:</strong> Enlaces a YouTube/Vimeo o clips MP4/WebM ligeros (&lt; 20 MB).
-              <br />• <strong>GIFs:</strong> Archivos animados optimizados (&lt; 10 MB).
+              • <strong>Renders & Fotos:</strong> WebP, PNG, JPG (guardados en servidor remoto).
+              <br />• <strong>Clips de Video:</strong> MP4 o WebM para reproducción directa.
+              <br />• <strong>GIFs:</strong> Animaciones dinámicas para portafolio.
             </p>
           </div>
         </div>
@@ -312,9 +369,17 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
           {/* Row 4: Hero Image & Upload */}
           <div className="p-4 rounded-xl border border-slate-700/60 bg-slate-900/40 space-y-4">
-            <label className="text-xs font-medium text-slate-300 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-emerald-400" />
-              <span>Imagen Principal / Render Hero *</span>
+            <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-emerald-400" />
+                <span>Imagen Principal / Render Hero *</span>
+              </span>
+              {isUploadingImage && (
+                <span className="text-emerald-400 text-xs flex items-center gap-1">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Subiendo a Hostinger...</span>
+                </span>
+              )}
             </label>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -331,15 +396,20 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                   type="text"
                   value={formData.image || ''}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="Ruta local (/images/...) o URL https://..."
+                  placeholder="Ruta (/uploads/... o /images/...) o URL https://..."
                   className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                 />
-                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors cursor-pointer text-xs font-semibold border border-slate-700">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Subir Archivo desde PC</span>
+                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 text-white transition-colors cursor-pointer text-xs font-semibold border border-emerald-500/40">
+                  {isUploadingImage ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isUploadingImage ? 'Subiendo...' : 'Subir Imagen a Hostinger'}</span>
                   <input
                     type="file"
                     accept="image/*"
+                    disabled={isUploadingImage}
                     onChange={handleImageFileUpload}
                     className="hidden"
                   />
@@ -348,10 +418,11 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             </div>
           </div>
 
-          {/* Row 5: Videos & GIFs */}
+          {/* Row 5: Videos & GIFs with Direct Hostinger Uploaders */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5 mb-1.5">
+            {/* YouTube/Vimeo Link */}
+            <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
+              <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
                 <Film className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Enlace Video (YouTube/Vimeo)</span>
               </label>
@@ -359,37 +430,67 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 type="text"
                 value={formData.videoUrl || ''}
                 onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                placeholder="https://youtube.com/watch?v=..."
+                placeholder="https://youtube.com/..."
                 className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs`}
               />
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5 mb-1.5">
-                <Video className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Clip de Video (MP4/WebM)</span>
-              </label>
+            {/* Video Clip MP4/WebM */}
+            <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                  <Video className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Clip (MP4/WebM)</span>
+                </label>
+                {isUploadingClip && <Loader2 className="w-3 h-3 text-emerald-400 animate-spin" />}
+              </div>
               <input
                 type="text"
                 value={formData.videoClip || ''}
                 onChange={(e) => setFormData({ ...formData, videoClip: e.target.value })}
-                placeholder="/videos/clip.mp4 o URL"
+                placeholder="/uploads/clip.mp4 o URL"
                 className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
               />
+              <label className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] border border-slate-700">
+                <Upload className="w-3 h-3" />
+                <span>{isUploadingClip ? 'Subiendo Clip...' : 'Subir MP4/WebM'}</span>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  disabled={isUploadingClip}
+                  onChange={handleVideoClipUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5 mb-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                <span>GIF Animado</span>
-              </label>
+            {/* Animated GIF */}
+            <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>GIF Animado</span>
+                </label>
+                {isUploadingGif && <Loader2 className="w-3 h-3 text-emerald-400 animate-spin" />}
+              </div>
               <input
                 type="text"
                 value={formData.gifUrl || ''}
                 onChange={(e) => setFormData({ ...formData, gifUrl: e.target.value })}
-                placeholder="/images/animation.gif o URL"
+                placeholder="/uploads/anim.gif o URL"
                 className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
               />
+              <label className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] border border-slate-700">
+                <Upload className="w-3 h-3" />
+                <span>{isUploadingGif ? 'Subiendo GIF...' : 'Subir GIF'}</span>
+                <input
+                  type="file"
+                  accept="image/gif"
+                  disabled={isUploadingGif}
+                  onChange={handleGifUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
 

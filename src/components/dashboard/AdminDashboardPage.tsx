@@ -25,6 +25,10 @@ import {
   ArrowLeft,
   Sliders,
   Check,
+  Server,
+  Copy,
+  CheckCheck,
+  Video,
 } from 'lucide-react';
 import { Project, Discipline } from '../../types';
 import {
@@ -37,6 +41,9 @@ import {
   exportPortfolioJSON,
   importPortfolioJSON,
   resetPortfolioToDefaults,
+  checkDatabaseStatus,
+  syncFromRemoteServer,
+  DatabaseStatusInfo,
 } from '../../utils/portfolioStorage';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
@@ -45,6 +52,14 @@ import { DisciplineSliderEditor } from './DisciplineSliderEditor';
 interface AdminDashboardPageProps {
   onNavigateHome: () => void;
   onLogout: () => void;
+}
+
+interface UploadedMediaItem {
+  filename: string;
+  url: string;
+  size: number;
+  type: string;
+  updatedAt: string;
 }
 
 export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
@@ -60,6 +75,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
+  // DB Sync Status
+  const [dbStatus, setDbStatus] = useState<DatabaseStatusInfo | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedMediaItem[]>([]);
+
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -68,16 +89,55 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [jsonInput, setJsonInput] = useState('');
   const [backupSuccessMsg, setBackupSuccessMsg] = useState<string | null>(null);
 
-  // Sync data from storage
+  // Sync data from storage & check remote DB status
   useEffect(() => {
     const loadData = () => {
       setProjects(getStoredProjects());
       setDisciplines(getStoredDisciplines());
     };
     loadData();
+
+    // Check DB status on mount
+    checkDatabaseStatus().then(setDbStatus);
+
     const unsubscribe = subscribeToPortfolioChanges(loadData);
     return () => unsubscribe();
   }, []);
+
+  // Fetch uploaded files when opening the media tab
+  useEffect(() => {
+    if (activeTab === 'media') {
+      fetch('/api/upload.php')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.files)) {
+            setUploadedFiles(data.files);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [activeTab]);
+
+  const handleManualSync = async () => {
+    playClickSound();
+    setIsSyncing(true);
+    const success = await syncFromRemoteServer();
+    const status = await checkDatabaseStatus();
+    setDbStatus(status);
+    setIsSyncing(false);
+    if (success) {
+      play8BitArcadeSound();
+      setBackupSuccessMsg('¡Sincronización con Hostinger MySQL completada con éxito!');
+      setTimeout(() => setBackupSuccessMsg(null), 4000);
+    }
+  };
+
+  const handleCopyUrl = (url: string) => {
+    playClickSound();
+    navigator.clipboard.writeText(window.location.origin + url);
+    setCopiedUrl(url);
+    setTimeout(() => setCopiedUrl(null), 2500);
+  };
 
   const handleCreateNewProject = () => {
     playClickSound();
@@ -92,7 +152,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   const handleDeleteProject = (id: string, title: string) => {
-    if (window.confirm(`¿Estás seguro de eliminar el proyecto "${title}"?`)) {
+    if (window.confirm(`¿Estás seguro de eliminar el proyecto "${title}"? Se borrará también de Hostinger MySQL.`)) {
       playClickSound();
       deleteProject(id);
     }
@@ -116,27 +176,27 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setBackupSuccessMsg('¡Copia de seguridad exportada con éxito en formato JSON!');
   };
 
-  const handleImportJSON = () => {
+  const handleImportJSON = async () => {
     playClickSound();
     if (!jsonInput.trim()) return;
-    const success = importPortfolioJSON(jsonInput);
+    const success = await importPortfolioJSON(jsonInput);
     if (success) {
       play8BitArcadeSound();
-      setBackupSuccessMsg('¡Datos importados y aplicados exitosamente al portafolio!');
+      setBackupSuccessMsg('¡Datos importados y guardados en Hostinger MySQL exitosamente!');
       setJsonInput('');
     } else {
       alert('Error: el formato JSON no es válido.');
     }
   };
 
-  const handleResetDefaults = () => {
+  const handleResetDefaults = async () => {
     if (
       window.confirm(
-        '¿Deseas restaurar todos los proyectos y sliders a los valores originales de fábrica?'
+        '¿Deseas restaurar todos los proyectos y sliders a los valores originales de fábrica en Hostinger MySQL?'
       )
     ) {
       playClickSound();
-      resetPortfolioToDefaults();
+      await resetPortfolioToDefaults();
       setBackupSuccessMsg('¡Base de datos restablecida a los valores de fábrica!');
     }
   };
@@ -159,7 +219,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     0
   );
 
-  // Professional Theme Variables (Mediline Palette)
+  // Professional Theme Variables
   const bgApp = darkMode ? 'bg-[#0F172A] text-slate-100' : 'bg-[#F8FAFC] text-slate-900';
   const bgSidebar = darkMode ? 'bg-[#1E293B] border-slate-800 text-slate-200' : 'bg-[#00965E] border-transparent text-white';
   const bgCard = darkMode ? 'bg-[#1E293B] border-slate-700/50 text-slate-100 shadow-sm' : 'bg-white border-slate-200 text-slate-900 shadow-sm';
@@ -187,6 +247,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 Dashboard Pro
               </span>
             </div>
+          </div>
+
+          {/* Database Live Status Badge */}
+          <div className="p-3 rounded-xl bg-black/20 border border-white/10 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${dbStatus?.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider">
+                {dbStatus?.connected ? 'Hostinger MySQL' : 'Caché Activa'}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono opacity-75 block truncate">
+              BD: u888615463_2026_portfolio
+            </span>
           </div>
 
           {/* Navigation Links */}
@@ -224,7 +297,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               }`}
             >
               <Layers className="w-4 h-4" />
-              <span>Especialidades & Sliders</span>
+              <span>4 Especialidades & Sliders</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+                {totalSlides}
+              </span>
             </button>
 
             <button
@@ -242,7 +318,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               }`}
             >
               <FolderKanban className="w-4 h-4" />
-              <span>Gestor de Proyectos</span>
+              <span>Catálogo de Proyectos</span>
               <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
                 {projects.length}
               </span>
@@ -284,7 +360,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               }`}
             >
               <ImageIcon className="w-4 h-4" />
-              <span>Medios & Renders</span>
+              <span>Medios & Servidor /uploads/</span>
             </button>
 
             <button
@@ -357,6 +433,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
           {/* Right Header Tools */}
           <div className="flex items-center gap-3">
+            {/* Sync Button */}
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                darkMode ? 'bg-slate-800 border-slate-700 text-emerald-400 hover:bg-slate-700' : 'bg-slate-100 border-slate-300 text-emerald-700 hover:bg-slate-200'
+              }`}
+              title="Sincronizar datos con Hostinger MySQL"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
+            </button>
+
             {/* Dark / Light Mode Switcher */}
             <button
               type="button"
@@ -391,12 +481,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         </header>
 
+        {/* Success notification if any */}
+        {backupSuccessMsg && (
+          <div className="mx-6 sm:mx-8 mt-4 p-4 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <span>{backupSuccessMsg}</span>
+          </div>
+        )}
+
         {/* Dashboard Viewport */}
         <main className="flex-1 p-6 sm:p-8 md:p-10 space-y-8 max-w-[1600px] w-full mx-auto">
           {/* ================= TAB 1: RESUMEN GENERAL ================= */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
-              {/* Row 1: Stat Cards (Mediline Style) */}
+              {/* Row 1: Stat Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 {/* Total Projects */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
@@ -408,7 +506,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl sm:text-3xl font-bold">{projects.length}</span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">En catálogo</span>
+                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">En Hostinger DB</span>
                   </div>
                 </div>
 
@@ -470,17 +568,17 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </div>
                 </div>
 
-                {/* Performance */}
+                {/* Database Status */}
                 <div className={`p-5 rounded-2xl border ${bgCard} flex flex-col justify-between`}>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Rendimiento</span>
+                    <span className={`text-[11px] font-mono uppercase ${textMuted}`}>Estado DB</span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4" />
+                      <Server className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-2xl sm:text-3xl font-bold">99.8%</span>
-                    <span className="text-[11px] text-emerald-400 block font-mono mt-0.5">Estabilidad</span>
+                    <span className="text-lg font-bold text-emerald-400 truncate block">MySQL 2026</span>
+                    <span className="text-[11px] text-slate-400 block font-mono mt-0.5">Sincronizado</span>
                   </div>
                 </div>
               </div>
@@ -495,11 +593,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         Distribución de Proyectos por Disciplina
                       </h3>
                       <p className={`text-xs ${textMuted} mt-0.5`}>
-                        Balance de producciones 3D, branding, arte digital y motion
+                        Balance de producciones 3D, branding, arte digital y motion en MySQL
                       </p>
                     </div>
                     <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full">
-                      Sincronizado en Vivo
+                      Sincronizado Global
                     </span>
                   </div>
 
@@ -572,10 +670,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-bold tracking-tight">
-                      Producciones Recientes
+                      Producciones Recientes en Hostinger
                     </h3>
                     <p className={`text-xs ${textMuted}`}>
-                      Últimos proyectos gestionados en la base de datos
+                      Últimos proyectos gestionados y guardados en la base de datos remota
                     </p>
                   </div>
 
@@ -658,42 +756,40 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-bold tracking-tight">
-                  Gestor de Especialidades & Sliders de Imágenes
+                  Editor de Sliders & Especialidades
                 </h2>
                 <p className={`text-xs ${textMuted} mt-1`}>
-                  Configura las diapositivas de los sliders en portada y modifica los textos de las 4 especialidades.
+                  Configura las 4 disciplinas de la portada, sus diapositivas y textos en español e inglés.
                 </p>
               </div>
-
               <DisciplineSliderEditor disciplines={disciplines} darkMode={darkMode} />
             </div>
           )}
 
-          {/* ================= TAB 3: GESTOR DE PROYECTOS ================= */}
+          {/* ================= TAB 3: CATÁLOGO DE PROYECTOS ================= */}
           {activeTab === 'projects' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold tracking-tight">
-                    Catálogo Completo de Proyectos ({filteredProjects.length})
+                    Catálogo de Producciones ({filteredProjects.length})
                   </h2>
                   <p className={`text-xs ${textMuted} mt-1`}>
-                    Administra tus producciones, imágenes, videos y métricas técnicas.
+                    Gestiona todos los proyectos visibles en el catálogo general.
                   </p>
                 </div>
-
                 <button
                   type="button"
                   onClick={handleCreateNewProject}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Crear Nuevo Proyecto</span>
+                  <span>Nuevo Proyecto</span>
                 </button>
               </div>
 
               {/* Filter Pills */}
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2">
                 {['ALL', '3D MODELING', 'BRANDING', 'DIGITAL ART', 'MOTION'].map((cat) => (
                   <button
                     key={cat}
@@ -782,7 +878,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   Proyectos Destacados en Portada ({featuredProjects.length})
                 </h2>
                 <p className={`text-xs ${textMuted} mt-1`}>
-                  Los proyectos con estrella aparecen con prioridad en la página principal.
+                  Los proyectos con estrella aparecen con prioridad en la página principal y el slider del Hero.
                 </p>
               </div>
 
@@ -839,33 +935,74 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 5: MEDIOS & CLIPS ================= */}
+          {/* ================= TAB 5: MEDIOS & CLIPS SUBIDOS ================= */}
           {activeTab === 'media' && (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight">
-                  Inventario Multimedia & Archivos
-                </h2>
-                <p className={`text-xs ${textMuted} mt-1`}>
-                  Lista de recursos visuales y enlaces de video vinculados a los proyectos.
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight">
+                    Archivos Multimedia en Hostinger (/uploads/)
+                  </h2>
+                  <p className={`text-xs ${textMuted} mt-1`}>
+                    Explorador de imágenes WebP/PNG, GIFs animados y clips MP4/WebM alojados en el servidor.
+                  </p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {projects.map((p) => (
-                  <div key={p.id} className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
-                    <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60">
-                      <img src={p.image} alt={p.title} className="w-full h-full object-contain p-2" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs truncate">{p.title}</h4>
-                      <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-                        {p.videoUrl ? '🎬 Video Enlazado' : '🖼️ Render Gráfico'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {uploadedFiles.length === 0 ? (
+                <div className={`p-10 rounded-2xl border ${bgCard} text-center space-y-3`}>
+                  <ImageIcon className="w-10 h-10 text-slate-500 mx-auto" />
+                  <h4 className="font-bold text-sm">No hay archivos subidos en /uploads/ todavía</h4>
+                  <p className={`text-xs ${textMuted} max-w-md mx-auto`}>
+                    Al editar un proyecto o diapositiva y presionar "Subir a Hostinger", los archivos aparecerán listados aquí con enlaces directos permanentes.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {uploadedFiles.map((file) => {
+                    const isVideo = file.type.startsWith('video/') || file.filename.endsWith('.mp4') || file.filename.endsWith('.webm');
+                    const isGif = file.type.includes('gif') || file.filename.endsWith('.gif');
+                    const isCopied = copiedUrl === file.url;
+
+                    return (
+                      <div key={file.filename} className={`p-4 rounded-2xl border ${bgCard} space-y-3 flex flex-col justify-between`}>
+                        <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 flex items-center justify-center">
+                          {isVideo ? (
+                            <div className="flex flex-col items-center gap-1 text-emerald-400">
+                              <Video className="w-8 h-8" />
+                              <span className="text-[10px] font-mono font-bold uppercase">Video Clip</span>
+                            </div>
+                          ) : (
+                            <img src={file.url} alt={file.filename} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <span className="font-semibold text-xs truncate block font-mono">
+                            {file.filename}
+                          </span>
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                            <span>{(file.size / 1024).toFixed(1)} KB</span>
+                            <span>{isVideo ? 'MP4/WebM' : isGif ? 'GIF' : 'Imagen'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyUrl(file.url)}
+                            className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                              isCopied
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                            }`}
+                          >
+                            {isCopied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{isCopied ? '¡URL Copiada!' : 'Copiar URL'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -874,19 +1011,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <div className="max-w-4xl space-y-6">
               <div>
                 <h2 className="text-xl font-bold tracking-tight">
-                  Respaldo & Transferencia de Datos (JSON)
+                  Respaldo & Transferencia de Datos (JSON + MySQL)
                 </h2>
                 <p className={`text-xs ${textMuted} mt-1`}>
-                  Exporta una copia de seguridad o importa datos para transferirlos entre navegadores o dispositivos.
+                  Exporta una copia de seguridad o importa datos para transferirlos entre servidores.
                 </p>
               </div>
-
-              {backupSuccessMsg && (
-                <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl text-xs text-emerald-300 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  <span>{backupSuccessMsg}</span>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className={`p-6 rounded-2xl border ${bgCard} space-y-4`}>
@@ -913,7 +1043,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     <h3 className="text-sm font-bold">Restaurar Valores por Defecto</h3>
                   </div>
                   <p className={`text-xs ${textMuted} leading-relaxed`}>
-                    Reinicia todos los contenidos del portafolio al estado predeterminado de fábrica.
+                    Reinicia todos los contenidos del portafolio al estado predeterminado de fábrica en Hostinger MySQL.
                   </p>
                   <button
                     type="button"
@@ -931,7 +1061,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   <h3 className="text-sm font-bold">Importar Archivo o Texto JSON</h3>
                 </div>
                 <p className={`text-xs ${textMuted}`}>
-                  Pega el contenido JSON de una copia de seguridad para restaurarla en este navegador:
+                  Pega el contenido JSON de una copia de seguridad para sincronizarla en Hostinger MySQL:
                 </p>
                 <textarea
                   rows={5}
@@ -945,7 +1075,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   onClick={handleImportJSON}
                   className="py-2.5 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold uppercase transition-colors cursor-pointer"
                 >
-                  Importar y Aplicar Datos
+                  Importar y Guardar en MySQL
                 </button>
               </div>
             </div>
@@ -964,3 +1094,5 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     </div>
   );
 };
+
+export default AdminDashboardPage;

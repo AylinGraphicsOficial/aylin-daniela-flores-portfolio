@@ -7,6 +7,7 @@ import {
   Upload,
   Image as ImageIcon,
   CheckCircle,
+  Loader2,
 } from 'lucide-react';
 import { Discipline } from '../../types';
 import {
@@ -14,6 +15,7 @@ import {
   toggleDisciplineSlideVisibility,
   addDisciplineSlide,
   deleteDisciplineSlide,
+  uploadMediaFile,
 } from '../../utils/portfolioStorage';
 import { playClickSound } from '../../utils/audio';
 
@@ -32,6 +34,8 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   const [newSlideUrl, setNewSlideUrl] = useState('');
   const [newSlideTitle, setNewSlideTitle] = useState('');
   const [activeTab, setActiveTab] = useState<'slides' | 'texts'>('slides');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const selectedDiscipline =
     disciplines.find((d) => d.id === selectedDisciplineId) || disciplines[0];
@@ -60,18 +64,24 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        addDisciplineSlide(
-          selectedDiscipline.id,
-          reader.result as string,
-          file.name
-        );
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    const result = await uploadMediaFile(file);
+    setIsUploading(false);
+
+    if (result.success && result.url) {
+      addDisciplineSlide(
+        selectedDiscipline.id,
+        result.url,
+        file.name.replace(/\.[^/.]+$/, '')
+      );
+    } else {
+      setUploadError(result.error || 'Error al subir la imagen.');
     }
   };
 
@@ -166,6 +176,13 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
             </div>
           </div>
 
+          {/* Upload error banner */}
+          {uploadError && (
+            <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
+              ⚠️ {uploadError}
+            </div>
+          )}
+
           {/* Tab 1: Slides Manager */}
           {activeTab === 'slides' && (
             <div className="space-y-8">
@@ -188,16 +205,21 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                     type="text"
                     value={newSlideUrl}
                     onChange={(e) => setNewSlideUrl(e.target.value)}
-                    placeholder="URL de la imagen o ruta (/images/...)"
+                    placeholder="URL de la imagen o ruta (/uploads/...)"
                     className={`flex-1 w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                   />
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <label className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Subir PC</span>
+                      {isUploading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isUploading ? 'Subiendo...' : 'Subir a Hostinger'}</span>
                       <input
                         type="file"
                         accept="image/*"
+                        disabled={isUploading}
                         onChange={handleFileUpload}
                         className="hidden"
                       />

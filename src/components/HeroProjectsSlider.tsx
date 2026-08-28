@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Project } from '../types';
-import { projectsData } from '../data/portfolioData';
+import {
+  getStoredProjects,
+  subscribeToPortfolioChanges,
+} from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
 import './HeroProjectsSlider.css';
 
@@ -19,86 +22,47 @@ interface SlideItem {
   projectRef?: Project;
 }
 
-const sliderItems: SlideItem[] = [
-  {
-    id: 'retro-mini-render',
-    image: '/images/retro-mini.jpg',
-    title: 'Retro Mini Classic 3D Render',
-    category: '3D MODELING',
-    year: '2023',
-    projectRef: projectsData.find(p => p.id === 'retro-mini-render')
-  },
-  {
-    id: 'kinetic-touch-hands',
-    image: '/images/hero-hands.jpg',
-    title: 'Kinetic Touch & Fluid Synergy',
-    category: 'DIGITAL ART',
-    year: '2024',
-    projectRef: projectsData.find(p => p.id === 'kinetic-touch-hands')
-  },
-  {
-    id: 'corporate-identity-system',
-    image: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1400&q=85',
-    title: 'Nexus Fintech Corporate Identity System',
-    category: 'BRANDING',
-    year: '2024',
-    projectRef: projectsData.find(p => p.id === 'corporate-identity-system')
-  },
-  {
-    id: 'orbit-stand-exhibition',
-    image: '/images/orbit-stand.webp',
-    title: 'Kinetic 3D Stand Exhibition',
-    category: '3D MODELING',
-    year: '2024',
-  },
-  {
-    id: 'diana-brand-experience',
-    image: '/images/orbit-stand-diana.webp',
-    title: 'Diana Interactive Brand Stand',
-    category: 'BRANDING',
-    year: '2024',
-  },
-  {
-    id: 'lumina-beverage-packaging',
-    image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=85',
-    title: 'Lumina Craft Botanical Beverage 3D',
-    category: '3D MODELING',
-    year: '2023',
-    projectRef: projectsData.find(p => p.id === 'lumina-beverage-packaging')
-  },
-  {
-    id: 'digital-product-ui-3d',
-    image: '/images/orbit-tablet.webp',
-    title: 'Next-Gen Digital Tablet & UI 3D',
-    category: 'DIGITAL ART',
-    year: '2024',
-  },
-  {
-    id: 'orbit-carrito-render',
-    image: '/images/orbit-carrito.png',
-    title: '3D Stand & Carrito Retail Visual',
-    category: '3D MODELING',
-    year: '2024',
-  },
-  {
-    id: 'cyber-kinetic-intro',
-    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=85',
-    title: 'Aura Kinetic Motion Typography',
-    category: 'MOTION',
-    year: '2024',
-    projectRef: projectsData.find(p => p.id === 'cyber-kinetic-intro')
-  }
-];
-
 export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
   onSelectProject,
   intervalMs = 3000, // 3 seconds per transition
 }) => {
+  const [projects, setProjects] = useState<Project[]>(getStoredProjects);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<number | null>(null);
 
-  const total = sliderItems.length;
+  // Subscribe to real-time project updates from storage/Hostinger MySQL
+  useEffect(() => {
+    const handleUpdate = () => {
+      setProjects(getStoredProjects());
+    };
+    handleUpdate();
+    const unsubscribe = subscribeToPortfolioChanges(handleUpdate);
+    return () => unsubscribe();
+  }, []);
+
+  // Filter featured projects or take top projects
+  const sliderItems: SlideItem[] = React.useMemo(() => {
+    const featured = projects.filter((p) => p.featured);
+    const sourceList = featured.length >= 3 ? featured : projects;
+    return sourceList.map((p) => ({
+      id: p.id,
+      image: p.image,
+      title: p.title,
+      category: p.category,
+      year: p.year,
+      projectRef: p,
+    }));
+  }, [projects]);
+
+  const total = Math.max(sliderItems.length, 1);
+
+  // Keep currentIndex in bounds
+  useEffect(() => {
+    if (currentIndex >= sliderItems.length && sliderItems.length > 0) {
+      setCurrentIndex(0);
+    }
+  }, [sliderItems.length, currentIndex]);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % total);
@@ -110,7 +74,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
 
   // Automatic 3-second interval timer
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || sliderItems.length <= 1) return;
 
     timerRef.current = window.setInterval(() => {
       goToNext();
@@ -121,7 +85,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
         window.clearInterval(timerRef.current);
       }
     };
-  }, [isPaused, intervalMs, goToNext]);
+  }, [isPaused, intervalMs, goToNext, sliderItems.length]);
 
   const handleSlideClick = (item: SlideItem) => {
     playClickSound();
@@ -135,6 +99,8 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
     }
   };
 
+  if (sliderItems.length === 0) return null;
+
   return (
     <div
       className="hero-cinematic-slider relative w-full h-full select-none group/slider flex items-center justify-center pointer-events-auto overflow-hidden"
@@ -147,7 +113,6 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
 
       {/* Main Slide Stage (Full 100% Width & Height Canvas) */}
       <div className="hero-slider-mask-box relative w-full h-full overflow-hidden">
-        
         {/* Slides Stack */}
         {sliderItems.map((item, index) => {
           const isActive = index === currentIndex;
