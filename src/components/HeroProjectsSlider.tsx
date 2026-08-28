@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { Project } from '../types';
 import { projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
@@ -7,75 +7,129 @@ import './HeroProjectsSlider.css';
 
 interface HeroProjectsSliderProps {
   onSelectProject?: (project: Project) => void;
-  speed?: number; // seconds for complete loop
+  intervalMs?: number; // default 3000ms (3s)
 }
 
-// Curated list of high-impact hero showcase projects
-const showcaseProjects: Project[] = [
-  ...projectsData,
+interface SlideItem {
+  id: string;
+  image: string;
+  title: string;
+  category: string;
+  year: string;
+  projectRef?: Project;
+}
+
+const sliderItems: SlideItem[] = [
+  {
+    id: 'retro-mini-render',
+    image: '/images/retro-mini.jpg',
+    title: 'Retro Mini Classic 3D Render',
+    category: '3D MODELING',
+    year: '2023',
+    projectRef: projectsData.find(p => p.id === 'retro-mini-render')
+  },
+  {
+    id: 'kinetic-touch-hands',
+    image: '/images/hero-hands.jpg',
+    title: 'Kinetic Touch & Fluid Synergy',
+    category: 'DIGITAL ART',
+    year: '2024',
+    projectRef: projectsData.find(p => p.id === 'kinetic-touch-hands')
+  },
   {
     id: 'orbit-stand-exhibition',
+    image: '/images/orbit-stand.webp',
     title: 'Kinetic 3D Stand Exhibition',
     category: '3D MODELING',
     year: '2024',
-    client: 'Studio Kinetic Showcase',
-    shortDesc: 'Spatial architectural visualization, stage lighting and interactive brand stand 3D environment.',
-    fullDesc: 'Architectural space rendering and brand exhibition booth design featuring dynamic neon light fixtures, realistic physical materials, and interactive spatial layout.',
-    image: '/images/orbit-stand.webp',
-    galleryImages: ['/images/orbit-stand.webp', '/images/orbit-stand-diana.webp'],
-    tags: ['3D Modeling', 'Exhibition', 'Blender', 'Lighting'],
-    featured: true,
-    deliverables: ['3D Stand Model', '4K Architectural Renders', 'Lighting Setup'],
-    metrics: [{ label: 'Resolution', value: '4K Ultra HD' }],
-    colorPalette: ['#050B05', '#76FF03', '#38B000', '#FFFFFF']
+  },
+  {
+    id: 'corporate-identity-system',
+    image: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1400&q=85',
+    title: 'Nexus Fintech Corporate Identity System',
+    category: 'BRANDING',
+    year: '2024',
+    projectRef: projectsData.find(p => p.id === 'corporate-identity-system')
   },
   {
     id: 'diana-brand-experience',
+    image: '/images/orbit-stand-diana.webp',
     title: 'Diana Interactive Brand Stand',
     category: 'BRANDING',
     year: '2024',
-    client: 'Diana Corporación',
-    shortDesc: 'Brand experiential design, modular commercial stand and 3D promotional assets.',
-    fullDesc: 'Creative brand deployment and modular exhibition stand engineering with custom corporate iconography, promotional displays, and vibrant brand styling.',
-    image: '/images/orbit-stand-diana.webp',
-    galleryImages: ['/images/orbit-stand-diana.webp'],
-    tags: ['Branding', 'Spatial Design', 'Commercial', 'Render'],
-    featured: true,
-    deliverables: ['Brand Stand', 'Point of Sale Graphics', '3D Preview'],
-    metrics: [{ label: 'Audience Reach', value: '50K+ Visitors' }],
-    colorPalette: ['#76FF03', '#050B05', '#FFFFFF']
+  },
+  {
+    id: 'lumina-beverage-packaging',
+    image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=85',
+    title: 'Lumina Craft Botanical Beverage 3D',
+    category: '3D MODELING',
+    year: '2023',
+    projectRef: projectsData.find(p => p.id === 'lumina-beverage-packaging')
   },
   {
     id: 'digital-product-ui-3d',
+    image: '/images/orbit-tablet.webp',
     title: 'Next-Gen Digital Tablet & UI 3D',
     category: 'DIGITAL ART',
     year: '2024',
-    client: 'Kinetic Lab UI',
-    shortDesc: 'Surreal hardware and futuristic touch UI visualization with cybernetic lighting.',
-    fullDesc: 'Conceptual hardware study and tactile touchscreen interface with holographic depth, emissive neon materials, and sleek minimalist dark aesthetic.',
-    image: '/images/orbit-tablet.webp',
-    galleryImages: ['/images/orbit-tablet.webp'],
-    tags: ['UI/UX', 'Digital Art', '3D Hardware', 'Cyberpunk'],
-    featured: true,
-    deliverables: ['3D Device Asset', 'Holographic UI Assets', 'Key Visuals'],
-    metrics: [{ label: 'Render Depth', value: '32-bit Float' }],
-    colorPalette: ['#050B05', '#76FF03', '#A3E635']
+  },
+  {
+    id: 'orbit-carrito-render',
+    image: '/images/orbit-carrito.png',
+    title: '3D Stand & Carrito Retail Visual',
+    category: '3D MODELING',
+    year: '2024',
+  },
+  {
+    id: 'cyber-kinetic-intro',
+    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=85',
+    title: 'Aura Kinetic Motion Typography',
+    category: 'MOTION',
+    year: '2024',
+    projectRef: projectsData.find(p => p.id === 'cyber-kinetic-intro')
   }
 ];
 
 export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
   onSelectProject,
+  intervalMs = 3000, // 3 seconds per transition
 }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const timerRef = useRef<number | null>(null);
 
-  // Triple set for completely seamless infinite loop
-  const displayList = [...showcaseProjects, ...showcaseProjects, ...showcaseProjects];
+  const total = sliderItems.length;
 
-  const handleCardClick = (project: Project) => {
+  const goToNext = useCallback(() => {
+    setDirection('next');
+    setCurrentIndex((prev) => (prev + 1) % total);
+  }, [total]);
+
+  const goToPrev = useCallback(() => {
+    setDirection('prev');
+    setCurrentIndex((prev) => (prev - 1 + total) % total);
+  }, [total]);
+
+  // Automatic 3-second interval timer
+  useEffect(() => {
+    if (isPaused) return;
+
+    timerRef.current = window.setInterval(() => {
+      goToNext();
+    }, intervalMs);
+
+    return () => {
+      if (timerRef.current !== null) {
+        window.clearInterval(timerRef.current);
+      }
+    };
+  }, [isPaused, intervalMs, goToNext]);
+
+  const handleSlideClick = (item: SlideItem) => {
     playClickSound();
-    if (onSelectProject) {
-      onSelectProject(project);
+    if (item.projectRef && onSelectProject) {
+      onSelectProject(item.projectRef);
     } else {
       const workSection = document.getElementById('work');
       if (workSection) {
@@ -86,75 +140,115 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
 
   return (
     <div
-      className="hero-slider-wrapper relative w-full overflow-hidden select-none py-4"
+      className="hero-slider-container relative w-full h-[420px] sm:h-[480px] md:h-[520px] lg:h-[560px] xl:h-[600px] select-none rounded-3xl overflow-hidden group/slider"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      aria-label="Galería de proyectos destacados"
     >
-      {/* Left Deep Gradient Transition Overlay (blends text seamlessly into the slider) */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-36 md:w-52 lg:w-64 bg-gradient-to-r from-[#050B05] via-[#050B05]/90 to-transparent z-20 pointer-events-none" />
+      {/* Ambient background glow behind the right slider */}
+      <div className="absolute -inset-4 bg-[#76FF03]/10 rounded-full blur-[100px] pointer-events-none -z-10" />
 
-      {/* Right Subtle Edge Fade */}
-      <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 md:w-36 bg-gradient-to-l from-[#050B05] via-[#050B05]/70 to-transparent z-20 pointer-events-none" />
+      {/* Main Glass Frame */}
+      <div className="relative w-full h-full bg-[#081208]/85 border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+        {/* Slides Images Stack */}
+        {sliderItems.map((item, index) => {
+          const isActive = index === currentIndex;
+          const isPrev = (currentIndex - 1 + total) % total === index;
+          const isNext = (currentIndex + 1) % total === index;
 
-      {/* Track */}
-      <div
-        ref={trackRef}
-        className={`hero-slider-track flex items-center gap-5 sm:gap-6 ${
-          isPaused ? 'hero-slider-track--paused' : ''
-        }`}
-      >
-        {displayList.map((project, index) => (
-          <div
-            key={`${project.id}-${index}`}
-            onClick={() => handleCardClick(project)}
-            onMouseEnter={playHoverSound}
-            className="hero-slider-card group relative flex-shrink-0 w-[260px] sm:w-[290px] md:w-[320px] h-[340px] sm:h-[370px] md:h-[400px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out border border-white/10 hover:border-[#76FF03]/60 bg-[#081208]/75 backdrop-blur-md shadow-[0_10px_35px_rgba(0,0,0,0.75)] hover:shadow-[0_0_35px_rgba(118,255,3,0.35)] hover:-translate-y-2 flex flex-col justify-between p-4 sm:p-5"
-          >
-            {/* Ambient inner card glow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050B05] via-[#050B05]/40 to-transparent z-10 opacity-90 group-hover:opacity-75 transition-opacity" />
+          let positionClass = 'hero-slide--hidden';
+          if (isActive) positionClass = 'hero-slide--active';
+          else if (isPrev) positionClass = 'hero-slide--prev';
+          else if (isNext) positionClass = 'hero-slide--next';
 
-            {/* Top Bar: Category Pill & Year */}
-            <div className="relative z-20 flex items-center justify-between">
-              <span className="px-2.5 py-1 bg-[#050B05]/80 backdrop-blur-md border border-[#76FF03]/40 text-[#76FF03] text-[10px] font-mono font-bold rounded-full tracking-wider">
-                {project.category}
-              </span>
-              <span className="px-2 py-0.5 bg-white/5 border border-white/10 text-gray-400 text-[10px] font-mono rounded-full">
-                {project.year}
-              </span>
-            </div>
+          return (
+            <div
+              key={item.id}
+              onClick={() => isActive && handleSlideClick(item)}
+              className={`hero-slide absolute inset-0 cursor-pointer ${positionClass}`}
+              aria-hidden={!isActive}
+            >
+              {/* High-Impact Image */}
+              <div className="relative w-full h-full flex items-center justify-center p-6 sm:p-10 md:p-14 overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading={index < 3 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  className="w-full h-full object-contain drop-shadow-[0_15px_35px_rgba(0,0,0,0.95)] transition-transform duration-700 ease-out group-hover/slider:scale-105"
+                />
+              </div>
 
-            {/* Middle: Project Image */}
-            <div className="absolute inset-0 overflow-hidden flex items-center justify-center p-6">
-              <img
-                src={project.image}
-                alt={project.title}
-                width={400}
-                height={400}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-700 ease-out [filter:drop-shadow(0_12px_24px_rgba(0,0,0,0.9))]"
-              />
-            </div>
-
-            {/* Bottom: Info Bar */}
-            <div className="relative z-20 pt-2 transform translate-y-0.5 group-hover:translate-y-0 transition-transform duration-300">
-              <div className="flex items-end justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-mono text-gray-400 block truncate mb-0.5">
-                    {project.client}
-                  </span>
-                  <h3 className="text-sm sm:text-base font-black text-white group-hover:text-[#76FF03] transition-colors leading-tight line-clamp-1">
-                    {project.title}
-                  </h3>
-                </div>
-
-                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] group-hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 flex-shrink-0 group-hover:rotate-45 shadow-md">
-                  <ArrowUpRight className="w-4 h-4" />
-                </div>
+              {/* Minimal Aesthetic Floating Caption Badge */}
+              <div className="absolute bottom-6 left-8 sm:left-12 z-30 flex items-center gap-3 bg-[#050B05]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-pulse" />
+                <span className="text-[11px] font-mono font-bold text-[#76FF03] tracking-wider uppercase">
+                  {item.category}
+                </span>
+                <span className="text-gray-500 font-mono text-[10px]">•</span>
+                <span className="text-xs sm:text-sm font-bold text-white tracking-wide truncate max-w-[160px] sm:max-w-[240px] md:max-w-[320px]">
+                  {item.title}
+                </span>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+        {/* Left Smooth Degradado Transition (Blends smoothly into the text background) */}
+        <div className="hero-slider-degradado-left absolute left-0 top-0 bottom-0 w-28 sm:w-40 md:w-56 lg:w-72 bg-gradient-to-r from-[#050B05] via-[#050B05]/90 to-transparent pointer-events-none z-20" />
+
+        {/* Right Subtle Edge Fade */}
+        <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-[#050B05]/80 to-transparent pointer-events-none z-20" />
+
+        {/* Interactive Navigation Arrows (< and >) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            playClickSound();
+            goToPrev();
+          }}
+          onMouseEnter={playHoverSound}
+          aria-label="Proyecto anterior"
+          className="hero-slider-arrow hero-slider-arrow--left absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#050B05]/85 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/15 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] hover:shadow-[0_0_25px_rgba(118,255,3,0.6)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
+        >
+          <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+        </button>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            playClickSound();
+            goToNext();
+          }}
+          onMouseEnter={playHoverSound}
+          aria-label="Proyecto siguiente"
+          className="hero-slider-arrow hero-slider-arrow--right absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#050B05]/85 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/15 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] hover:shadow-[0_0_25px_rgba(118,255,3,0.6)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
+        >
+          <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+        </button>
+
+        {/* Subtle Progress Bar Indicators (Bottom-Right) */}
+        <div className="absolute bottom-6 right-6 sm:right-8 z-30 flex items-center gap-1.5 bg-[#050B05]/75 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+          {sliderItems.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                playClickSound();
+                setCurrentIndex(idx);
+              }}
+              aria-label={`Ir al proyecto ${idx + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
+                idx === currentIndex
+                  ? 'w-6 bg-[#76FF03] shadow-[0_0_10px_rgba(118,255,3,0.8)]'
+                  : 'w-1.5 bg-white/30 hover:bg-white/60'
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
