@@ -137,13 +137,13 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
 
   return (
     <div
-      className="hero-cinematic-slider relative w-full h-full select-none group/slider flex items-center justify-center pointer-events-auto"
+      className="hero-cinematic-slider relative w-full h-full select-none group/slider flex items-center justify-center pointer-events-auto overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Galería interactiva de proyectos destacados en pantalla completa"
     >
       {/* Ambient background glow */}
-      <div className="absolute inset-0 bg-[#76FF03]/8 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[#76FF03]/10 rounded-full blur-[140px] pointer-events-none -z-10" />
 
       {/* Main Slide Stage (Full 100% Width & Height Canvas) */}
       <div className="hero-slider-mask-box relative w-full h-full overflow-hidden">
@@ -166,8 +166,8 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
               className={`hero-slide-fade absolute inset-0 cursor-pointer ${stateClass}`}
               aria-hidden={!isActive}
             >
-              {/* Full-Scale Image Presentation shifted to the right half */}
-              <div className="relative w-full h-full flex items-center justify-center lg:justify-end pr-0 sm:pr-6 md:pr-12 lg:pr-20 overflow-hidden">
+              {/* Full-Scale Image Presentation extending across the right half and center */}
+              <div className="relative w-full h-full flex items-center justify-center lg:justify-end pr-0 sm:pr-8 md:pr-16 lg:pr-24 xl:pr-32 overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.title}
@@ -178,13 +178,13 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
               </div>
 
               {/* Minimal Aesthetic Pill Caption (Bottom-Right) */}
-              <div className="absolute bottom-6 right-28 sm:right-36 md:right-44 lg:right-52 z-30 hidden sm:flex items-center gap-2.5 bg-[#050B05]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+              <div className="absolute bottom-6 right-28 sm:right-36 md:right-48 lg:right-56 z-30 hidden sm:flex items-center gap-2.5 bg-[#050B05]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                 <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-pulse" />
                 <span className="text-[11px] font-mono font-bold text-[#76FF03] tracking-wider uppercase">
                   {item.category}
                 </span>
                 <span className="text-gray-500 font-mono text-[10px]">•</span>
-                <span className="text-xs sm:text-sm font-bold text-white tracking-wide truncate max-w-[150px] sm:max-w-[220px] md:max-w-[300px]">
+                <span className="text-xs sm:text-sm font-bold text-white tracking-wide truncate max-w-[150px] sm:max-w-[220px] md:max-w-[320px]">
                   {item.title}
                 </span>
               </div>
@@ -192,22 +192,8 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           );
         })}
 
-        {/* DARK DIFFUSION SYSTEM (Covers entire left typography area + soft fades on all edges) */}
-
-        {/* 1. Primary Left Dark Diffusion (Darkens the whole area under the letters for maximum contrast) */}
-        <div className="hero-slider-fade-left absolute inset-y-0 left-0 w-full sm:w-[70%] md:w-[60%] lg:w-[52%] bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-55% to-transparent pointer-events-none z-20" />
-
-        {/* 2. Right Edge Soft Diffusion */}
-        <div className="hero-slider-fade-right absolute inset-y-0 right-0 w-24 sm:w-36 md:w-52 bg-gradient-to-l from-[#050B05] via-[#050B05]/85 to-transparent pointer-events-none z-20" />
-
-        {/* 3. Top Edge Soft Diffusion */}
-        <div className="hero-slider-fade-top absolute inset-x-0 top-0 h-24 sm:h-32 md:h-44 bg-gradient-to-b from-[#050B05] via-[#050B05]/90 to-transparent pointer-events-none z-20" />
-
-        {/* 4. Bottom Edge Soft Diffusion */}
-        <div className="hero-slider-fade-bottom absolute inset-x-0 bottom-0 h-28 sm:h-36 md:h-48 bg-gradient-to-t from-[#050B05] via-[#050B05]/95 to-transparent pointer-events-none z-20" />
-
-        {/* 5. Peripheral Soft Vignette */}
-        <div className="hero-slider-inset-vignette absolute inset-0 pointer-events-none z-20" />
+        {/* PRIMARY LEFT DARK DIFFUSION (Ensures 100% text readability over the background artwork) */}
+        <div className="hero-slider-fade-left absolute inset-y-0 left-0 w-full sm:w-[75%] md:w-[65%] lg:w-[55%] xl:w-[50%] bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-50% to-transparent pointer-events-none z-20" />
 
         {/* Interactive Left Arrow (<) */}
         <button
@@ -219,7 +205,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           }}
           onMouseEnter={playHoverSound}
           aria-label="Proyecto anterior"
-          className="hero-arrow-btn hero-arrow-btn--left absolute left-4 sm:left-6 md:left-[44%] lg:left-[46%] top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-[#050B05]/90 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
+          className="hero-arrow-btn hero-arrow-btn--left absolute left-6 sm:left-10 md:left-[45%] lg:left-[47%] top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-[#050B05]/90 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
         >
           <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
         </button>
@@ -234,13 +220,13 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           }}
           onMouseEnter={playHoverSound}
           aria-label="Proyecto siguiente"
-          className="hero-arrow-btn hero-arrow-btn--right absolute right-4 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-[#050B05]/90 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
+          className="hero-arrow-btn hero-arrow-btn--right absolute right-4 sm:right-8 md:right-12 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-[#050B05]/90 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
         >
           <ChevronRight className="w-6 h-6 stroke-[2.5]" />
         </button>
 
         {/* Modern Segmented Progress Bar (Bottom-Right) */}
-        <div className="absolute bottom-6 right-6 sm:right-10 z-30 flex items-center gap-1.5 bg-[#050B05]/85 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-lg">
+        <div className="absolute bottom-6 right-6 sm:right-10 md:right-14 z-30 flex items-center gap-1.5 bg-[#050B05]/85 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-lg">
           {sliderItems.map((_, idx) => (
             <button
               key={idx}

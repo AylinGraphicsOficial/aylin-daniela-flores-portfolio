@@ -146,90 +146,92 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      {/* Lower Hero: Full 100% Width Canvas Slider + Superimposed Typography with Dark Diffusion */}
-      <div className="w-full relative min-h-[560px] sm:min-h-[620px] lg:min-h-[680px] flex items-center justify-between z-10 overflow-visible">
+      {/* Lower Hero: Full 100% Screen-Width Breakout Slider Canvas + Superimposed Typography */}
+      <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-[580px] sm:min-h-[640px] lg:min-h-[740px] xl:min-h-[780px] flex items-center overflow-hidden z-10">
         
-        {/* Full-Width 100% Slider Canvas in Background */}
+        {/* Full-Width 100% Slider Canvas in Background Edge-to-Edge */}
         <div className="absolute inset-0 w-full h-full z-10">
           <HeroProjectsSlider onSelectProject={onSelectProject} />
         </div>
 
         {/* Superimposed Left Content (Typography, CTAs, Metrics) with Dark Diffusion Backdrop */}
-        <div className="relative z-30 w-full lg:w-[48%] xl:w-[44%] flex flex-col justify-center text-left items-start pointer-events-auto py-6">
-          <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
-            {t.hero.portfolioOf}
-          </h2>
+        <div className="relative z-30 w-full max-w-[1750px] mx-auto px-6 sm:px-10 md:px-14 lg:px-20 xl:px-28 flex flex-col justify-center text-left items-start pointer-events-none py-8">
+          <div className="pointer-events-auto max-w-xl lg:max-w-2xl">
+            <h2 className="text-xs md:text-sm font-bold tracking-[0.25em] text-[#76FF03] mb-2 uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+              {t.hero.portfolioOf}
+            </h2>
 
-          {/* Main Giant Kinetic Title */}
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[76px] xl:text-[88px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
-            <span>{t.hero.titleLine1}</span>
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">
-              {t.hero.titleLine2}
-            </span>
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#76FF03] to-[#38B000]">
-              {t.hero.titleLine3}
-            </span>
-          </h1>
+            {/* Main Giant Kinetic Title */}
+            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[76px] xl:text-[88px] font-black text-white tracking-tighter uppercase leading-[0.92] mb-6 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+              <span>{t.hero.titleLine1}</span>
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">
+                {t.hero.titleLine2}
+              </span>
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#76FF03] to-[#38B000]">
+                {t.hero.titleLine3}
+              </span>
+            </h1>
 
-          <p className="text-base sm:text-lg text-gray-200 max-w-lg mb-8 leading-relaxed font-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
-            {t.hero.subtitle}
-          </p>
+            <p className="text-base sm:text-lg text-gray-200 max-w-lg mb-8 leading-relaxed font-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
+              {t.hero.subtitle}
+            </p>
 
-          {/* CTA Group */}
-          <div className="flex flex-wrap gap-3 sm:gap-3.5 items-center">
-            <a
-              href="#work"
-              onClick={playClickSound}
-              className="px-7 sm:px-8 py-3.5 sm:py-4 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:shadow-[0_0_35px_rgba(118,255,3,0.6)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center space-x-2"
-            >
-              <span>{t.hero.viewProjects}</span>
-              <MoveRight className="w-4 h-4" />
-            </a>
+            {/* CTA Group */}
+            <div className="flex flex-wrap gap-3 sm:gap-3.5 items-center">
+              <a
+                href="#work"
+                onClick={playClickSound}
+                className="px-7 sm:px-8 py-3.5 sm:py-4 bg-[#76FF03] hover:bg-[#50E310] text-[#050B05] font-black text-xs md:text-sm tracking-wider rounded-xl shadow-[0_0_25px_rgba(118,255,3,0.4)] hover:shadow-[0_0_35px_rgba(118,255,3,0.6)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center space-x-2"
+              >
+                <span>{t.hero.viewProjects}</span>
+                <MoveRight className="w-4 h-4" />
+              </a>
 
-            <SpecularButton
-              onClick={() => {
-                playClickSound();
-                onOpenCVModal();
-              }}
-              variant="glass"
-              size="md"
-              radius={12}
-              className="text-xs md:text-sm font-bold tracking-wider"
-            >
-              <FileText className="w-4 h-4 text-[#76FF03]" />
-              <span>{t.hero.downloadCv}</span>
-            </SpecularButton>
+              <SpecularButton
+                onClick={() => {
+                  playClickSound();
+                  onOpenCVModal();
+                }}
+                variant="glass"
+                size="md"
+                radius={12}
+                className="text-xs md:text-sm font-bold tracking-wider"
+              >
+                <FileText className="w-4 h-4 text-[#76FF03]" />
+                <span>{t.hero.downloadCv}</span>
+              </SpecularButton>
 
-            <SpecularButton
-              onClick={() => {
-                playClickSound();
-                onOpenProjectPlanner();
-              }}
-              variant="primary"
-              size="md"
-              radius={12}
-              className="text-xs md:text-sm font-bold tracking-wider text-[#76FF03]"
-            >
-              <Sparkles className="w-4 h-4 text-[#76FF03]" />
-              <span>{t.hero.startProjectBtn}</span>
-            </SpecularButton>
-          </div>
-
-          {/* Quick Metrics Ticker Under Hero */}
-          <div className="mt-10 pt-6 border-t border-white/15 grid grid-cols-3 gap-3.5 max-w-lg w-full drop-shadow-md">
-            <div>
-              <div className="text-xl md:text-2xl font-black text-white font-mono">6+ YRS</div>
-              <div className="text-[11px] text-gray-300 font-medium">Professional Experience</div>
+              <SpecularButton
+                onClick={() => {
+                  playClickSound();
+                  onOpenProjectPlanner();
+                }}
+                variant="primary"
+                size="md"
+                radius={12}
+                className="text-xs md:text-sm font-bold tracking-wider text-[#76FF03]"
+              >
+                <Sparkles className="w-4 h-4 text-[#76FF03]" />
+                <span>{t.hero.startProjectBtn}</span>
+              </SpecularButton>
             </div>
-            <div>
-              <div className="text-xl md:text-2xl font-black text-[#76FF03] font-mono">120+</div>
-              <div className="text-[11px] text-gray-300 font-medium">3D Assets Rendered</div>
-            </div>
-            <div>
-              <div className="text-xl md:text-2xl font-black text-white font-mono">100%</div>
-              <div className="text-[11px] text-gray-300 font-medium">Original Craft</div>
+
+            {/* Quick Metrics Ticker Under Hero */}
+            <div className="mt-10 pt-6 border-t border-white/15 grid grid-cols-3 gap-3.5 max-w-lg w-full drop-shadow-md">
+              <div>
+                <div className="text-xl md:text-2xl font-black text-white font-mono">6+ YRS</div>
+                <div className="text-[11px] text-gray-300 font-medium">Professional Experience</div>
+              </div>
+              <div>
+                <div className="text-xl md:text-2xl font-black text-[#76FF03] font-mono">120+</div>
+                <div className="text-[11px] text-gray-300 font-medium">3D Assets Rendered</div>
+              </div>
+              <div>
+                <div className="text-xl md:text-2xl font-black text-white font-mono">100%</div>
+                <div className="text-[11px] text-gray-300 font-medium">Original Craft</div>
+              </div>
             </div>
           </div>
         </div>
