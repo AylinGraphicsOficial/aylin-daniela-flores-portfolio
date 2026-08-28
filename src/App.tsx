@@ -134,6 +134,7 @@ export default function App() {
             lang={lang}
             onOpenCVModal={() => setIsCVModalOpen(true)}
             onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+            onSelectProject={(project) => setSelectedCaseStudy(project)}
           />
         </div>
 
