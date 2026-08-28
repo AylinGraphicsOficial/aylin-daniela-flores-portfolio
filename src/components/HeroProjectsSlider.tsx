@@ -137,7 +137,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
 
   return (
     <div
-      className="hero-cinematic-slider relative w-full h-[460px] sm:h-[520px] md:h-[580px] lg:h-[620px] xl:h-[680px] select-none group/slider flex items-center justify-center overflow-visible"
+      className="hero-cinematic-slider relative w-full h-[460px] sm:h-[520px] md:h-[580px] lg:h-[640px] xl:h-[700px] select-none group/slider flex items-center justify-center overflow-visible"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Galería interactiva de proyectos destacados"
@@ -145,7 +145,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
       {/* Ambient background glow */}
       <div className="absolute inset-0 bg-[#76FF03]/8 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-      {/* Fluid Seamless Canvas (No box borders, pure edge-to-edge aesthetics) */}
+      {/* Fluid Seamless Canvas (No hard borders, 4-sided feathering mask) */}
       <div className="hero-slider-mask-box relative w-full h-full overflow-hidden">
         
         {/* Slides Stack */}
@@ -166,25 +166,25 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
               className={`hero-slide-fade absolute inset-0 cursor-pointer ${stateClass}`}
               aria-hidden={!isActive}
             >
-              {/* Full-Scale Image Presentation */}
-              <div className="relative w-full h-full flex items-center justify-center sm:justify-end lg:pr-10 xl:pr-16 p-2 sm:p-4">
+              {/* Full-Scale Image with 4-Sided Soft Diffusion */}
+              <div className="relative w-full h-full flex items-center justify-center sm:justify-end lg:pr-8 xl:pr-12 p-0 overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.title}
                   loading={index < 3 ? 'eager' : 'lazy'}
                   decoding="async"
-                  className="w-auto h-full max-h-[92%] object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.95)] transition-transform duration-1000 ease-out group-hover/slider:scale-[1.03]"
+                  className="hero-slide-img w-full sm:w-auto h-full max-h-full object-cover sm:object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.95)] transition-transform duration-1000 ease-out group-hover/slider:scale-[1.03]"
                 />
               </div>
 
               {/* Minimal Aesthetic Pill Caption (Bottom-Center/Right) */}
-              <div className="absolute bottom-6 left-28 sm:left-36 md:left-48 lg:left-56 z-30 flex items-center gap-2.5 bg-[#050B05]/85 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+              <div className="absolute bottom-6 left-24 sm:left-32 md:left-44 lg:left-52 z-30 flex items-center gap-2.5 bg-[#050B05]/85 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                 <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-pulse" />
                 <span className="text-[11px] font-mono font-bold text-[#76FF03] tracking-wider uppercase">
                   {item.category}
                 </span>
                 <span className="text-gray-500 font-mono text-[10px]">•</span>
-                <span className="text-xs sm:text-sm font-bold text-white tracking-wide truncate max-w-[160px] sm:max-w-[240px] md:max-w-[320px]">
+                <span className="text-xs sm:text-sm font-bold text-white tracking-wide truncate max-w-[150px] sm:max-w-[220px] md:max-w-[300px]">
                   {item.title}
                 </span>
               </div>
@@ -192,11 +192,19 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           );
         })}
 
-        {/* Deep Left Gradient Feathering (Extended deep towards/under the letters) */}
-        <div className="hero-slider-fade-left absolute left-0 top-0 bottom-0 w-40 sm:w-56 md:w-72 lg:w-96 bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-45% to-transparent pointer-events-none z-20" />
+        {/* 4-SIDED GRADIENT DIFFUSION OVERLAYS (Guarantees zero hard cuts from any side) */}
 
-        {/* Right Subtle Edge Feathering to prevent any cut-off lines */}
-        <div className="hero-slider-fade-right absolute right-0 top-0 bottom-0 w-16 sm:w-28 md:w-36 bg-gradient-to-l from-[#050B05] via-[#050B05]/80 to-transparent pointer-events-none z-20" />
+        {/* 1. Deep Left Gradient (Diffuses seamlessly into/under the text) */}
+        <div className="hero-slider-fade-left absolute left-0 top-0 bottom-0 w-44 sm:w-60 md:w-80 lg:w-[420px] bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-40% to-transparent pointer-events-none z-20" />
+
+        {/* 2. Right Edge Soft Gradient (Eliminates right screen cuts) */}
+        <div className="hero-slider-fade-right absolute right-0 top-0 bottom-0 w-24 sm:w-36 md:w-48 lg:w-56 bg-gradient-to-l from-[#050B05] via-[#050B05]/90 via-30% to-transparent pointer-events-none z-20" />
+
+        {/* 3. Top Edge Soft Gradient (Eliminates top edge cuts) */}
+        <div className="hero-slider-fade-top absolute left-0 right-0 top-0 h-20 sm:h-28 md:h-36 bg-gradient-to-b from-[#050B05] via-[#050B05]/80 to-transparent pointer-events-none z-20" />
+
+        {/* 4. Bottom Edge Soft Gradient (Eliminates bottom edge cuts) */}
+        <div className="hero-slider-fade-bottom absolute left-0 right-0 bottom-0 h-24 sm:h-32 md:h-40 bg-gradient-to-t from-[#050B05] via-[#050B05]/90 to-transparent pointer-events-none z-20" />
 
         {/* Interactive Left Arrow (<) */}
         <button
