@@ -5,14 +5,19 @@
 
 /* 4-Sided Multi-Directional Soft Mask on the frame */
 .hero-slider-mask-box {
-  mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 40%, rgba(0, 0, 0, 0.9) 65%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, black 40%, rgba(0, 0, 0, 0.9) 65%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 80% at 50% 50%, black 35%, rgba(0, 0, 0, 0.85) 60%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 80% at 50% 50%, black 35%, rgba(0, 0, 0, 0.85) 60%, transparent 100%);
 }
 
 /* 4-Sided Soft Feathering Mask directly on each Image */
 .hero-slide-img {
-  mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, black 50%, rgba(0, 0, 0, 0.8) 75%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, black 50%, rgba(0, 0, 0, 0.8) 75%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 45%, rgba(0, 0, 0, 0.75) 70%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 45%, rgba(0, 0, 0, 0.75) 70%, transparent 100%);
+}
+
+/* Deep Inset Vignette: Seamlessly dissolves any corners/edges into #050B05 */
+.hero-slider-inset-vignette {
+  box-shadow: inset 0 0 100px 50px #050B05, inset 0 0 40px 20px #050B05;
 }
 
 .hero-slide-fade {
@@ -58,6 +63,9 @@
   }
   .hero-arrow-btn--right {
     right: 8px;
+  }
+  .hero-slider-inset-vignette {
+    box-shadow: inset 0 0 60px 30px #050B05;
   }
 }
 

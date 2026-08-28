@@ -142,10 +142,10 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Galería interactiva de proyectos destacados"
     >
-      {/* Ambient background glow */}
+      {/* Ambient background neon aura */}
       <div className="absolute inset-0 bg-[#76FF03]/8 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-      {/* Fluid Seamless Canvas (No hard borders, 4-sided feathering mask) */}
+      {/* Main Slide Stage */}
       <div className="hero-slider-mask-box relative w-full h-full overflow-hidden">
         
         {/* Slides Stack */}
@@ -166,7 +166,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
               className={`hero-slide-fade absolute inset-0 cursor-pointer ${stateClass}`}
               aria-hidden={!isActive}
             >
-              {/* Full-Scale Image with 4-Sided Soft Diffusion */}
+              {/* Full-Scale Image */}
               <div className="relative w-full h-full flex items-center justify-center sm:justify-end lg:pr-8 xl:pr-12 p-0 overflow-hidden">
                 <img
                   src={item.image}
@@ -178,7 +178,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
               </div>
 
               {/* Minimal Aesthetic Pill Caption (Bottom-Center/Right) */}
-              <div className="absolute bottom-6 left-24 sm:left-32 md:left-44 lg:left-52 z-30 flex items-center gap-2.5 bg-[#050B05]/85 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+              <div className="absolute bottom-6 left-24 sm:left-32 md:left-44 lg:left-52 z-30 flex items-center gap-2.5 bg-[#050B05]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                 <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-pulse" />
                 <span className="text-[11px] font-mono font-bold text-[#76FF03] tracking-wider uppercase">
                   {item.category}
@@ -192,19 +192,22 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           );
         })}
 
-        {/* 4-SIDED GRADIENT DIFFUSION OVERLAYS (Guarantees zero hard cuts from any side) */}
+        {/* 4-SIDED GRADIENT DIFFUSION SYSTEM (Fades all 4 borders seamlessly into #050B05) */}
 
-        {/* 1. Deep Left Gradient (Diffuses seamlessly into/under the text) */}
-        <div className="hero-slider-fade-left absolute left-0 top-0 bottom-0 w-44 sm:w-60 md:w-80 lg:w-[420px] bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-40% to-transparent pointer-events-none z-20" />
+        {/* 1. Deep Left Gradient Fade (Diffuses into text area) */}
+        <div className="hero-slider-fade-left absolute inset-y-0 left-0 w-36 sm:w-48 md:w-64 lg:w-96 bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-45% to-transparent pointer-events-none z-20" />
 
-        {/* 2. Right Edge Soft Gradient (Eliminates right screen cuts) */}
-        <div className="hero-slider-fade-right absolute right-0 top-0 bottom-0 w-24 sm:w-36 md:w-48 lg:w-56 bg-gradient-to-l from-[#050B05] via-[#050B05]/90 via-30% to-transparent pointer-events-none z-20" />
+        {/* 2. Right Edge Gradient Fade (Diffuses toward right screen edge) */}
+        <div className="hero-slider-fade-right absolute inset-y-0 right-0 w-24 sm:w-36 md:w-52 lg:w-64 bg-gradient-to-l from-[#050B05] via-[#050B05]/95 via-35% to-transparent pointer-events-none z-20" />
 
-        {/* 3. Top Edge Soft Gradient (Eliminates top edge cuts) */}
-        <div className="hero-slider-fade-top absolute left-0 right-0 top-0 h-20 sm:h-28 md:h-36 bg-gradient-to-b from-[#050B05] via-[#050B05]/80 to-transparent pointer-events-none z-20" />
+        {/* 3. Top Edge Gradient Fade (Diffuses top boundary) */}
+        <div className="hero-slider-fade-top absolute inset-x-0 top-0 h-24 sm:h-32 md:h-44 bg-gradient-to-b from-[#050B05] via-[#050B05]/90 via-35% to-transparent pointer-events-none z-20" />
 
-        {/* 4. Bottom Edge Soft Gradient (Eliminates bottom edge cuts) */}
-        <div className="hero-slider-fade-bottom absolute left-0 right-0 bottom-0 h-24 sm:h-32 md:h-40 bg-gradient-to-t from-[#050B05] via-[#050B05]/90 to-transparent pointer-events-none z-20" />
+        {/* 4. Bottom Edge Gradient Fade (Diffuses bottom boundary) */}
+        <div className="hero-slider-fade-bottom absolute inset-x-0 bottom-0 h-28 sm:h-36 md:h-48 bg-gradient-to-t from-[#050B05] via-[#050B05]/95 via-35% to-transparent pointer-events-none z-20" />
+
+        {/* 5. Deep Inset Vignette (Ensures soft blending on all corners and edges) */}
+        <div className="hero-slider-inset-vignette absolute inset-0 pointer-events-none z-20" />
 
         {/* Interactive Left Arrow (<) */}
         <button
@@ -237,7 +240,7 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
         </button>
 
         {/* Modern Segmented Progress Bar (Bottom-Right) */}
-        <div className="absolute bottom-6 right-6 sm:right-10 z-30 flex items-center gap-1.5 bg-[#050B05]/80 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-lg">
+        <div className="absolute bottom-6 right-6 sm:right-10 z-30 flex items-center gap-1.5 bg-[#050B05]/85 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-lg">
           {sliderItems.map((_, idx) => (
             <button
               key={idx}
