@@ -19,8 +19,8 @@ import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
 import { ProjectDetailPage } from './components/ProjectDetailPage';
 import { Footer } from './components/Footer';
-import { AdminLoginModal } from './components/dashboard/AdminLoginModal';
-import { AdminDashboardModal } from './components/dashboard/AdminDashboardModal';
+import { AdminLoginPage } from './components/dashboard/AdminLoginPage';
+import { AdminDashboardPage } from './components/dashboard/AdminDashboardPage';
 import {
   getStoredProjects,
   subscribeToPortfolioChanges,
@@ -42,9 +42,12 @@ const CVViewerModal = lazy(() =>
 
 export default function App() {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'project-detail'>(() => {
+  const [currentView, setCurrentView] = useState<'home' | 'project-detail' | 'admin'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
+      if (hash === '#admin' || hash === '#/admin' || hash === '#dashboard' || hash === '#/dashboard') {
+        return 'admin';
+      }
       if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
         const id = hash.replace(/^#(proyecto|project)\//, '');
         const allProjects = getStoredProjects();
@@ -69,20 +72,23 @@ export default function App() {
   const [isProjectPlannerOpen, setIsProjectPlannerOpen] = useState<boolean>(false);
   const [isCVModalOpen, setIsCVModalOpen] = useState<boolean>(false);
 
-  // Admin Dashboard and Login States
+  // Admin Auth State
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return sessionStorage.getItem('aylin_admin_auth') === 'true';
     }
     return false;
   });
-  const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState<boolean>(false);
-  const [isDashboardOpen, setIsDashboardOpen] = useState<boolean>(false);
 
   // Sync with browser URL hash and stored projects
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
+      if (hash === '#admin' || hash === '#/admin' || hash === '#dashboard' || hash === '#/dashboard') {
+        setCurrentView('admin');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
         const id = hash.replace(/^#(proyecto|project)\//, '');
         const allProjects = getStoredProjects();
@@ -120,15 +126,29 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openAdminSecret = () => {
+    window.location.hash = '#/admin';
+    setCurrentView('admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const navigateHome = () => {
     setCurrentView('home');
     if (
       window.location.hash.includes('proyect') ||
-      window.location.hash.includes('project')
+      window.location.hash.includes('project') ||
+      window.location.hash.includes('admin') ||
+      window.location.hash.includes('dashboard')
     ) {
       history.pushState(null, '', window.location.pathname);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem('aylin_admin_auth');
+    setIsAdminLoggedIn(false);
+    navigateHome();
   };
 
   // Toggle language between ES and EN
@@ -149,7 +169,6 @@ export default function App() {
         setSelectedCaseStudy(null);
         setIsProjectPlannerOpen(false);
         setIsCVModalOpen(false);
-        setIsAdminLoginModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -184,6 +203,25 @@ export default function App() {
     };
   }, [currentView]);
 
+  // ==================== DEDICATED SECRET ADMIN PAGE ====================
+  if (currentView === 'admin') {
+    if (!isAdminLoggedIn) {
+      return (
+        <AdminLoginPage
+          onLoginSuccess={() => setIsAdminLoggedIn(true)}
+          onNavigateHome={navigateHome}
+        />
+      );
+    }
+    return (
+      <AdminDashboardPage
+        onNavigateHome={navigateHome}
+        onLogout={handleAdminLogout}
+      />
+    );
+  }
+
+  // ==================== MAIN APPLICATION (PORTFOLIO / PROJECT DETAIL) ====================
   return (
     <div className="relative min-h-screen bg-[#050B05] text-white selection:bg-[#76FF03] selection:text-[#050B05]">
       {/* 3-Second 8-Bit Cyber Intro Welcome Curtain */}
@@ -277,38 +315,8 @@ export default function App() {
         </main>
       )}
 
-      {/* Studio Kinetic Footer with Admin Login Trigger */}
-      <Footer
-        onOpenAdminLogin={() => {
-          if (isAdminLoggedIn) {
-            setIsDashboardOpen(true);
-          } else {
-            setIsAdminLoginModalOpen(true);
-          }
-        }}
-      />
-
-      {/* Admin Login Modal */}
-      <AdminLoginModal
-        isOpen={isAdminLoginModalOpen}
-        onClose={() => setIsAdminLoginModalOpen(false)}
-        onLoginSuccess={() => {
-          setIsAdminLoggedIn(true);
-          setIsAdminLoginModalOpen(false);
-          setIsDashboardOpen(true);
-        }}
-      />
-
-      {/* Full Admin Dashboard Modal */}
-      <AdminDashboardModal
-        isOpen={isDashboardOpen}
-        onClose={() => setIsDashboardOpen(false)}
-        onLogout={() => {
-          sessionStorage.removeItem('aylin_admin_auth');
-          setIsAdminLoggedIn(false);
-          setIsDashboardOpen(false);
-        }}
-      />
+      {/* Studio Kinetic Footer with Secret Admin Link */}
+      <Footer onOpenAdminLogin={openAdminSecret} />
 
       <Suspense fallback={null}>
         {/* Interactive Case Study Detail Modal */}

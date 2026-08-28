@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Layers,
   Plus,
   Trash2,
   Eye,
@@ -8,11 +7,8 @@ import {
   Upload,
   Image as ImageIcon,
   CheckCircle,
-  Sparkles,
-  Sliders,
-  Film,
 } from 'lucide-react';
-import { Discipline, DisciplineSlide } from '../../types';
+import { Discipline } from '../../types';
 import {
   saveDiscipline,
   toggleDisciplineSlideVisibility,
@@ -20,7 +16,6 @@ import {
   deleteDisciplineSlide,
 } from '../../utils/portfolioStorage';
 import { playClickSound } from '../../utils/audio';
-import { SpecularButton } from '../SpecularButton';
 
 interface DisciplineSliderEditorProps {
   disciplines: Discipline[];
@@ -86,12 +81,12 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   };
 
   const bgCard = darkMode
-    ? 'bg-[#081208] border-white/10 text-white'
-    : 'bg-white border-gray-200 text-gray-900';
+    ? 'bg-[#1E293B] border-slate-700/50 text-slate-100 shadow-sm'
+    : 'bg-white border-slate-200 text-slate-900 shadow-sm';
   const bgInput = darkMode
-    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-[#76FF03]'
-    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-500';
-  const textMuted = darkMode ? 'text-gray-400' : 'text-gray-500';
+    ? 'bg-[#0F172A] border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
+    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600';
+  const textMuted = darkMode ? 'text-slate-400' : 'text-slate-500';
 
   return (
     <div className="space-y-8">
@@ -107,17 +102,17 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                 playClickSound();
                 setSelectedDisciplineId(d.id);
               }}
-              className={`flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all cursor-pointer ${
+              className={`flex items-center gap-3 px-5 py-3 rounded-xl border transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#76FF03] text-[#050B05] border-[#76FF03] font-black shadow-[0_0_20px_rgba(118,255,3,0.3)]'
-                  : `${bgCard} hover:border-[#76FF03]/40 font-bold`
+                  ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-sm'
+                  : `${bgCard} hover:border-slate-500 font-semibold`
               }`}
             >
-              <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-black/15">
+              <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-black/20 font-bold">
                 {d.number}
               </span>
-              <span className="text-xs tracking-wider uppercase">{d.titleEs}</span>
-              <span className="text-[11px] opacity-75 font-mono">
+              <span className="text-xs tracking-wide uppercase">{d.titleEs}</span>
+              <span className="text-[11px] opacity-80 font-mono">
                 ({d.slides?.filter((s) => s.visible).length || 0}/{d.slides?.length || 0})
               </span>
             </button>
@@ -127,15 +122,15 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
 
       {/* Main Specialty Editor Panel */}
       {selectedDiscipline && (
-        <div className={`p-6 sm:p-8 rounded-3xl border ${bgCard} shadow-xl space-y-8`}>
+        <div className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-8`}>
           {/* Header of Active Specialty */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-700/50">
             <div>
               <div className="flex items-center gap-3">
-                <span className="text-3xl font-black italic text-[#76FF03]">
+                <span className="text-2xl sm:text-3xl font-bold text-emerald-400">
                   {selectedDiscipline.number}
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
                   {selectedDiscipline.titleEs}
                 </h3>
               </div>
@@ -145,14 +140,14 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
             </div>
 
             {/* Sub-tabs: Slides vs Texts */}
-            <div className="flex items-center gap-2 p-1.5 rounded-xl bg-black/20 border border-white/10">
+            <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60">
               <button
                 type="button"
                 onClick={() => setActiveTab('slides')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'slides'
-                    ? 'bg-[#76FF03] text-black font-black'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 🖼️ Slider de Renders ({selectedDiscipline.slides?.length || 0})
@@ -160,10 +155,10 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('texts')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'texts'
-                    ? 'bg-[#76FF03] text-black font-black'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 ✏️ Textos & Descripciones
@@ -175,20 +170,18 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
           {activeTab === 'slides' && (
             <div className="space-y-8">
               {/* Add new slide row */}
-              <div className="p-5 rounded-2xl border border-white/10 bg-white/5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#76FF03] flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    <span>Añadir Nueva Diapositiva al Slider</span>
-                  </span>
-                </div>
+              <div className="p-5 rounded-xl border border-slate-700/60 bg-slate-900/40 space-y-4">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  <span>Añadir Nueva Diapositiva al Slider</span>
+                </span>
 
                 <form onSubmit={handleAddSlide} className="flex flex-col sm:flex-row items-center gap-3">
                   <input
                     type="text"
                     value={newSlideTitle}
                     onChange={(e) => setNewSlideTitle(e.target.value)}
-                    placeholder="Título de la diapositiva (ej. Vista Frontal)"
+                    placeholder="Título de la diapositiva (ej. Vista Lateral)"
                     className={`w-full sm:w-1/3 px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs`}
                   />
                   <input
@@ -199,7 +192,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                     className={`flex-1 w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                   />
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <label className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-[#76FF03] hover:text-black transition-colors cursor-pointer text-xs font-bold font-mono flex items-center gap-1.5 whitespace-nowrap">
+                    <label className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap border border-slate-700">
                       <Upload className="w-3.5 h-3.5" />
                       <span>Subir PC</span>
                       <input
@@ -209,15 +202,12 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                         className="hidden"
                       />
                     </label>
-                    <SpecularButton
+                    <button
                       type="submit"
-                      variant="solid-lime"
-                      size="sm"
-                      radius={10}
-                      className="text-xs font-bold tracking-wider px-4 py-2.5 uppercase whitespace-nowrap"
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wide whitespace-nowrap transition-colors cursor-pointer shadow-sm"
                     >
                       Añadir Slide
-                    </SpecularButton>
+                    </button>
                   </div>
                 </form>
               </div>
@@ -225,45 +215,45 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               {/* Slides Grid */}
               <div>
                 <span className="text-xs font-mono font-bold uppercase tracking-wider block mb-4">
-                  Diapositivas Actuales en el Slider:
+                  Diapositivas en el Slider:
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                   {(selectedDiscipline.slides || []).map((slide, idx) => (
                     <div
                       key={slide.id}
-                      className={`relative rounded-2xl overflow-hidden border transition-all p-3 flex flex-col justify-between ${
+                      className={`relative rounded-xl overflow-hidden border transition-all p-3 flex flex-col justify-between ${
                         slide.visible
-                          ? 'border-[#76FF03]/60 bg-white/5 shadow-lg'
-                          : 'border-white/10 bg-black/40 opacity-60'
+                          ? 'border-emerald-500/50 bg-slate-800/40 shadow-sm'
+                          : 'border-slate-700/50 bg-slate-900/60 opacity-50'
                       }`}
                     >
-                      {/* Slide Image Preview */}
-                      <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/50 mb-3 border border-white/10">
+                      {/* Image Preview */}
+                      <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-3 border border-slate-700/60">
                         <img
                           src={slide.image}
                           alt={slide.title || 'Slide'}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-white font-bold">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 text-[10px] font-mono text-white font-bold">
                           #{idx + 1}
                         </div>
                       </div>
 
-                      {/* Slide Info & Controls */}
+                      {/* Info & Controls */}
                       <div className="space-y-3">
-                        <span className="text-xs font-bold tracking-wide block truncate">
+                        <span className="text-xs font-semibold block truncate">
                           {slide.title || `Diapositiva ${idx + 1}`}
                         </span>
 
-                        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
                           <button
                             type="button"
                             onClick={() => handleToggleSlide(slide.id)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-colors ${
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
                               slide.visible
-                                ? 'bg-[#76FF03]/20 text-[#76FF03]'
-                                : 'bg-white/10 text-gray-400'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-slate-800 text-slate-400'
                             }`}
                           >
                             {slide.visible ? (
@@ -282,7 +272,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteSlide(slide.id)}
-                            className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                             title="Eliminar Diapositiva"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -301,7 +291,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
                     Título en Español
                   </label>
                   <input
@@ -313,7 +303,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
                     Título en Inglés
                   </label>
                   <input
@@ -327,7 +317,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
                     Subtítulo en Español
                   </label>
                   <input
@@ -339,7 +329,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
                     Subtítulo en Inglés
                   </label>
                   <input
@@ -353,7 +343,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
                     Etiqueta Vertical (Español)
                   </label>
                   <input
@@ -365,7 +355,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                  <label className="text-xs font-medium text-slate-300 block mb-1.5">
                     Etiqueta Vertical (Inglés)
                   </label>
                   <input
@@ -378,7 +368,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                <label className="text-xs font-medium text-slate-300 block mb-1.5">
                   Descripción en Español
                 </label>
                 <textarea
@@ -390,7 +380,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-mono font-bold uppercase tracking-wider block mb-1.5">
+                <label className="text-xs font-medium text-slate-300 block mb-1.5">
                   Descripción en Inglés
                 </label>
                 <textarea
