@@ -167,18 +167,18 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
               aria-hidden={!isActive}
             >
               {/* Full-Scale Image Presentation extending across the right half and center */}
-              <div className="relative w-full h-full flex items-center justify-center lg:justify-end pr-0 sm:pr-8 md:pr-16 lg:pr-24 xl:pr-32 overflow-hidden">
+              <div className="relative w-full h-full flex items-center justify-center lg:justify-end pr-0 sm:pr-4 md:pr-8 lg:pr-12 xl:pr-20 overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.title}
                   loading={index < 3 ? 'eager' : 'lazy'}
                   decoding="async"
-                  className="hero-slide-img w-auto h-full max-h-[92%] object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.95)] transition-transform duration-1000 ease-out group-hover/slider:scale-[1.03]"
+                  className="hero-slide-img w-auto h-full max-h-[92%] sm:max-h-[95%] max-w-[90vw] lg:max-w-[65vw] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-transform duration-1000 ease-out group-hover/slider:scale-[1.02]"
                 />
               </div>
 
               {/* Minimal Aesthetic Pill Caption (Bottom-Right) */}
-              <div className="absolute bottom-6 right-28 sm:right-36 md:right-48 lg:right-56 z-30 hidden sm:flex items-center gap-2.5 bg-[#050B05]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+              <div className="absolute bottom-6 right-24 sm:right-32 md:right-44 lg:right-48 z-30 hidden sm:flex items-center gap-2.5 bg-[#050B05]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                 <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-pulse" />
                 <span className="text-[11px] font-mono font-bold text-[#76FF03] tracking-wider uppercase">
                   {item.category}
@@ -192,8 +192,8 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           );
         })}
 
-        {/* PRIMARY LEFT DARK DIFFUSION (Ensures 100% text readability over the background artwork) */}
-        <div className="hero-slider-fade-left absolute inset-y-0 left-0 w-full sm:w-[75%] md:w-[65%] lg:w-[55%] xl:w-[50%] bg-gradient-to-r from-[#050B05] via-[#050B05]/95 via-50% to-transparent pointer-events-none z-20" />
+        {/* PRIMARY LEFT DARK DIFFUSION (Ensures 100% text readability with smooth organic blend) */}
+        <div className="hero-slider-fade-left absolute inset-y-0 left-0 w-full lg:w-[58%] xl:w-[50%] bg-gradient-to-r from-[#050B05] via-[#050B05]/90 via-45% to-transparent pointer-events-none z-20" />
 
         {/* Interactive Left Arrow (<) */}
         <button
@@ -205,9 +205,9 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           }}
           onMouseEnter={playHoverSound}
           aria-label="Proyecto anterior"
-          className="hero-arrow-btn hero-arrow-btn--left absolute left-6 sm:left-10 md:left-[45%] lg:left-[47%] top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-[#050B05]/90 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
+          className="hero-arrow-btn hero-arrow-btn--left absolute left-4 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#050B05]/85 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
         >
-          <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
         </button>
 
         {/* Interactive Right Arrow (>) */}
@@ -220,9 +220,9 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
           }}
           onMouseEnter={playHoverSound}
           aria-label="Proyecto siguiente"
-          className="hero-arrow-btn hero-arrow-btn--right absolute right-4 sm:right-8 md:right-12 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-[#050B05]/90 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
+          className="hero-arrow-btn hero-arrow-btn--right absolute right-4 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#050B05]/85 hover:bg-[#76FF03] text-white hover:text-[#050B05] border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all duration-300 shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md"
         >
-          <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
         </button>
 
         {/* Modern Segmented Progress Bar (Bottom-Right) */}

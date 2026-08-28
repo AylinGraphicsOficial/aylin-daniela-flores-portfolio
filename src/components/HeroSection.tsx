@@ -59,10 +59,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     <section
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative flex flex-col items-center px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16 w-full max-w-[1750px] mx-auto overflow-hidden pt-28 md:pt-36 pb-20"
+      className="relative flex flex-col items-center w-full overflow-hidden pt-28 md:pt-36 pb-20"
     >
       {/* Grand Central 3D Hands + Logo Masterpiece Showcase (Calibrated Composition) */}
-      <div className="relative z-10 w-full flex flex-col items-center text-center mb-16 md:mb-24 pt-4 md:pt-8">
+      <div className="relative z-10 w-full max-w-[1750px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16 flex flex-col items-center text-center mb-16 md:mb-24 pt-4 md:pt-8">
         {/* Deep ambient glow in kinetic neon green aligned with the elevated logo light source */}
         <div className="absolute top-[22%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 md:w-[380px] h-72 md:h-[380px] bg-[#76FF03]/20 rounded-full blur-[110px] pointer-events-none animate-pulse-glow" />
 
@@ -146,8 +146,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      {/* Lower Hero: Full 100% Screen-Width Breakout Slider Canvas + Superimposed Typography */}
-      <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-[580px] sm:min-h-[640px] lg:min-h-[740px] xl:min-h-[780px] flex items-center overflow-hidden z-10">
+      {/* Lower Hero: Full 100% Screen-Width Slider Canvas + Superimposed Typography */}
+      <div className="relative w-full min-h-[580px] sm:min-h-[640px] lg:min-h-[740px] xl:min-h-[780px] flex items-center overflow-hidden z-10">
         
         {/* Full-Width 100% Slider Canvas in Background Edge-to-Edge */}
         <div className="absolute inset-0 w-full h-full z-10">
