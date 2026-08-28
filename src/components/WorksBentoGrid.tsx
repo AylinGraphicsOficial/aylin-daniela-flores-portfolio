@@ -198,8 +198,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
           </h3>
         </div>
 
-        {/* 2-Column Wix Game Designer Project Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16 lg:gap-x-16 lg:gap-y-20">
+        {/* 4-Column Wix Game Designer Project Grid with 60% Reduced Rounded Corners */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {projectsData.map((project) => (
             <div
               key={project.id}
@@ -210,23 +210,23 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
               onMouseEnter={playHoverSound}
               className="group cursor-pointer flex flex-col"
             >
-              {/* Wix-Style Large Rounded Image Card */}
-              <div className="relative aspect-[16/10] w-full rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_20px_50px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-4 sm:p-6">
+              {/* Sleek Rounded Image Card (60% reduced roundness: rounded-xl / 10px) */}
+              <div className="relative aspect-[16/11] w-full rounded-xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_15px_35px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-3.5 sm:p-4">
                 <img
                   src={project.image}
                   alt={project.title}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
               </div>
 
               {/* Below-Card Typography (Title in Bold Italic + Role Subtitle) */}
-              <div className="mt-6">
-                <h4 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight mb-1.5">
+              <div className="mt-4">
+                <h4 className="text-lg sm:text-xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight mb-1">
                   {project.title}
                 </h4>
-                <p className="text-sm sm:text-base text-gray-400 font-normal tracking-wide">
+                <p className="text-xs text-gray-400 font-normal tracking-wide">
                   {project.client} • {lang === 'es' ? 'Diseñadora Principal' : 'Lead Designer'}
                 </p>
               </div>
