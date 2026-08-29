@@ -12,7 +12,7 @@ export const WelcomeCurtain: React.FC<WelcomeCurtainProps> = ({ onComplete }) =>
   const [isRendered, setIsRendered] = useState(true);
 
   const statusMessages = [
-    'INICIALIZANDO STUDIO KINETIC...',
+    'INICIALIZANDO PORTAFOLIO 3D...',
     'CARGANDO TOPOLOGÍA 3D Y SHADERS...',
     'CALIBRANDO MOTOR WEBGL & AUDIO...',
     'SISTEMA LISTO • ¡BIENVENIDO!',
@@ -191,7 +191,7 @@ export const WelcomeCurtain: React.FC<WelcomeCurtainProps> = ({ onComplete }) =>
             </span>
           </h1>
           <p className="text-[11px] sm:text-xs md:text-sm font-mono text-gray-300 tracking-[0.25em] uppercase font-semibold">
-            STUDIO KINETIC • DISEÑO & MODELADO 3D
+            DISEÑO & MODELADO 3D
           </p>
         </div>
       </div>
