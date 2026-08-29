@@ -517,29 +517,40 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       id="viewer3d"
       className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative"
     >
-      {/* Section Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-6">
-        <div>
-          <div className="section-tag-pill mb-3">
-            <span className="badge-dot animate-pulse" />
-            <span>REAL-TIME THREE.JS / GLB ENGINE</span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white uppercase">
-            {lang === 'es'
-              ? labConfig.titleEs || t.viewer3d.title
-              : labConfig.titleEn || t.viewer3d.title}
-          </h2>
-          <p className="text-gray-400 text-sm md:text-base mt-2 max-w-xl">
-            {lang === 'es'
-              ? labConfig.subtitleEs || t.viewer3d.subtitle
-              : labConfig.subtitleEn || t.viewer3d.subtitle}
-          </p>
+      {/* Section Header Centered */}
+      <div className="flex flex-col items-center text-center mb-12 space-y-4 max-w-3xl mx-auto">
+        <div className="section-tag-pill">
+          <span className="badge-dot animate-pulse" />
+          <span>REAL-TIME THREE.JS / GLB ENGINE</span>
         </div>
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-white uppercase leading-none">
+          {lang === 'es'
+            ? labConfig.titleEs || t.viewer3d.title
+            : labConfig.titleEn || t.viewer3d.title}
+        </h2>
+        <p className="text-gray-400 text-sm md:text-base max-w-2xl font-medium tracking-wide">
+          {lang === 'es'
+            ? labConfig.subtitleEs || t.viewer3d.subtitle
+            : labConfig.subtitleEn || t.viewer3d.subtitle}
+        </p>
 
-        {/* Dynamic Model Switcher Pills */}
-        <div className="flex items-center flex-wrap gap-2">
-          {modelList.map((item) => {
+        {/* Dynamic Model Switcher Pills (Centered, compact with icon, color circle and number) */}
+        <div className="flex items-center justify-center flex-wrap gap-2.5 pt-2">
+          {modelList.map((item, index) => {
             const isSelected = selectedModelId === item.id;
+            const modelColors = [
+              '#76FF03', // Electric Lime
+              '#00E5FF', // Cyber Cyan
+              '#FF007F', // Neon Pink
+              '#FFB700', // Amber Gold
+              '#A855F7', // Neon Purple
+              '#38B000', // Kinetic Green
+              '#38BDF8', // Sky Blue
+              '#F97316', // Flame Orange
+            ];
+            const color = modelColors[index % modelColors.length];
+            const numStr = index < 9 ? `0${index + 1}` : `${index + 1}`;
+
             return (
               <SpecularButton
                 key={item.id}
@@ -549,13 +560,36 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                 }}
                 variant={isSelected ? 'solid-lime' : 'glass'}
                 size="sm"
-                radius={10}
-                className="text-[11px] font-bold whitespace-nowrap px-3.5 py-1.5 flex items-center space-x-1.5"
+                radius={12}
+                className="text-xs font-bold px-3.5 py-2 flex items-center space-x-2 transition-all group"
+                title={`${numStr}. ${item.name} (${item.type.toUpperCase()})`}
+                aria-label={`Modelo ${numStr}: ${item.name}`}
               >
-                <Box className="w-3.5 h-3.5" />
-                <span>{item.name}</span>
+                <Box
+                  className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${
+                    isSelected ? 'text-black' : 'text-[#76FF03]'
+                  }`}
+                />
+
+                {/* Circular color badge with number */}
+                <span
+                  className="w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] font-black border transition-all"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(0, 0, 0, 0.2)' : `${color}25`,
+                    borderColor: isSelected ? 'rgba(0, 0, 0, 0.4)' : color,
+                    color: isSelected ? '#050B05' : color,
+                    boxShadow: isSelected ? 'none' : `0 0 8px ${color}40`,
+                  }}
+                >
+                  {numStr}
+                </span>
+
                 {item.type === 'glb' && (
-                  <span className="text-[9px] font-mono px-1 py-0.2 bg-black/40 rounded ml-1 text-white">
+                  <span
+                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold ${
+                      isSelected ? 'bg-black/25 text-black' : 'bg-white/10 text-gray-300'
+                    }`}
+                  >
                     GLB
                   </span>
                 )}

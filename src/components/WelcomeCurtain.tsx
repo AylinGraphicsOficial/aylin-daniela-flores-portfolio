@@ -19,9 +19,9 @@ export const WelcomeCurtain: React.FC<WelcomeCurtainProps> = ({ onComplete }) =>
   ];
 
   useEffect(() => {
-    // Smooth progress counter reaching 100% in ~2.4 seconds
+    // Smooth progress counter reaching 100% in ~3.4 seconds (+1 second)
     const startTime = Date.now();
-    const duration = 2400; // 2.4s loading + 0.6s exit = 3.0s total
+    const duration = 3400; // 3.4s loading + 0.6s exit = 4.0s total
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
