@@ -36,8 +36,36 @@ async function cleanAndDeploy() {
       }
     }
 
-    console.log("Uploading compiled dist directly to public_html root...");
-    await client.uploadFromDir("dist", rootDir);
+    console.log("Uploading compiled dist assets, api and root files to Hostinger...");
+    
+    // Upload assets
+    await client.ensureDir(`${rootDir}/assets`);
+    await client.uploadFromDir("dist/assets", `${rootDir}/assets`);
+    console.log("Assets uploaded!");
+
+    // Upload api
+    await client.ensureDir(`${rootDir}/api`);
+    await client.uploadFromDir("dist/api", `${rootDir}/api`);
+    console.log("API uploaded!");
+
+    // Upload root files
+    await client.cd(rootDir);
+    const rootFiles = [
+      "index.html", ".htaccess", "favicon.ico", "favicon.png",
+      "favicon-16x16.png", "favicon-32x32.png", "favicon-48x48.png",
+      "favicon-512x512.png", "apple-touch-icon.png"
+    ];
+
+    for (const file of rootFiles) {
+      const localPath = `dist/${file}`;
+      try {
+        await client.uploadFrom(localPath, file);
+        console.log(`Uploaded root file: ${file}`);
+      } catch (fErr) {
+        console.warn(`Note on uploading ${file}:`, fErr.message);
+      }
+    }
+
     console.log("DONE! Production build uploaded and working 100%!");
   } catch (err) {
     console.error("Clean and Deploy Error:", err);

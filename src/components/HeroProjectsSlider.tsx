@@ -41,14 +41,19 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
     return () => unsubscribe();
   }, []);
 
-  // Filter featured projects or take top projects
+  // Filter featured projects or take top projects, respecting custom sliderOrder, sliderImage and sliderTitle
   const sliderItems: SlideItem[] = React.useMemo(() => {
     const featured = projects.filter((p) => p.featured);
-    const sourceList = featured.length >= 3 ? featured : projects;
-    return sourceList.map((p) => ({
+    const sourceList = featured.length >= 2 ? featured : projects;
+    const sorted = [...sourceList].sort((a, b) => {
+      const orderA = a.sliderOrder !== undefined && a.sliderOrder !== null ? a.sliderOrder : 999;
+      const orderB = b.sliderOrder !== undefined && b.sliderOrder !== null ? b.sliderOrder : 999;
+      return orderA - orderB;
+    });
+    return sorted.map((p) => ({
       id: p.id,
-      image: p.image,
-      title: p.title,
+      image: p.sliderImage && p.sliderImage.trim() !== '' ? p.sliderImage : p.image,
+      title: p.sliderTitle && p.sliderTitle.trim() !== '' ? p.sliderTitle : p.title,
       category: p.category,
       year: p.year,
       projectRef: p,

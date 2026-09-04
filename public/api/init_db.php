@@ -30,6 +30,9 @@ try {
             `image` VARCHAR(500) NOT NULL,
             `galleryImages` LONGTEXT,
             `logo` VARCHAR(500) DEFAULT '',
+            `sliderImage` VARCHAR(500) DEFAULT '',
+            `sliderTitle` VARCHAR(255) DEFAULT '',
+            `sliderOrder` INT DEFAULT 0,
             `videoUrl` VARCHAR(500) DEFAULT '',
             `videoClip` VARCHAR(500) DEFAULT '',
             `gifUrl` VARCHAR(500) DEFAULT '',
@@ -42,9 +45,12 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Migration: ensure logo column exists in projects
+    // Migration: ensure logo and slider columns exist in projects
     try {
         $pdo->exec("ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`");
+        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`");
+        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`");
+        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`");
     } catch (Exception $e) {}
 
     // 2. Create Disciplines Table

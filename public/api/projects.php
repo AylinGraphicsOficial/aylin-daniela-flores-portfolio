@@ -16,11 +16,14 @@ if (!$pdo) {
     ], 500);
 }
 
-// Auto-migration: ensure logo column exists
+// Auto-migration: ensure logo and slider columns exist
 try {
     $pdo->exec("ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`");
+    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`");
+    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`");
+    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`");
 } catch (Exception $e) {
-    // Column already exists or table not ready
+    // Columns already exist or table not ready
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -39,6 +42,9 @@ if ($method === 'GET') {
         $row['featured'] = (bool)$row['featured'];
         $row['galleryImages'] = json_decode($row['galleryImages'] ?? '[]', true) ?: [];
         $row['logo'] = $row['logo'] ?? '';
+        $row['sliderImage'] = $row['sliderImage'] ?? '';
+        $row['sliderTitle'] = $row['sliderTitle'] ?? '';
+        $row['sliderOrder'] = isset($row['sliderOrder']) ? (int)$row['sliderOrder'] : 0;
         $row['tags'] = json_decode($row['tags'] ?? '[]', true) ?: [];
         $row['metrics'] = json_decode($row['metrics'] ?? '[]', true) ?: [];
         sendJsonResponse($row);
@@ -59,6 +65,9 @@ if ($method === 'GET') {
             'image'         => $row['image'],
             'galleryImages' => json_decode($row['galleryImages'] ?? '[]', true) ?: [],
             'logo'          => $row['logo'] ?? '',
+            'sliderImage'   => $row['sliderImage'] ?? '',
+            'sliderTitle'   => $row['sliderTitle'] ?? '',
+            'sliderOrder'   => isset($row['sliderOrder']) ? (int)$row['sliderOrder'] : 0,
             'videoUrl'      => $row['videoUrl'] ?? '',
             'videoClip'     => $row['videoClip'] ?? '',
             'gifUrl'        => $row['gifUrl'] ?? '',
@@ -113,11 +122,13 @@ if ($method === 'POST' || $method === 'PUT') {
 
     $upsertSql = "INSERT INTO `projects` (
         `id`, `title`, `category`, `year`, `client`, `shortDesc`, `fullDesc`,
-        `image`, `galleryImages`, `logo`, `videoUrl`, `videoClip`, `gifUrl`, `tags`,
+        `image`, `galleryImages`, `logo`, `sliderImage`, `sliderTitle`, `sliderOrder`,
+        `videoUrl`, `videoClip`, `gifUrl`, `tags`,
         `featured`, `metrics`, `display_order`, `createdAt`, `updatedAt`
     ) VALUES (
         :id, :title, :category, :year, :client, :shortDesc, :fullDesc,
-        :image, :galleryImages, :logo, :videoUrl, :videoClip, :gifUrl, :tags,
+        :image, :galleryImages, :logo, :sliderImage, :sliderTitle, :sliderOrder,
+        :videoUrl, :videoClip, :gifUrl, :tags,
         :featured, :metrics, :display_order, :createdAt, :updatedAt
     ) ON DUPLICATE KEY UPDATE
         `title` = VALUES(`title`),
@@ -129,6 +140,9 @@ if ($method === 'POST' || $method === 'PUT') {
         `image` = VALUES(`image`),
         `galleryImages` = VALUES(`galleryImages`),
         `logo` = VALUES(`logo`),
+        `sliderImage` = VALUES(`sliderImage`),
+        `sliderTitle` = VALUES(`sliderTitle`),
+        `sliderOrder` = VALUES(`sliderOrder`),
         `videoUrl` = VALUES(`videoUrl`),
         `videoClip` = VALUES(`videoClip`),
         `gifUrl` = VALUES(`gifUrl`),
@@ -156,6 +170,10 @@ if ($method === 'POST' || $method === 'PUT') {
             : (is_string($item['galleryImages'] ?? null) ? $item['galleryImages'] : '[]');
 
         $logo = $item['logo'] ?? '';
+        $sliderImage = $item['sliderImage'] ?? '';
+        $sliderTitle = $item['sliderTitle'] ?? '';
+        $sliderOrder = isset($item['sliderOrder']) ? (int)$item['sliderOrder'] : 0;
+
         $videoUrl = $item['videoUrl'] ?? '';
         $videoClip = $item['videoClip'] ?? '';
         $gifUrl = $item['gifUrl'] ?? '';
@@ -185,6 +203,9 @@ if ($method === 'POST' || $method === 'PUT') {
             ':image'         => $image,
             ':galleryImages' => $galleryImages,
             ':logo'          => $logo,
+            ':sliderImage'   => $sliderImage,
+            ':sliderTitle'   => $sliderTitle,
+            ':sliderOrder'   => $sliderOrder,
             ':videoUrl'      => $videoUrl,
             ':videoClip'     => $videoClip,
             ':gifUrl'        => $gifUrl,

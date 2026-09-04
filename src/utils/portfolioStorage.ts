@@ -1,4 +1,4 @@
-import { Project, Discipline, ExperienceItem, SocialLink } from '../types';
+import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink } from '../types';
 import { projectsData, experienceData } from '../data/portfolioData';
 
 const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v2';
@@ -662,6 +662,21 @@ export const toggleProjectFeatured = async (projectId: string): Promise<boolean>
   return nextFeatured;
 };
 
+export const saveAllProjects = async (projects: Project[]): Promise<void> => {
+  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  notifyDataChanged();
+
+  try {
+    await fetch(PROJECTS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projects }),
+    });
+  } catch (err) {
+    console.warn('Could not sync all projects with remote API:', err);
+  }
+};
+
 // ==================== DISCIPLINES CRUD ====================
 
 export const getStoredDisciplines = (): Discipline[] => {
@@ -743,6 +758,38 @@ export const deleteDisciplineSlide = (
   const discipline = current.find((d) => d.id === disciplineId);
   if (!discipline) return;
   discipline.slides = discipline.slides.filter((s) => s.id !== slideId);
+  saveDiscipline(discipline);
+};
+
+export const reorderDisciplineSlide = (
+  disciplineId: string,
+  slideId: string,
+  direction: 'up' | 'down'
+): void => {
+  const current = getStoredDisciplines();
+  const discipline = current.find((d) => d.id === disciplineId);
+  if (!discipline || !discipline.slides) return;
+  const idx = discipline.slides.findIndex((s) => s.id === slideId);
+  if (idx < 0) return;
+  const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (targetIdx < 0 || targetIdx >= discipline.slides.length) return;
+  const temp = discipline.slides[idx];
+  discipline.slides[idx] = discipline.slides[targetIdx];
+  discipline.slides[targetIdx] = temp;
+  saveDiscipline(discipline);
+};
+
+export const updateDisciplineSlide = (
+  disciplineId: string,
+  slideId: string,
+  updates: Partial<DisciplineSlide>
+): void => {
+  const current = getStoredDisciplines();
+  const discipline = current.find((d) => d.id === disciplineId);
+  if (!discipline || !discipline.slides) return;
+  const slide = discipline.slides.find((s) => s.id === slideId);
+  if (!slide) return;
+  Object.assign(slide, updates);
   saveDiscipline(discipline);
 };
 

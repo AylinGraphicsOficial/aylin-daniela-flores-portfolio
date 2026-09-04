@@ -8,24 +8,35 @@ import {
   Image as ImageIcon,
   CheckCircle,
   Loader2,
+  ArrowUp,
+  ArrowDown,
+  FolderKanban,
+  Search,
+  X,
+  Sparkles,
+  Check,
 } from 'lucide-react';
-import { Discipline } from '../../types';
+import { Discipline, Project } from '../../types';
 import {
   saveDiscipline,
   toggleDisciplineSlideVisibility,
   addDisciplineSlide,
   deleteDisciplineSlide,
+  reorderDisciplineSlide,
+  updateDisciplineSlide,
   uploadMediaFile,
 } from '../../utils/portfolioStorage';
 import { playClickSound } from '../../utils/audio';
 
 interface DisciplineSliderEditorProps {
   disciplines: Discipline[];
+  projects?: Project[];
   darkMode?: boolean;
 }
 
 export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   disciplines,
+  projects = [],
   darkMode = true,
 }) => {
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<string>(
@@ -37,8 +48,19 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // Project Picker Modal State
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerCategory, setPickerCategory] = useState<string>('ALL');
+  const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+
   const selectedDiscipline =
     disciplines.find((d) => d.id === selectedDisciplineId) || disciplines[0];
+
+  const showNotification = (msg: string) => {
+    setNotificationMsg(msg);
+    setTimeout(() => setNotificationMsg(null), 3500);
+  };
 
   const handleToggleSlide = (slideId: string) => {
     playClickSound();
@@ -48,6 +70,15 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   const handleDeleteSlide = (slideId: string) => {
     playClickSound();
     deleteDisciplineSlide(selectedDiscipline.id, slideId);
+  };
+
+  const handleMoveSlide = (slideId: string, direction: 'up' | 'down') => {
+    playClickSound();
+    reorderDisciplineSlide(selectedDiscipline.id, slideId, direction);
+  };
+
+  const handleSlideTitleChange = (slideId: string, title: string) => {
+    updateDisciplineSlide(selectedDiscipline.id, slideId, { title });
   };
 
   const handleAddSlide = (e: React.FormEvent) => {
@@ -61,7 +92,14 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
       );
       setNewSlideUrl('');
       setNewSlideTitle('');
+      showNotification('¡Diapositiva añadida al slider con éxito!');
     }
+  };
+
+  const handleAddFromProject = (imageUrl: string, suggestedTitle: string) => {
+    playClickSound();
+    addDisciplineSlide(selectedDiscipline.id, imageUrl, suggestedTitle);
+    showNotification(`¡Añadida "${suggestedTitle}" al slider de ${selectedDiscipline.titleEs}!`);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +118,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
         result.url,
         file.name.replace(/\.[^/.]+$/, '')
       );
+      showNotification('¡Imagen subida a Hostinger y añadida al slider!');
     } else {
       setUploadError(result.error || 'Error al subir la imagen.');
     }
@@ -90,6 +129,16 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
     saveDiscipline(updated);
   };
 
+  // Filter projects for modal picker
+  const filteredProjects = projects.filter((p) => {
+    const matchCat = pickerCategory === 'ALL' || p.category === pickerCategory;
+    const matchSearch =
+      !pickerSearch.trim() ||
+      p.title.toLowerCase().includes(pickerSearch.toLowerCase()) ||
+      p.client.toLowerCase().includes(pickerSearch.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
   const bgCard = darkMode
     ? 'bg-[#1E293B] border-slate-700/50 text-slate-100 shadow-sm'
     : 'bg-white border-slate-200 text-slate-900 shadow-sm';
@@ -99,7 +148,15 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   const textMuted = darkMode ? 'text-slate-400' : 'text-slate-500';
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Toast Notification */}
+      {notificationMsg && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow-2xl animate-fade-in border border-emerald-400">
+          <CheckCircle className="w-4 h-4" />
+          <span>{notificationMsg}</span>
+        </div>
+      )}
+
       {/* Specialty Selector Tabs */}
       <div className="flex flex-wrap items-center gap-3">
         {disciplines.map((d) => {
@@ -186,11 +243,36 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
           {/* Tab 1: Slides Manager */}
           {activeTab === 'slides' && (
             <div className="space-y-8">
-              {/* Add new slide row */}
-              <div className="p-5 rounded-xl border border-slate-700/60 bg-slate-900/40 space-y-4">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  <span>Añadir Nueva Diapositiva al Slider</span>
+              {/* Quick Actions Row */}
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-5 rounded-xl border border-slate-700/60 bg-slate-900/40">
+                <div>
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Añadir Diapositivas al Slider</span>
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Puedes elegir directamente de los proyectos ya subidos (con sus renders 1..6) o subir un archivo nuevo.
+                  </p>
+                </div>
+
+                {/* Primary Button: Choose from uploaded projects */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setIsPickerOpen(true);
+                  }}
+                  className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-emerald-500/20 cursor-pointer"
+                >
+                  <FolderKanban className="w-4 h-4" />
+                  <span>Elegir de Proyectos Ya Subidos ({projects.length})</span>
+                </button>
+              </div>
+
+              {/* Add manual slide row (URL or direct upload) */}
+              <div className="p-5 rounded-xl border border-slate-700/60 bg-slate-900/30 space-y-3">
+                <span className="text-xs font-mono text-slate-300 block font-semibold">
+                  O ingresar URL / Subir imagen manualmente:
                 </span>
 
                 <form onSubmit={handleAddSlide} className="flex flex-col sm:flex-row items-center gap-3">
@@ -198,14 +280,14 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                     type="text"
                     value={newSlideTitle}
                     onChange={(e) => setNewSlideTitle(e.target.value)}
-                    placeholder="Título de la diapositiva (ej. Vista Lateral)"
+                    placeholder="Título de la diapositiva (ej. Vista Frontal)"
                     className={`w-full sm:w-1/3 px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs`}
                   />
                   <input
                     type="text"
                     value={newSlideUrl}
                     onChange={(e) => setNewSlideUrl(e.target.value)}
-                    placeholder="URL de la imagen o ruta (/uploads/...)"
+                    placeholder="URL de la imagen (/images/... o /uploads/...)"
                     className={`flex-1 w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                   />
                   <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -215,7 +297,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                       ) : (
                         <Upload className="w-3.5 h-3.5" />
                       )}
-                      <span>{isUploading ? 'Subiendo...' : 'Subir a Hostinger'}</span>
+                      <span>{isUploading ? 'Subiendo...' : 'Subir Imagen'}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -226,84 +308,136 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                     </label>
                     <button
                       type="submit"
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wide whitespace-nowrap transition-colors cursor-pointer shadow-sm"
+                      className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold uppercase tracking-wide whitespace-nowrap transition-colors cursor-pointer"
                     >
-                      Añadir Slide
+                      Añadir
                     </button>
                   </div>
                 </form>
               </div>
 
-              {/* Slides Grid */}
+              {/* Slides Grid with Reordering & Inline Renaming */}
               <div>
-                <span className="text-xs font-mono font-bold uppercase tracking-wider block mb-4">
-                  Diapositivas en el Slider:
-                </span>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                  {(selectedDiscipline.slides || []).map((slide, idx) => (
-                    <div
-                      key={slide.id}
-                      className={`relative rounded-xl overflow-hidden border transition-all p-3 flex flex-col justify-between ${
-                        slide.visible
-                          ? 'border-emerald-500/50 bg-slate-800/40 shadow-sm'
-                          : 'border-slate-700/50 bg-slate-900/60 opacity-50'
-                      }`}
-                    >
-                      {/* Image Preview */}
-                      <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-3 border border-slate-700/60">
-                        <img
-                          src={slide.image}
-                          alt={slide.title || 'Slide'}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 text-[10px] font-mono text-white font-bold">
-                          #{idx + 1}
-                        </div>
-                      </div>
-
-                      {/* Info & Controls */}
-                      <div className="space-y-3">
-                        <span className="text-xs font-semibold block truncate">
-                          {slide.title || `Diapositiva ${idx + 1}`}
-                        </span>
-
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSlide(slide.id)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
-                              slide.visible
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-slate-800 text-slate-400'
-                            }`}
-                          >
-                            {slide.visible ? (
-                              <>
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Visible</span>
-                              </>
-                            ) : (
-                              <>
-                                <EyeOff className="w-3.5 h-3.5" />
-                                <span>Oculto</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteSlide(slide.id)}
-                            className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-                            title="Eliminar Diapositiva"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
+                    Diapositivas en el Slider ({selectedDiscipline.slides?.length || 0}):
+                  </span>
+                  <span className="text-[11px] font-mono text-slate-500">
+                    Usa las flechas [↑] [↓] para cambiar el orden de las diapositivas
+                  </span>
                 </div>
+
+                {(!selectedDiscipline.slides || selectedDiscipline.slides.length === 0) ? (
+                  <div className="p-10 text-center rounded-xl border border-slate-800 bg-slate-900/30 text-slate-500 text-xs font-mono">
+                    No hay diapositivas en este slider. Haz clic en "Elegir de Proyectos Ya Subidos" para añadir renders.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {selectedDiscipline.slides.map((slide, idx) => (
+                      <div
+                        key={slide.id}
+                        className={`relative rounded-xl overflow-hidden border transition-all p-3.5 flex flex-col justify-between ${
+                          slide.visible
+                            ? 'border-emerald-500/50 bg-slate-800/40 shadow-sm'
+                            : 'border-slate-700/50 bg-slate-900/60 opacity-60'
+                        }`}
+                      >
+                        {/* Top: Image Preview & Order Badge */}
+                        <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-3 border border-slate-700/60 group">
+                          <img
+                            src={slide.image}
+                            alt={slide.title || 'Slide'}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 backdrop-blur-md text-[11px] font-mono text-emerald-400 font-bold border border-emerald-500/30">
+                            #{idx + 1}
+                          </div>
+                        </div>
+
+                        {/* Title Input & Controls */}
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-[10px] font-mono text-slate-400 block mb-1">
+                              Título del Slide:
+                            </label>
+                            <input
+                              type="text"
+                              defaultValue={slide.title || ''}
+                              onBlur={(e) => handleSlideTitleChange(slide.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleSlideTitleChange(slide.id, e.currentTarget.value);
+                                  e.currentTarget.blur();
+                                }
+                              }}
+                              className={`w-full px-2.5 py-1.5 rounded-lg border ${bgInput} text-xs font-semibold outline-none`}
+                              placeholder={`Slide #${idx + 1}`}
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
+                            {/* Reorder Arrows */}
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveSlide(slide.id, 'up')}
+                                disabled={idx === 0}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 hover:text-white cursor-pointer transition-colors"
+                                title="Mover diapositiva hacia arriba"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveSlide(slide.id, 'down')}
+                                disabled={idx === selectedDiscipline.slides.length - 1}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 hover:text-white cursor-pointer transition-colors"
+                                title="Mover diapositiva hacia abajo"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {/* Visibility & Delete */}
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSlide(slide.id)}
+                                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
+                                  slide.visible
+                                    ? 'bg-emerald-500/20 text-emerald-400'
+                                    : 'bg-slate-800 text-slate-400'
+                                }`}
+                                title={slide.visible ? 'Ocultar diapositiva' : 'Mostrar diapositiva'}
+                              >
+                                {slide.visible ? (
+                                  <>
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Visible</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Oculto</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSlide(slide.id)}
+                                className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                                title="Eliminar Diapositiva"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -414,6 +548,172 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ================= MODAL: ELEGIR DE PROYECTOS YA SUBIDOS ================= */}
+      {isPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col rounded-2xl bg-[#0F172A] border border-slate-700 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#1E293B]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                  <FolderKanban className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    Elegir Renders de Proyectos Ya Subidos
+                  </h3>
+                  <p className="text-xs text-slate-400 font-mono">
+                    Añadiendo a: <span className="text-emerald-400 font-bold">{selectedDiscipline.titleEs}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(false)}
+                className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Filters & Search */}
+            <div className="p-4 sm:p-6 border-b border-slate-800 bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Category Filter */}
+              <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                {['ALL', '3D MODELING', 'BRANDING', 'DIGITAL ART', 'MOTION'].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      playClickSound();
+                      setPickerCategory(cat);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                      pickerCategory === cat
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    {cat === 'ALL' ? 'TODOS' : cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder="Buscar por proyecto o cliente..."
+                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-400 outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Modal Body: Projects and their selectable images */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              {filteredProjects.length === 0 ? (
+                <div className="text-center py-16 text-slate-400 text-xs font-mono">
+                  No se encontraron proyectos que coincidan con la búsqueda.
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {filteredProjects.map((proj) => {
+                    const allImages = [
+                      { url: proj.image, label: 'Portada Principal' },
+                      ...(proj.galleryImages || []).map((img, i) => ({
+                        url: img,
+                        label: `Render Detalle #${i + 1}`,
+                      })),
+                    ];
+
+                    return (
+                      <div
+                        key={proj.id}
+                        className="p-5 rounded-2xl border border-slate-800 bg-slate-900/80 hover:border-slate-700 transition-colors"
+                      >
+                        {/* Project Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">
+                                {proj.category}
+                              </span>
+                              <h4 className="text-sm font-bold text-white tracking-wide">
+                                {proj.title}
+                              </h4>
+                            </div>
+                            <span className="text-xs text-slate-400 font-mono mt-0.5 block">
+                              Cliente: {proj.client || 'Personal'} • {proj.year} • {allImages.length} imágenes disponibles
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Images Grid for this Project */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                          {allImages.map((imgItem, imgIdx) => (
+                            <div
+                              key={imgIdx}
+                              className="group relative rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-2 flex flex-col justify-between hover:border-emerald-500 transition-all shadow-sm"
+                            >
+                              <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-2">
+                                <img
+                                  src={imgItem.url}
+                                  alt={imgItem.label}
+                                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                />
+                                <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-sm text-[9px] font-mono text-emerald-300 font-bold">
+                                  {imgIdx === 0 ? '★ Cover' : `#${imgIdx}`}
+                                </span>
+                              </div>
+
+                              <span className="text-[11px] font-semibold text-slate-300 truncate block mb-2">
+                                {imgItem.label}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleAddFromProject(
+                                    imgItem.url,
+                                    `${proj.title} - ${imgItem.label}`
+                                  )
+                                }
+                                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all cursor-pointer shadow-sm hover:shadow-emerald-500/30"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Añadir al Slider</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-[#1E293B]">
+              <span className="text-xs text-slate-400 font-mono">
+                {selectedDiscipline.slides?.length || 0} diapositivas en el slider actualmente
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(false)}
+                className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cerrar Selector
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

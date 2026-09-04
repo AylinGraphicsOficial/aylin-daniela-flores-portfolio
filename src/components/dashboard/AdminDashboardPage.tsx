@@ -15,6 +15,7 @@ import {
   Trash2,
   ExternalLink,
   CheckCircle2,
+  CheckCircle,
   Sparkles,
   Download,
   Upload,
@@ -50,6 +51,7 @@ import {
   getStoredProjects,
   getStoredDisciplines,
   saveProject,
+  saveAllProjects,
   deleteProject,
   toggleProjectFeatured,
   subscribeToPortfolioChanges,
@@ -251,6 +253,100 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const handleToggleFeatured = (id: string) => {
     playClickSound();
     toggleProjectFeatured(id);
+  };
+
+  // ==================== HERO SLIDER HANDLERS ====================
+  const [isSavingSlider, setIsSavingSlider] = useState(false);
+  const [uploadingSliderProjId, setUploadingSliderProjId] = useState<string | null>(null);
+
+  const handleMoveFeaturedProject = async (projectId: string, direction: 'up' | 'down') => {
+    playClickSound();
+    const sorted = [...featuredProjects].sort(
+      (a, b) => (a.sliderOrder ?? 999) - (b.sliderOrder ?? 999)
+    );
+    const index = sorted.findIndex((p) => p.id === projectId);
+    if (index < 0) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= sorted.length) return;
+
+    // Swap items
+    const [moved] = sorted.splice(index, 1);
+    sorted.splice(targetIndex, 0, moved);
+
+    // Reassign sliderOrder
+    const updatedMap = new Map<string, number>();
+    sorted.forEach((p, idx) => {
+      updatedMap.set(p.id, idx + 1);
+    });
+
+    const updatedProjects = projects.map((p) => {
+      if (updatedMap.has(p.id)) {
+        return { ...p, sliderOrder: updatedMap.get(p.id) };
+      }
+      return p;
+    });
+
+    setProjects(updatedProjects);
+    await saveAllProjects(updatedProjects);
+    showNotification('¡Orden de transición del slider del Hero actualizado!');
+  };
+
+  const handleSetProjectSliderImage = async (projectId: string, imageUrl: string) => {
+    playClickSound();
+    const updated = projects.map((p) =>
+      p.id === projectId ? { ...p, sliderImage: imageUrl } : p
+    );
+    setProjects(updated);
+    await saveAllProjects(updated);
+    showNotification('¡Imagen visible en el slider actualizada!');
+  };
+
+  const handleSetProjectSliderTitle = async (projectId: string, title: string) => {
+    const updated = projects.map((p) =>
+      p.id === projectId ? { ...p, sliderTitle: title } : p
+    );
+    setProjects(updated);
+    await saveAllProjects(updated);
+  };
+
+  const handleAddProjectToHeroSlider = async (projectId: string) => {
+    playClickSound();
+    const nextOrder = featuredProjects.length + 1;
+    const updated = projects.map((p) =>
+      p.id === projectId ? { ...p, featured: true, sliderOrder: nextOrder } : p
+    );
+    setProjects(updated);
+    await saveAllProjects(updated);
+    showNotification('¡Proyecto añadido al slider del Hero!');
+  };
+
+  const handleRemoveProjectFromHeroSlider = async (projectId: string) => {
+    playClickSound();
+    const updated = projects.map((p) =>
+      p.id === projectId ? { ...p, featured: false, sliderOrder: 0 } : p
+    );
+    setProjects(updated);
+    await saveAllProjects(updated);
+    showNotification('¡Proyecto retirado del slider!');
+  };
+
+  const handleUploadSliderCustomImage = async (projectId: string, file: File) => {
+    setUploadingSliderProjId(projectId);
+    const res = await uploadMediaFile(file);
+    setUploadingSliderProjId(null);
+    if (res.success && res.url) {
+      handleSetProjectSliderImage(projectId, res.url);
+    } else {
+      alert(res.error || 'Error al subir la imagen.');
+    }
+  };
+
+  const handleSaveAllHeroSlider = async () => {
+    setIsSavingSlider(true);
+    playClickSound();
+    await saveAllProjects(projects);
+    setIsSavingSlider(false);
+    showNotification('¡Configuración del slider del Hero guardada en Hostinger MySQL!');
   };
 
   // About Section Handlers
@@ -1405,7 +1501,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   Configura las 4 disciplinas de la portada, sus diapositivas y textos en español e inglés.
                 </p>
               </div>
-              <DisciplineSliderEditor disciplines={disciplines} darkMode={darkMode} />
+              <DisciplineSliderEditor
+                disciplines={disciplines}
+                projects={projects}
+                darkMode={darkMode}
+              />
             </div>
           )}
 
@@ -2450,70 +2550,302 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 8: DESTACADOS ================= */}
-          {activeTab === 'featured' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight">
-                  Proyectos Destacados en Portada ({featuredProjects.length})
-                </h2>
-                <p className={`text-xs ${textMuted} mt-1`}>
-                  Los proyectos con estrella aparecen con prioridad en la página principal y el slider del Hero.
-                </p>
-              </div>
+          {/* ================= TAB 8: SLIDER DEL HERO & DESTACADOS ================= */}
+          {activeTab === 'featured' && (() => {
+            const sortedHeroProjects = [...featuredProjects].sort(
+              (a, b) => (a.sliderOrder ?? 999) - (b.sliderOrder ?? 999)
+            );
+            const nonFeaturedProjects = projects.filter((p) => !p.featured);
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {featuredProjects.map((proj) => (
-                  <div
-                    key={proj.id}
-                    className={`rounded-2xl border ${bgCard} overflow-hidden p-4 flex flex-col justify-between border-emerald-500/40 shadow-sm`}
-                  >
-                    <div>
-                      <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3">
-                        <img
-                          src={proj.image}
-                          alt={proj.title}
-                          className="w-full h-full object-contain p-2"
-                        />
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-emerald-500 text-white font-bold text-[10px] uppercase">
-                          ⭐ Destacado
-                        </span>
-                      </div>
-
-                      <span className="text-[10px] font-mono text-emerald-400 font-semibold uppercase block mb-1">
-                        {proj.category}
+            return (
+              <div className="space-y-8">
+                {/* Header & Master Actions */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl border border-slate-700/60 bg-slate-900/60">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
                       </span>
-                      <h4 className="text-sm font-bold tracking-tight line-clamp-1 mb-1">
-                        {proj.title}
-                      </h4>
-                      <span className="text-xs text-slate-400 block font-mono mb-2">
-                        {proj.client}
-                      </span>
+                      <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                        Control del Slider del Hero & Proyectos Destacados
+                      </h2>
                     </div>
+                    <p className={`text-xs ${textMuted} mt-1 max-w-2xl`}>
+                      Configura con precisión qué proyectos se proyectan en el slider superior de la portada, el orden de transición (#1, #2, #3...), qué imagen o render específico mostrar y títulos personalizados.
+                    </p>
+                  </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleFeatured(proj.id)}
-                        className="text-xs text-rose-400 hover:underline font-mono cursor-pointer"
-                      >
-                        Quitar de Portada
-                      </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveAllHeroSlider}
+                    disabled={isSavingSlider}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-emerald-500/25 cursor-pointer whitespace-nowrap"
+                  >
+                    {isSavingSlider ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4" />
+                    )}
+                    <span>{isSavingSlider ? 'Guardando...' : 'Guardar Slider en Hostinger MySQL'}</span>
+                  </button>
+                </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleEditProject(proj)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium transition-colors cursor-pointer"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        <span>Editar</span>
-                      </button>
+                {/* Section 1: Active Slides in the Hero Slider */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Diapositivas Activas en el Slider del Hero ({sortedHeroProjects.length}):</span>
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      Usa [↑] [↓] para alterar la secuencia de aparición en la portada
+                    </span>
+                  </div>
+
+                  {sortedHeroProjects.length === 0 ? (
+                    <div className="p-12 text-center rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
+                      <Star className="w-8 h-8 text-slate-600 mx-auto" />
+                      <p className="text-sm font-semibold text-slate-300">No hay proyectos destacados en el slider</p>
+                      <p className="text-xs text-slate-500">Selecciona proyectos de la lista inferior para agregarlos al slider principal.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {sortedHeroProjects.map((proj, idx) => {
+                        const activeSliderImg = (proj.sliderImage && proj.sliderImage.trim() !== '') ? proj.sliderImage : proj.image;
+                        const activeSliderTitle = (proj.sliderTitle && proj.sliderTitle.trim() !== '') ? proj.sliderTitle : proj.title;
+                        const availableRenders = [
+                          { url: proj.image, label: 'Portada Principal' },
+                          ...(proj.galleryImages || []).map((img, i) => ({
+                            url: img,
+                            label: `Render Detalle #${i + 1}`,
+                          })),
+                        ];
+
+                        return (
+                          <div
+                            key={proj.id}
+                            className={`rounded-2xl border ${bgCard} p-5 space-y-4 border-emerald-500/40 shadow-md relative group`}
+                          >
+                            {/* Slide Header: Order Badge & Reorder Controls */}
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-700/60">
+                              <div className="flex items-center gap-2.5">
+                                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-black">
+                                  #{idx + 1} EN SLIDER
+                                </span>
+                                <span className="text-[11px] font-mono uppercase text-slate-400 font-bold">
+                                  {proj.category}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveFeaturedProject(proj.id, 'up')}
+                                  disabled={idx === 0}
+                                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 hover:text-white transition-colors cursor-pointer"
+                                  title="Avanzar en el orden del slider"
+                                >
+                                  <ArrowUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveFeaturedProject(proj.id, 'down')}
+                                  disabled={idx === sortedHeroProjects.length - 1}
+                                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 hover:text-white transition-colors cursor-pointer"
+                                  title="Retroceder en el orden del slider"
+                                >
+                                  <ArrowDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveProjectFromHeroSlider(proj.id)}
+                                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-colors cursor-pointer ml-1"
+                                  title="Quitar de Proyectos Destacados del Slider"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Active Preview Box */}
+                            <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-700/80 flex items-center justify-center">
+                              <img
+                                src={activeSliderImg}
+                                alt={activeSliderTitle}
+                                className="w-full h-full object-contain p-2"
+                              />
+                              <div className="absolute bottom-2 left-2 right-2 px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-white/10 flex items-center justify-between">
+                                <span className="text-xs font-bold text-white truncate max-w-[70%]">
+                                  {activeSliderTitle}
+                                </span>
+                                <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase">
+                                  Vista en Slider
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Custom Slider Title Input */}
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-mono text-slate-400 block font-semibold">
+                                Título que se mostrará en el Slider (Opcional):
+                              </label>
+                              <input
+                                type="text"
+                                defaultValue={proj.sliderTitle || ''}
+                                placeholder={proj.title}
+                                onBlur={(e) => handleSetProjectSliderTitle(proj.id, e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleSetProjectSliderTitle(proj.id, e.currentTarget.value);
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                                className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold outline-none`}
+                              />
+                            </div>
+
+                            {/* Selectable Renders for this Project */}
+                            <div className="space-y-2 pt-2 border-t border-slate-700/50">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-mono font-bold text-slate-300">
+                                  Elige qué imagen proyectar en el slider:
+                                </span>
+                                <label className="text-[10px] font-mono text-emerald-400 hover:text-emerald-300 cursor-pointer flex items-center gap-1">
+                                  <Upload className="w-3 h-3" />
+                                  <span>{uploadingSliderProjId === proj.id ? 'Subiendo...' : '+ Subir otra'}</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    disabled={uploadingSliderProjId === proj.id}
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleUploadSliderCustomImage(proj.id, f);
+                                    }}
+                                    className="hidden"
+                                  />
+                                </label>
+                              </div>
+
+                              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                                {availableRenders.map((renderItem, rIdx) => {
+                                  const isSelected = activeSliderImg === renderItem.url;
+                                  return (
+                                    <button
+                                      key={rIdx}
+                                      type="button"
+                                      onClick={() => handleSetProjectSliderImage(proj.id, renderItem.url)}
+                                      className={`relative aspect-square rounded-lg overflow-hidden border p-1 transition-all cursor-pointer ${
+                                        isSelected
+                                          ? 'border-[#76FF03] ring-2 ring-[#76FF03]/40 bg-emerald-950/40 shadow-sm'
+                                          : 'border-slate-700 bg-slate-900/80 hover:border-slate-500 opacity-70 hover:opacity-100'
+                                      }`}
+                                      title={renderItem.label}
+                                    >
+                                      <img
+                                        src={renderItem.url}
+                                        alt={renderItem.label}
+                                        className="w-full h-full object-contain"
+                                      />
+                                      <span className="absolute bottom-0.5 inset-x-0 text-[8px] font-mono text-center bg-black/85 text-slate-200 truncate px-0.5">
+                                        {rIdx === 0 ? 'Cover' : `#${rIdx}`}
+                                      </span>
+                                      {isSelected && (
+                                        <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[#76FF03]" />
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Bottom Row Actions */}
+                            <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveProjectFromHeroSlider(proj.id)}
+                                className="text-xs text-rose-400 hover:text-rose-300 font-mono cursor-pointer flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Quitar de Portada</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleEditProject(proj)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span>Editar Caso de Estudio</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Section 2: Uploaded Projects available to add to the Slider */}
+                <div className="space-y-4 pt-6 border-t border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                        <FolderKanban className="w-4 h-4 text-emerald-400" />
+                        <span>Proyectos Ya Subidos Disponibles ({nonFeaturedProjects.length})</span>
+                      </h3>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5">
+                        Haz clic en "+ Añadir al Slider" para destacar cualquier proyecto en la portada.
+                      </p>
                     </div>
                   </div>
-                ))}
+
+                  {nonFeaturedProjects.length === 0 ? (
+                    <div className="p-8 text-center rounded-xl border border-slate-800 bg-slate-900/20 text-xs font-mono text-slate-500">
+                      Todos los proyectos están actualmente destacados en el slider del Hero.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {nonFeaturedProjects.map((proj) => (
+                        <div
+                          key={proj.id}
+                          className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between space-y-3 hover:border-slate-700 transition-colors"
+                        >
+                          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-950 border border-slate-800">
+                            <img
+                              src={proj.image}
+                              alt={proj.title}
+                              className="w-full h-full object-contain p-2"
+                            />
+                            <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-black/80 backdrop-blur-sm text-[10px] font-mono text-slate-300 font-semibold uppercase">
+                              {proj.category}
+                            </span>
+                          </div>
+
+                          <div>
+                            <h4 className="text-xs font-bold text-white truncate mb-0.5">
+                              {proj.title}
+                            </h4>
+                            <span className="text-[11px] text-slate-400 font-mono block truncate">
+                              {proj.client || 'Personal'} • {proj.year}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleAddProjectToHeroSlider(proj.id)}
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Añadir al Slider</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ================= TAB 9: MEDIOS & CLIPS ================= */}
           {activeTab === 'media' && (

@@ -11,6 +11,9 @@ export interface Project {
   image: string;
   galleryImages?: string[];
   logo?: string; // Logotipo o imagen representativa del proyecto / marca a la par del título
+  sliderImage?: string; // Imagen personalizada para el slider del Hero
+  sliderTitle?: string; // Título personalizado para el slider del Hero
+  sliderOrder?: number; // Orden de visualización en el slider del Hero
   videoUrl?: string; // YouTube, Vimeo, direct MP4 URL
   videoClip?: string; // Small MP4 or WebM video file
   gifUrl?: string; // Animated GIF
