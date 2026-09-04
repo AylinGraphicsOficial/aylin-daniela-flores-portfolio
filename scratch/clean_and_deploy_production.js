@@ -67,7 +67,6 @@ async function cleanAndDeploy() {
 
     // 2. UPLOAD COMPILED ASSETS
     console.log("\n--- UPLOADING BUNDLED ASSETS ---");
-    await client.ensureDir(`${rootDir}/assets`);
     await client.cd(`${rootDir}/assets`);
     const assetFiles = fs.readdirSync("dist/assets");
     for (const f of assetFiles) {
@@ -77,7 +76,6 @@ async function cleanAndDeploy() {
 
     // 3. UPLOAD PHP API FILES
     console.log("\n--- UPLOADING API PHP FILES ---");
-    await client.ensureDir(`${rootDir}/api`);
     await client.cd(`${rootDir}/api`);
     const apiFiles = ["projects.php", "init_db.php", "disciplines.php", "settings.php", "upload.php", "config.php"];
     for (const f of apiFiles) {
