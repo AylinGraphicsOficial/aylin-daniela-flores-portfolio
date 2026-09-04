@@ -1212,8 +1212,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         {proj.client}
                       </span>
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                          {(proj.galleryImages || []).length} vistas de detalle
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                            (proj.galleryImages || []).length >= 6
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-slate-800 text-slate-300'
+                          }`}
+                        >
+                          {(proj.galleryImages || []).length}/6 vistas de detalle
                         </span>
                       </div>
                     </div>

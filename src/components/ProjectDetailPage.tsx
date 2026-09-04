@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers } from 'lucide-react';
 import { Project, Language } from '../types';
 import { projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
+import { ProjectImageZoomModal } from './ProjectImageZoomModal';
 
 interface ProjectDetailPageProps {
   project: Project;
@@ -20,6 +21,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   onSelectProject,
   onOpenProjectPlanner,
 }) => {
+  const [isZoomOpen, setIsZoomOpen] = useState<boolean>(false);
+  const [zoomInitialIndex, setZoomInitialIndex] = useState<number>(0);
+
   const currentIndex = projectsData.findIndex((p) => p.id === project.id);
   const prevProject =
     currentIndex > 0
@@ -29,6 +33,27 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     currentIndex < projectsData.length - 1
       ? projectsData[currentIndex + 1]
       : projectsData[0];
+
+  // Build unified high-res image list for zoom viewer
+  const allImages = useMemo(() => {
+    const list: string[] = [];
+    if (project.image) list.push(project.image);
+    if (project.galleryImages && project.galleryImages.length > 0) {
+      project.galleryImages.forEach((img) => {
+        if (img && !list.includes(img)) {
+          list.push(img);
+        }
+      });
+    }
+    return list.length > 0 ? list : [project.image];
+  }, [project.image, project.galleryImages]);
+
+  const handleOpenZoom = (targetImgUrl: string) => {
+    playClickSound();
+    const idx = allImages.indexOf(targetImgUrl);
+    setZoomInitialIndex(idx >= 0 ? idx : 0);
+    setIsZoomOpen(true);
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -163,29 +188,72 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
       {/* Main Full-Bleed Artwork Showcase (Matching Wix Game Designer Gallery) */}
       <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16 mt-16">
-        {/* Main Hero Artwork */}
-        <div className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 shadow-2xl relative group">
+        {/* Main Hero Artwork with Interactive Zoom Overlay */}
+        <div
+          onClick={() => handleOpenZoom(project.image)}
+          onMouseEnter={playHoverSound}
+          className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative group cursor-pointer transition-all duration-500"
+          title={lang === 'es' ? 'Clic para ampliar y hacer zoom en alta resolución' : 'Click to expand and zoom in high-res'}
+        >
           <img
             src={project.image}
             alt={project.title}
-            className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4"
+            className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
           />
+
+          {/* Floating Zoom Badge / Button */}
+          <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10 flex items-center space-x-2">
+            <div className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/20 group-hover:border-[#76FF03] text-gray-200 group-hover:text-white transition-all shadow-xl font-mono text-xs font-bold">
+              <ZoomIn className="w-4 h-4 text-[#76FF03] group-hover:scale-110 transition-transform" />
+              <span>{lang === 'es' ? 'Hacer Zoom / Ver Detalle' : 'Zoom In / View Details'}</span>
+            </div>
+          </div>
         </div>
 
         {/* Sub-Gallery Section Header */}
         {project.galleryImages && project.galleryImages.length > 0 && (
           <div className="pt-8">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tight text-white mb-8">
-              {lang === 'es' ? 'VISTAS DE DETALLE & RENDER' : 'DETAIL VIEWS & RENDERS'}
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-4 border-b border-white/10 gap-4">
+              <div>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tight text-white">
+                  {lang === 'es' ? 'VISTAS DE DETALLE & RENDER' : 'DETAIL VIEWS & RENDERS'}
+                </h2>
+                <p className="text-xs sm:text-sm font-mono text-gray-400 mt-1">
+                  {lang === 'es'
+                    ? `Galería de renders de producción (${project.galleryImages.length} de máx 6) • Clic en cualquier imagen para hacer zoom detallado`
+                    : `Production renders gallery (${project.galleryImages.length} of max 6) • Click any image for deep detail zoom`}
+                </p>
+              </div>
 
-            {/* 2-Column Grid of Project Renders */}
+              <span className="self-start sm:self-auto text-xs font-mono text-[#76FF03] bg-[#76FF03]/10 border border-[#76FF03]/30 px-3 py-1.5 rounded-full flex items-center space-x-1.5">
+                <Layers className="w-3.5 h-3.5" />
+                <span>
+                  {project.galleryImages.length}{' '}
+                  {lang === 'es'
+                    ? project.galleryImages.length === 1
+                      ? 'Render'
+                      : 'Renders'
+                    : 'Renders'}
+                </span>
+              </span>
+            </div>
+
+            {/* 2-Column Grid of Project Renders (Up to 6 images) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
               {project.galleryImages.map((imgSrc, idx) => (
                 <div
                   key={idx}
-                  className="rounded-3xl overflow-hidden bg-[#081208] border border-white/15 hover:border-[#76FF03]/60 transition-all duration-500 shadow-xl group aspect-[16/10] flex items-center justify-center p-4"
+                  onClick={() => handleOpenZoom(imgSrc)}
+                  onMouseEnter={playHoverSound}
+                  className="rounded-3xl overflow-hidden bg-[#081208] border border-white/15 hover:border-[#76FF03] hover:shadow-[0_0_35px_rgba(118,255,3,0.25)] transition-all duration-500 shadow-xl group aspect-[16/10] flex items-center justify-center p-4 relative cursor-pointer"
+                  title={lang === 'es' ? `Ver render #${idx + 1} y hacer zoom` : `View render #${idx + 1} and zoom`}
                 >
+                  {/* Slot Number Tag */}
+                  <div className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-[11px] font-mono text-gray-300 group-hover:text-[#76FF03] group-hover:border-[#76FF03]/50 transition-colors">
+                    VISTA #{idx + 1}
+                  </div>
+
+                  {/* The Image */}
                   <img
                     src={imgSrc}
                     alt={`${project.title} detail ${idx + 1}`}
@@ -193,12 +261,30 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     decoding="async"
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
+
+                  {/* Hover Floating Button "Hacer Zoom" */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+                    <div className="flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-[#76FF03] text-[#050B05] font-mono text-xs font-black uppercase tracking-wider shadow-[0_0_25px_rgba(118,255,3,0.8)] scale-90 group-hover:scale-100 transition-transform duration-300">
+                      <ZoomIn className="w-4 h-4" />
+                      <span>{lang === 'es' ? 'Hacer Zoom & Ver Detalles' : 'Zoom In & View Details'}</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* Interactive High-Res Zoom & Lightbox Modal */}
+      <ProjectImageZoomModal
+        isOpen={isZoomOpen}
+        images={allImages}
+        initialIndex={zoomInitialIndex}
+        projectTitle={project.title}
+        lang={lang}
+        onClose={() => setIsZoomOpen(false)}
+      />
 
       {/* Bottom Wix-Style Project Navigator */}
       <div className="max-w-7xl mx-auto mt-24 pt-12 border-t border-white/15">

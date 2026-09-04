@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2, ZoomIn } from 'lucide-react';
 import { Project, Language } from '../types';
 import { playClickSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
+import { ProjectImageZoomModal } from './ProjectImageZoomModal';
 
 interface CaseStudyModalProps {
   project: Project | null;
@@ -14,12 +15,14 @@ interface CaseStudyModalProps {
 
 export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
   project,
+  lang = 'es',
   onClose,
   onOpenProjectPlanner,
 }) => {
   if (!project) return null;
 
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [isZoomOpen, setIsZoomOpen] = useState<boolean>(false);
   const gallery = project.galleryImages && project.galleryImages.length > 0
     ? project.galleryImages
     : [project.image];
@@ -74,15 +77,27 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
             </p>
           </div>
 
-          {/* Interactive Image Gallery Carousel */}
-          <div className="relative rounded-2xl overflow-hidden bg-[#050B05] border border-white/10 min-h-[300px] md:min-h-[460px] flex items-center justify-center">
+          {/* Interactive Image Gallery Carousel with Zoom overlay */}
+          <div
+            onClick={() => setIsZoomOpen(true)}
+            className="relative rounded-2xl overflow-hidden bg-[#050B05] border border-white/10 hover:border-[#76FF03]/50 min-h-[300px] md:min-h-[460px] flex items-center justify-center cursor-pointer group transition-all"
+            title="Clic para ampliar y hacer zoom"
+          >
             <img
               src={gallery[activeImageIndex]}
               alt={project.title}
               loading="lazy"
               decoding="async"
-              className="w-full h-full max-h-[500px] object-contain transition-all duration-500"
+              className="w-full h-full max-h-[500px] object-contain transition-all duration-500 group-hover:scale-[1.01]"
             />
+
+            {/* Floating Zoom Button */}
+            <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/40 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
+                <ZoomIn className="w-3.5 h-3.5" />
+                <span>Hacer Zoom</span>
+              </div>
+            </div>
 
             {gallery.length > 1 && (
               <>
@@ -232,6 +247,16 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Interactive High-Res Zoom Lightbox Modal */}
+      <ProjectImageZoomModal
+        isOpen={isZoomOpen}
+        images={gallery}
+        initialIndex={activeImageIndex}
+        projectTitle={project.title}
+        lang={lang}
+        onClose={() => setIsZoomOpen(false)}
+      />
     </div>
   );
 };
