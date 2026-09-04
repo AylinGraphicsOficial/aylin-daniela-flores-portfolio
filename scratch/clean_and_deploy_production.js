@@ -1,4 +1,5 @@
 import { Client } from "basic-ftp";
+import fs from "fs";
 
 async function cleanAndDeploy() {
   const client = new Client();
@@ -38,15 +39,55 @@ async function cleanAndDeploy() {
 
     console.log("Uploading compiled dist assets, api and root files to Hostinger...");
     
+    // Helper to safely upload file deleting remote first if present
+    async function uploadFileSafely(localPath, remoteName) {
+      try {
+        await client.remove(remoteName).catch(() => {});
+      } catch (e) {}
+      await client.uploadFrom(localPath, remoteName);
+    }
+
     // Upload assets
     await client.ensureDir(`${rootDir}/assets`);
     await client.uploadFromDir("dist/assets", `${rootDir}/assets`);
     console.log("Assets uploaded!");
 
-    // Upload api
+    // Upload api files safely
     await client.ensureDir(`${rootDir}/api`);
-    await client.uploadFromDir("dist/api", `${rootDir}/api`);
+    await client.cd(`${rootDir}/api`);
+    const apiFiles = ["projects.php", "init_db.php", "disciplines.php", "settings.php", "upload.php", "config.php"];
+    for (const f of apiFiles) {
+      if (fs.existsSync(`dist/api/${f}`)) {
+        await uploadFileSafely(`dist/api/${f}`, f);
+        console.log(`Uploaded api file: ${f}`);
+      }
+    }
     console.log("API uploaded!");
+
+    // Helper to safely sync directory with size check
+    async function syncDirectory(localDir, remoteDir) {
+      if (!fs.existsSync(localDir)) return;
+      await client.ensureDir(remoteDir);
+      await client.cd(remoteDir);
+      const remoteList = await client.list();
+      const files = fs.readdirSync(localDir);
+      for (const file of files) {
+        const localPath = `${localDir}/${file}`;
+        const stat = fs.statSync(localPath);
+        if (stat.isFile()) {
+          const match = remoteList.find(r => r.name === file);
+          if (!match || match.size !== stat.size) {
+            console.log(`Uploading ${file} to ${remoteDir}...`);
+            await uploadFileSafely(localPath, file);
+          }
+        }
+      }
+    }
+
+    // Sync models & uploads
+    await syncDirectory("dist/models", `${rootDir}/models`);
+    await syncDirectory("dist/uploads", `${rootDir}/uploads`);
+    console.log("3D Models and Uploads synced!");
 
     // Upload root files
     await client.cd(rootDir);
@@ -58,11 +99,13 @@ async function cleanAndDeploy() {
 
     for (const file of rootFiles) {
       const localPath = `dist/${file}`;
-      try {
-        await client.uploadFrom(localPath, file);
-        console.log(`Uploaded root file: ${file}`);
-      } catch (fErr) {
-        console.warn(`Note on uploading ${file}:`, fErr.message);
+      if (fs.existsSync(localPath)) {
+        try {
+          await uploadFileSafely(localPath, file);
+          console.log(`Uploaded root file: ${file}`);
+        } catch (fErr) {
+          console.warn(`Note on uploading ${file}:`, fErr.message);
+        }
       }
     }
 

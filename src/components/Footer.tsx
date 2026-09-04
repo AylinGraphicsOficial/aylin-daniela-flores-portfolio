@@ -93,9 +93,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
         </span>
 
         <div className="flex items-center gap-4">
-          <span className="flex items-center space-x-1.5">
-            <span>DESIGNED & ENGINEERED WITH KINETIC RIGOR</span>
-          </span>
 
           {/* Discreet Admin Login Trigger */}
           <button

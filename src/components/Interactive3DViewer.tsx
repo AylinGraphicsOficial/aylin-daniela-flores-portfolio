@@ -304,91 +304,111 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
       setIsLoadingModel(true);
       const loader = new GLTFLoader();
 
-      loader.load(
-        targetModel.url,
-        (gltf) => {
-          // Discard if user clicked another model in the meantime
-          if (currentReqId !== loadRequestIdRef.current) return;
+      // Clean fallback URLs for known models if remote /uploads fails
+      const fallbackUrlMap: Record<string, string> = {
+        'torre-castillo': '/models/torre-castillo.glb',
+        'm3d-1787986860201': '/models/cipitio-encastre.glb',
+        'm3d-1787986928956': '/models/honda-150l-xr.glb',
+        'm3d-1787990325278': '/models/gatito-animado.glb',
+        'm3d-1787991602970': '/models/dinosaurio-pepakura.glb',
+        'm3d-1788387556598': '/models/darion.glb',
+      };
 
-          clearModelGroup();
-          const modelGroup = gltf.scene;
+      const executeLoad = (urlToLoad: string, isFallbackAttempt = false) => {
+        loader.load(
+          urlToLoad,
+          (gltf) => {
+            // Discard if user clicked another model in the meantime
+            if (currentReqId !== loadRequestIdRef.current) return;
 
-          // Compute Bounding Box to center & auto-scale
-          const box = new THREE.Box3().setFromObject(modelGroup);
-          const size = box.getSize(new THREE.Vector3());
-          const center = box.getCenter(new THREE.Vector3());
+            clearModelGroup();
+            const modelGroup = gltf.scene;
 
-          // Center geometry at origin
-          modelGroup.position.x += -center.x;
-          modelGroup.position.y += -center.y;
-          modelGroup.position.z += -center.z;
+            // Compute Bounding Box to center & auto-scale
+            const box = new THREE.Box3().setFromObject(modelGroup);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
 
-          // Auto scale so max dimension is perfectly framed (~3.2 units)
-          const maxDim = Math.max(size.x, size.y, size.z);
-          if (maxDim > 0) {
-            const scale = 3.2 / maxDim;
-            modelGroup.scale.set(scale, scale, scale);
-          }
+            // Center geometry at origin
+            modelGroup.position.x += -center.x;
+            modelGroup.position.y += -center.y;
+            modelGroup.position.z += -center.z;
 
-          let totalVertices = 0;
-          let totalTriangles = 0;
-          const col = new THREE.Color(lightingColor);
-
-          modelGroup.traverse((child: any) => {
-            if (child.isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-
-              if (child.geometry) {
-                totalVertices += child.geometry.attributes.position?.count || 0;
-                if (child.geometry.index) {
-                  totalTriangles += child.geometry.index.count / 3;
-                } else {
-                  totalTriangles += (child.geometry.attributes.position?.count || 0) / 3;
-                }
-              }
-
-              // Save original colors and emissive for clean restoration
-              const materials = Array.isArray(child.material) ? child.material : [child.material];
-              materials.forEach((mat: any) => {
-                if (mat) {
-                  if (!mat.userData.origColor && mat.color) {
-                    mat.userData.origColor = mat.color.clone();
-                  }
-                  if (!mat.userData.origEmissive && mat.emissive) {
-                    mat.userData.origEmissive = mat.emissive.clone();
-                  }
-                }
-              });
-
-              updateMeshShading(child, isWireframe, col);
+            // Auto scale so max dimension is perfectly framed (~3.2 units)
+            const maxDim = Math.max(size.x, size.y, size.z);
+            if (maxDim > 0) {
+              const scale = 3.2 / maxDim;
+              modelGroup.scale.set(scale, scale, scale);
             }
-          });
 
-          modelGroupRef.current.add(modelGroup);
-          setIsLoadingModel(false);
+            let totalVertices = 0;
+            let totalTriangles = 0;
+            const col = new THREE.Color(lightingColor);
 
-          setModelStats({
-            name: targetModel.name,
-            stats: `${Math.round(totalVertices).toLocaleString()} Vértices • ${Math.round(totalTriangles).toLocaleString()} Caras • Archivo GLB 3D`,
-            polyCount: `${Math.round(totalTriangles / 1000)}k Poly`,
-          });
+            modelGroup.traverse((child: any) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
 
-          // Reset Camera view
-          if (cameraRef.current && controlsRef.current) {
-            cameraRef.current.position.set(4, 2.8, 5.2);
-            controlsRef.current.target.set(0, 0, 0);
-            controlsRef.current.update();
+                if (child.geometry) {
+                  totalVertices += child.geometry.attributes.position?.count || 0;
+                  if (child.geometry.index) {
+                    totalTriangles += child.geometry.index.count / 3;
+                  } else {
+                    totalTriangles += (child.geometry.attributes.position?.count || 0) / 3;
+                  }
+                }
+
+                // Save original colors and emissive for clean restoration
+                const materials = Array.isArray(child.material) ? child.material : [child.material];
+                materials.forEach((mat: any) => {
+                  if (mat) {
+                    if (!mat.userData.origColor && mat.color) {
+                      mat.userData.origColor = mat.color.clone();
+                    }
+                    if (!mat.userData.origEmissive && mat.emissive) {
+                      mat.userData.origEmissive = mat.emissive.clone();
+                    }
+                  }
+                });
+
+                updateMeshShading(child, isWireframe, col);
+              }
+            });
+
+            modelGroupRef.current.add(modelGroup);
+            setIsLoadingModel(false);
+
+            setModelStats({
+              name: targetModel.name,
+              stats: `${Math.round(totalVertices).toLocaleString()} Vértices • ${Math.round(totalTriangles).toLocaleString()} Caras • Archivo GLB 3D`,
+              polyCount: `${Math.round(totalTriangles / 1000)}k Poly`,
+            });
+
+            // Reset Camera view
+            if (cameraRef.current && controlsRef.current) {
+              cameraRef.current.position.set(4, 2.8, 5.2);
+              controlsRef.current.target.set(0, 0, 0);
+              controlsRef.current.update();
+            }
+          },
+          undefined,
+          (err) => {
+            if (currentReqId !== loadRequestIdRef.current) return;
+            const fallback = fallbackUrlMap[targetModel.id];
+            if (!isFallbackAttempt && fallback && fallback !== urlToLoad) {
+              console.log(`Retrying GLB with local clean path: ${fallback}`);
+              executeLoad(fallback, true);
+              return;
+            }
+            console.warn('Error loading GLB, falling back to procedural:', err);
+            setIsLoadingModel(false);
+            buildProceduralModel(targetModel.proceduralKey || 'retroCar');
           }
-        },
-        undefined,
-        (err) => {
-          if (currentReqId !== loadRequestIdRef.current) return;
-          console.warn('Error loading GLB, falling back to procedural:', err);
-          setIsLoadingModel(false);
-          buildProceduralModel(targetModel.proceduralKey || 'retroCar');
-        }
-      );
+        );
+      };
+
+      executeLoad(targetModel.url);
     } else {
       buildProceduralModel(targetModel.proceduralKey || 'retroCar');
     }
@@ -582,6 +602,15 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                   }}
                 >
                   {numStr}
+                </span>
+
+                {/* Model Name Label */}
+                <span
+                  className={`text-xs font-bold tracking-wide truncate max-w-[130px] sm:max-w-[200px] transition-colors ${
+                    isSelected ? 'text-[#050B05]' : 'text-white group-hover:text-[#76FF03]'
+                  }`}
+                >
+                  {item.name}
                 </span>
 
                 {item.type === 'glb' && (
