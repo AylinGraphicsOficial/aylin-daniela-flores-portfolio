@@ -14,6 +14,27 @@ interface ProjectDetailPageProps {
   onOpenProjectPlanner: () => void;
 }
 
+const fallbackImageMap: Record<string, string> = {
+  imagen_naipes: '/images/projects/la-rebusca/imagen_naipes@300x.webp',
+  naipe1: '/images/projects/la-rebusca/naipe1@300x.webp',
+  naipe2: '/images/projects/la-rebusca/naipe2@300x.webp',
+  naipe3: '/images/projects/la-rebusca/naipe3@300x.webp',
+  naipe4: '/images/projects/la-rebusca/naipe4@300x.webp',
+  packagin_1: '/images/projects/la-rebusca/packagin 1@300x.webp',
+  packagin2: '/images/projects/la-rebusca/packagin2@300x.webp',
+  post_losrebusca: '/images/projects/la-rebusca/post_losrebusca@300x.webp',
+};
+
+const handleImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl: string) => {
+  const imgEl = e.currentTarget;
+  for (const [key, fallbackUrl] of Object.entries(fallbackImageMap)) {
+    if (originalUrl.includes(key) && !imgEl.src.endsWith(fallbackUrl) && imgEl.src !== fallbackUrl) {
+      imgEl.src = fallbackUrl;
+      return;
+    }
+  }
+};
+
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   project,
   lang,
@@ -210,6 +231,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           <img
             src={project.image}
             alt={project.title}
+            onError={(e) => handleImgError(e, project.image)}
             className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
           />
 
@@ -271,6 +293,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     alt={`${project.title} detail ${idx + 1}`}
                     loading="lazy"
                     decoding="async"
+                    onError={(e) => handleImgError(e, imgSrc)}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
 

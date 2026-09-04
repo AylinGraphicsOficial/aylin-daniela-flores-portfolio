@@ -24,6 +24,27 @@ interface ProjectImageZoomModalProps {
   onClose: () => void;
 }
 
+const fallbackImageMap: Record<string, string> = {
+  imagen_naipes: '/images/projects/la-rebusca/imagen_naipes@300x.webp',
+  naipe1: '/images/projects/la-rebusca/naipe1@300x.webp',
+  naipe2: '/images/projects/la-rebusca/naipe2@300x.webp',
+  naipe3: '/images/projects/la-rebusca/naipe3@300x.webp',
+  naipe4: '/images/projects/la-rebusca/naipe4@300x.webp',
+  packagin_1: '/images/projects/la-rebusca/packagin 1@300x.webp',
+  packagin2: '/images/projects/la-rebusca/packagin2@300x.webp',
+  post_losrebusca: '/images/projects/la-rebusca/post_losrebusca@300x.webp',
+};
+
+const handleZoomImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl: string) => {
+  const imgEl = e.currentTarget;
+  for (const [key, fallbackUrl] of Object.entries(fallbackImageMap)) {
+    if (originalUrl.includes(key) && !imgEl.src.endsWith(fallbackUrl) && imgEl.src !== fallbackUrl) {
+      imgEl.src = fallbackUrl;
+      return;
+    }
+  }
+};
+
 export const ProjectImageZoomModal: React.FC<ProjectImageZoomModalProps> = ({
   isOpen,
   images,
@@ -403,6 +424,7 @@ export const ProjectImageZoomModal: React.FC<ProjectImageZoomModalProps> = ({
             ref={imgRef}
             src={currentImage}
             alt={`${projectTitle} - render ${currentIndex + 1}`}
+            onError={(e) => handleZoomImgError(e, currentImage)}
             draggable={false}
             className="max-w-[90vw] max-h-[74vh] object-contain rounded-xl shadow-2xl pointer-events-none border border-white/10"
           />
