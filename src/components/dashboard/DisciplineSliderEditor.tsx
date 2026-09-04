@@ -15,6 +15,8 @@ import {
   X,
   Sparkles,
   Check,
+  ExternalLink,
+  Layers,
 } from 'lucide-react';
 import { Discipline, Project } from '../../types';
 import {
@@ -25,6 +27,9 @@ import {
   reorderDisciplineSlide,
   updateDisciplineSlide,
   uploadMediaFile,
+  getProjectsForDiscipline,
+  toggleProjectInDiscipline,
+  saveProject,
 } from '../../utils/portfolioStorage';
 import { playClickSound } from '../../utils/audio';
 
@@ -44,7 +49,7 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   );
   const [newSlideUrl, setNewSlideUrl] = useState('');
   const [newSlideTitle, setNewSlideTitle] = useState('');
-  const [activeTab, setActiveTab] = useState<'slides' | 'texts'>('slides');
+  const [activeTab, setActiveTab] = useState<'slides' | 'texts' | 'projects'>('slides');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -56,6 +61,36 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
 
   const selectedDiscipline =
     disciplines.find((d) => d.id === selectedDisciplineId) || disciplines[0];
+
+  const assignedProjects = getProjectsForDiscipline(selectedDiscipline.id, projects, disciplines);
+
+  const isProjectAssigned = (proj: Project): boolean => {
+    if (proj.disciplineId && proj.disciplineId === selectedDiscipline.id) return true;
+    if (selectedDiscipline.projectIds && selectedDiscipline.projectIds.includes(proj.id)) return true;
+    if (!proj.disciplineId) {
+      if (selectedDiscipline.id === 'modelado-3d' && proj.category === '3D MODELING') return true;
+      if (selectedDiscipline.id === 'branding' && proj.category === 'BRANDING') return true;
+      if (selectedDiscipline.id === 'edicion-video' && (proj.category === 'MOTION' || proj.category === 'DIGITAL ART')) return true;
+      if (selectedDiscipline.id === 'social-media' && (proj.category === 'BRANDING' || proj.category === 'DIGITAL ART')) return true;
+    }
+    return false;
+  };
+
+  const handleToggleProjectAssignment = async (proj: Project) => {
+    playClickSound();
+    const currentAssigned = isProjectAssigned(proj);
+    const newDisciplineId = currentAssigned ? '' : selectedDiscipline.id;
+    await saveProject({
+      ...proj,
+      disciplineId: newDisciplineId,
+    });
+    await toggleProjectInDiscipline(selectedDiscipline.id, proj.id);
+    showNotification(
+      currentAssigned
+        ? `"${proj.title}" desasignado de ${selectedDiscipline.titleEs}.`
+        : `"${proj.title}" asignado a ${selectedDiscipline.titleEs} con éxito.`
+    );
+  };
 
   const showNotification = (msg: string) => {
     setNotificationMsg(msg);
@@ -206,29 +241,40 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               </p>
             </div>
 
-            {/* Sub-tabs: Slides vs Texts */}
-            <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60">
+            {/* Sub-tabs: Slides vs Texts vs Projects */}
+            <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60 flex-wrap">
               <button
                 type="button"
                 onClick={() => setActiveTab('slides')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'slides'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                🖼️ Slider de Renders ({selectedDiscipline.slides?.length || 0})
+                🖼️ Slider ({selectedDiscipline.slides?.length || 0})
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('texts')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'texts'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                ✏️ Textos & Descripciones
+                ✏️ Textos
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('projects')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'projects'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                📂 Trabajos Asignados ({assignedProjects.length})
               </button>
             </div>
           </div>
@@ -545,6 +591,97 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                   onChange={(e) => handleTextUpdate('descEn', e.target.value)}
                   className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs leading-relaxed`}
                 />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Assigned Projects Manager */}
+          {activeTab === 'projects' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl border border-slate-700/60 bg-slate-900/40">
+                <div>
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                    <FolderKanban className="w-4 h-4" />
+                    <span>Trabajos Asignados a {selectedDiscipline.titleEs}</span>
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Los trabajos seleccionados aparecerán en la página exclusiva de esta sección al hacer clic en la portada.
+                  </p>
+                </div>
+
+                <a
+                  href={`#disciplina/${selectedDiscipline.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-600 text-slate-200 hover:text-white font-bold text-xs transition-all border border-slate-700 cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Ver Página Dedicada en Vivo</span>
+                </a>
+              </div>
+
+              {/* Projects Grid for Assignment */}
+              <div className="space-y-3">
+                <span className="text-xs font-mono text-slate-300 block font-semibold">
+                  Selecciona qué producciones pertenecen a esta sección ({assignedProjects.length} asignados de {projects.length}):
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projects.map((proj) => {
+                    const assigned = isProjectAssigned(proj);
+                    return (
+                      <div
+                        key={proj.id}
+                        className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between space-y-3 ${
+                          assigned
+                            ? 'border-emerald-500/60 bg-emerald-950/20 shadow-md'
+                            : 'border-slate-800 bg-slate-900/40 opacity-75 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={proj.image}
+                            alt={proj.title}
+                            className="w-16 h-12 object-cover rounded-lg bg-black border border-slate-700 shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-bold text-white truncate">
+                              {proj.title}
+                            </h4>
+                            <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
+                              {proj.category} • {proj.year}
+                            </span>
+                            <span className="text-[10px] text-slate-500 truncate block">
+                              {proj.client}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleProjectAssignment(proj)}
+                          className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            assigned
+                              ? 'bg-emerald-600 hover:bg-rose-600 text-white shadow-sm'
+                              : 'bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white border border-slate-700'
+                          }`}
+                        >
+                          {assigned ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Asignado a {selectedDiscipline.titleEs}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Asignar a esta sección</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

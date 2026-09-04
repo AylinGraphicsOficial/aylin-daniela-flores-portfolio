@@ -18,6 +18,8 @@ import {
   Eye,
   Lock,
   ZoomIn,
+  ExternalLink,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { Project } from '../../types';
 import { playClickSound } from '../../utils/audio';
@@ -43,6 +45,9 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     id: '',
     title: '',
     category: '3D MODELING',
+    disciplineId: 'modelado-3d',
+    externalLink: '',
+    externalLinkText: 'VER MÁS DEL TRABAJO',
     year: '2026',
     client: '',
     shortDesc: '',
@@ -79,6 +84,13 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         ...project,
         galleryImages: project.galleryImages || [],
         logo: project.logo || '',
+        externalLink: project.externalLink || '',
+        externalLinkText: project.externalLinkText || 'VER MÁS DEL TRABAJO',
+        disciplineId: project.disciplineId || (
+          project.category === '3D MODELING' ? 'modelado-3d' :
+          project.category === 'BRANDING' ? 'branding' :
+          project.category === 'MOTION' ? 'edicion-video' : 'social-media'
+        ),
         tags: project.tags || [],
         metrics: project.metrics || [{ label: 'Render Samples', value: '4,096 SPP' }],
       });
@@ -88,6 +100,9 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         id: `proj-${Date.now()}`,
         title: '',
         category: '3D MODELING',
+        disciplineId: 'modelado-3d',
+        externalLink: '',
+        externalLinkText: 'VER MÁS DEL TRABAJO',
         year: '2026',
         client: '',
         shortDesc: '',
@@ -310,6 +325,13 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       id: formData.id || `proj-${Date.now()}`,
       title: formData.title || 'Nuevo Proyecto',
       category: (formData.category as any) || '3D MODELING',
+      disciplineId: formData.disciplineId || (
+        formData.category === '3D MODELING' ? 'modelado-3d' :
+        formData.category === 'BRANDING' ? 'branding' :
+        formData.category === 'MOTION' ? 'edicion-video' : 'social-media'
+      ),
+      externalLink: formData.externalLink || '',
+      externalLinkText: formData.externalLinkText || 'VER MÁS DEL TRABAJO',
       year: formData.year || '2026',
       client: formData.client || 'Cliente',
       shortDesc: formData.shortDesc || '',
@@ -386,9 +408,9 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Row 1: Title & Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          {/* Row 1: Title, Category & Discipline/Section */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
               <label className="text-xs font-medium text-slate-300 block mb-1.5">
                 Título del Proyecto *
               </label>
@@ -404,11 +426,15 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
             <div>
               <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                Categoría *
+                Categoría Principal *
               </label>
               <select
                 value={formData.category || '3D MODELING'}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                onChange={(e) => {
+                  const cat = e.target.value as any;
+                  const defaultDisc = cat === '3D MODELING' ? 'modelado-3d' : cat === 'BRANDING' ? 'branding' : cat === 'MOTION' ? 'edicion-video' : 'social-media';
+                  setFormData({ ...formData, category: cat, disciplineId: formData.disciplineId || defaultDisc });
+                }}
                 className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-sm font-bold`}
               >
                 <option value="3D MODELING">3D MODELING</option>
@@ -416,6 +442,63 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 <option value="DIGITAL ART">DIGITAL ART</option>
                 <option value="MOTION">MOTION / VIDEO</option>
               </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                Sección / Especialidad *
+              </label>
+              <select
+                value={formData.disciplineId || 'modelado-3d'}
+                onChange={(e) => setFormData({ ...formData, disciplineId: e.target.value })}
+                className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-sm font-bold text-emerald-400`}
+              >
+                <option value="modelado-3d">01 • MODELADO 3D</option>
+                <option value="branding">02 • BRANDING</option>
+                <option value="edicion-video">03 • EDICIÓN DE VIDEO</option>
+                <option value="social-media">04 • SOCIAL MEDIA DESIGNER</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row: Configuración del Botón "Ver Más del Trabajo" (Enlace Externo) */}
+          <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-2 uppercase tracking-wide">
+                <ExternalLink className="w-4 h-4" />
+                <span>Botón "Ver Más del Trabajo" (Enlace en Vista de Detalle)</span>
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                Ubicado debajo de "Cotizar Proyecto Similar"
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                  Enlace Externo (URL donde está alojado el proyecto)
+                </label>
+                <input
+                  type="text"
+                  value={formData.externalLink || ''}
+                  onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
+                  placeholder="https://www.behance.net/... o ArtStation, Drive, Demo Web"
+                  className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                  Texto Personalizado del Botón
+                </label>
+                <input
+                  type="text"
+                  value={formData.externalLinkText || ''}
+                  onChange={(e) => setFormData({ ...formData, externalLinkText: e.target.value })}
+                  placeholder="VER MÁS DEL TRABAJO (Por defecto)"
+                  className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-bold`}
+                />
+              </div>
             </div>
           </div>
 

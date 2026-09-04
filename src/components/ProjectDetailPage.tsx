@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers, ExternalLink } from 'lucide-react';
 import { Project, Language } from '../types';
 import { projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
@@ -199,7 +199,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </p>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 space-y-3">
               <SpecularButton
                 onClick={() => {
                   playClickSound();
@@ -214,6 +214,25 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 <Sparkles className="w-4 h-4 text-[#76FF03]" />
                 <span>{lang === 'es' ? 'COTIZAR PROYECTO SIMILAR' : 'QUOTE SIMILAR PROJECT'}</span>
               </SpecularButton>
+
+              {/* Dynamic External Link Button ("VER MÁS DEL TRABAJO") - Configurable from Dashboard */}
+              <a
+                href={project.externalLink && project.externalLink.trim() !== '' ? project.externalLink : 'https://www.behance.net/aylinflores'}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={playClickSound}
+                onMouseEnter={playHoverSound}
+                className="w-full group/extbtn relative inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#76FF03]/20 via-[#76FF03]/10 to-transparent hover:from-[#76FF03] hover:to-[#38B000] border border-[#76FF03]/60 hover:border-[#76FF03] text-[#76FF03] hover:text-[#050B05] font-mono text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(118,255,3,0.15)] hover:shadow-[0_0_30px_rgba(118,255,3,0.7)] hover:scale-[1.02] active:scale-95 cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4 transition-transform group-hover/extbtn:translate-x-0.5 group-hover/extbtn:-translate-y-0.5" />
+                <span>
+                  {project.externalLinkText && project.externalLinkText.trim() !== ''
+                    ? project.externalLinkText
+                    : lang === 'es'
+                    ? 'VER MÁS DEL TRABAJO'
+                    : 'EXPLORE FULL WORK'}
+                </span>
+              </a>
             </div>
           </div>
         </div>

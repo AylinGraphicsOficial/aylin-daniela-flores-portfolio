@@ -16,14 +16,22 @@ if (!$pdo) {
     ], 500);
 }
 
-// Auto-migration: ensure logo and slider columns exist
-try {
-    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`");
-    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`");
-    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`");
-    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`");
-} catch (Exception $e) {
-    // Columns already exist or table not ready
+// Auto-migration: ensure all modern columns exist with isolated try-catch blocks
+$migrations = [
+    "ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`",
+    "ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`",
+    "ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`",
+    "ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`",
+    "ALTER TABLE `projects` ADD COLUMN `externalLink` VARCHAR(1000) DEFAULT '' AFTER `sliderOrder`",
+    "ALTER TABLE `projects` ADD COLUMN `externalLinkText` VARCHAR(255) DEFAULT '' AFTER `externalLink`",
+    "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`"
+];
+foreach ($migrations as $migrationSql) {
+    try {
+        $pdo->exec($migrationSql);
+    } catch (Exception $e) {
+        // Column already exists or already migrated
+    }
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -45,6 +53,9 @@ if ($method === 'GET') {
         $row['sliderImage'] = $row['sliderImage'] ?? '';
         $row['sliderTitle'] = $row['sliderTitle'] ?? '';
         $row['sliderOrder'] = isset($row['sliderOrder']) ? (int)$row['sliderOrder'] : 0;
+        $row['externalLink'] = $row['externalLink'] ?? '';
+        $row['externalLinkText'] = $row['externalLinkText'] ?? '';
+        $row['disciplineId'] = $row['disciplineId'] ?? '';
         $row['tags'] = json_decode($row['tags'] ?? '[]', true) ?: [];
         $row['metrics'] = json_decode($row['metrics'] ?? '[]', true) ?: [];
         sendJsonResponse($row);
@@ -55,28 +66,31 @@ if ($method === 'GET') {
 
     $projects = array_map(function($row) {
         return [
-            'id'            => $row['id'],
-            'title'         => $row['title'],
-            'category'      => $row['category'],
-            'year'          => $row['year'],
-            'client'        => $row['client'],
-            'shortDesc'     => $row['shortDesc'],
-            'fullDesc'      => $row['fullDesc'],
-            'image'         => $row['image'],
-            'galleryImages' => json_decode($row['galleryImages'] ?? '[]', true) ?: [],
-            'logo'          => $row['logo'] ?? '',
-            'sliderImage'   => $row['sliderImage'] ?? '',
-            'sliderTitle'   => $row['sliderTitle'] ?? '',
-            'sliderOrder'   => isset($row['sliderOrder']) ? (int)$row['sliderOrder'] : 0,
-            'videoUrl'      => $row['videoUrl'] ?? '',
-            'videoClip'     => $row['videoClip'] ?? '',
-            'gifUrl'        => $row['gifUrl'] ?? '',
-            'tags'          => json_decode($row['tags'] ?? '[]', true) ?: [],
-            'featured'      => (bool)$row['featured'],
-            'metrics'       => json_decode($row['metrics'] ?? '[]', true) ?: [],
-            'display_order' => (int)$row['display_order'],
-            'createdAt'     => $row['createdAt'],
-            'updatedAt'     => $row['updatedAt']
+            'id'               => $row['id'],
+            'title'            => $row['title'],
+            'category'         => $row['category'],
+            'year'             => $row['year'],
+            'client'           => $row['client'],
+            'shortDesc'        => $row['shortDesc'],
+            'fullDesc'         => $row['fullDesc'],
+            'image'            => $row['image'],
+            'galleryImages'    => json_decode($row['galleryImages'] ?? '[]', true) ?: [],
+            'logo'             => $row['logo'] ?? '',
+            'sliderImage'      => $row['sliderImage'] ?? '',
+            'sliderTitle'      => $row['sliderTitle'] ?? '',
+            'sliderOrder'      => isset($row['sliderOrder']) ? (int)$row['sliderOrder'] : 0,
+            'externalLink'     => $row['externalLink'] ?? '',
+            'externalLinkText' => $row['externalLinkText'] ?? '',
+            'disciplineId'     => $row['disciplineId'] ?? '',
+            'videoUrl'         => $row['videoUrl'] ?? '',
+            'videoClip'        => $row['videoClip'] ?? '',
+            'gifUrl'           => $row['gifUrl'] ?? '',
+            'tags'             => json_decode($row['tags'] ?? '[]', true) ?: [],
+            'featured'         => (bool)$row['featured'],
+            'metrics'          => json_decode($row['metrics'] ?? '[]', true) ?: [],
+            'display_order'    => (int)$row['display_order'],
+            'createdAt'        => $row['createdAt'],
+            'updatedAt'        => $row['updatedAt']
         ];
     }, $rows);
 
@@ -123,11 +137,13 @@ if ($method === 'POST' || $method === 'PUT') {
     $upsertSql = "INSERT INTO `projects` (
         `id`, `title`, `category`, `year`, `client`, `shortDesc`, `fullDesc`,
         `image`, `galleryImages`, `logo`, `sliderImage`, `sliderTitle`, `sliderOrder`,
+        `externalLink`, `externalLinkText`, `disciplineId`,
         `videoUrl`, `videoClip`, `gifUrl`, `tags`,
         `featured`, `metrics`, `display_order`, `createdAt`, `updatedAt`
     ) VALUES (
         :id, :title, :category, :year, :client, :shortDesc, :fullDesc,
         :image, :galleryImages, :logo, :sliderImage, :sliderTitle, :sliderOrder,
+        :externalLink, :externalLinkText, :disciplineId,
         :videoUrl, :videoClip, :gifUrl, :tags,
         :featured, :metrics, :display_order, :createdAt, :updatedAt
     ) ON DUPLICATE KEY UPDATE
@@ -143,6 +159,9 @@ if ($method === 'POST' || $method === 'PUT') {
         `sliderImage` = VALUES(`sliderImage`),
         `sliderTitle` = VALUES(`sliderTitle`),
         `sliderOrder` = VALUES(`sliderOrder`),
+        `externalLink` = VALUES(`externalLink`),
+        `externalLinkText` = VALUES(`externalLinkText`),
+        `disciplineId` = VALUES(`disciplineId`),
         `videoUrl` = VALUES(`videoUrl`),
         `videoClip` = VALUES(`videoClip`),
         `gifUrl` = VALUES(`gifUrl`),
@@ -153,76 +172,89 @@ if ($method === 'POST' || $method === 'PUT') {
         `updatedAt` = VALUES(`updatedAt`)
     ";
 
-    $stmtUpsert = $pdo->prepare($upsertSql);
+    try {
+        $stmtUpsert = $pdo->prepare($upsertSql);
 
-    foreach ($projectsList as $index => $item) {
-        $projId = !empty($item['id']) ? $item['id'] : 'proj-' . time() . '-' . $index;
-        $title = $item['title'] ?? 'Nuevo Proyecto';
-        $category = $item['category'] ?? '3D MODELING';
-        $year = $item['year'] ?? date('Y');
-        $client = $item['client'] ?? '';
-        $shortDesc = $item['shortDesc'] ?? '';
-        $fullDesc = $item['fullDesc'] ?? '';
-        $image = $item['image'] ?? '/images/orbit-stand.webp';
-        
-        $galleryImages = is_array($item['galleryImages'] ?? null) 
-            ? json_encode($item['galleryImages'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) 
-            : (is_string($item['galleryImages'] ?? null) ? $item['galleryImages'] : '[]');
+        foreach ($projectsList as $index => $item) {
+            $projId = !empty($item['id']) ? $item['id'] : 'proj-' . time() . '-' . $index;
+            $title = $item['title'] ?? 'Nuevo Proyecto';
+            $category = $item['category'] ?? '3D MODELING';
+            $year = $item['year'] ?? date('Y');
+            $client = $item['client'] ?? '';
+            $shortDesc = $item['shortDesc'] ?? '';
+            $fullDesc = $item['fullDesc'] ?? '';
+            $image = $item['image'] ?? '/images/orbit-stand.webp';
+            
+            $galleryImages = is_array($item['galleryImages'] ?? null) 
+                ? json_encode($item['galleryImages'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) 
+                : (is_string($item['galleryImages'] ?? null) ? $item['galleryImages'] : '[]');
 
-        $logo = $item['logo'] ?? '';
-        $sliderImage = $item['sliderImage'] ?? '';
-        $sliderTitle = $item['sliderTitle'] ?? '';
-        $sliderOrder = isset($item['sliderOrder']) ? (int)$item['sliderOrder'] : 0;
+            $logo = $item['logo'] ?? '';
+            $sliderImage = $item['sliderImage'] ?? '';
+            $sliderTitle = $item['sliderTitle'] ?? '';
+            $sliderOrder = isset($item['sliderOrder']) ? (int)$item['sliderOrder'] : 0;
+            $externalLink = $item['externalLink'] ?? '';
+            $externalLinkText = $item['externalLinkText'] ?? '';
+            $disciplineId = $item['disciplineId'] ?? '';
 
-        $videoUrl = $item['videoUrl'] ?? '';
-        $videoClip = $item['videoClip'] ?? '';
-        $gifUrl = $item['gifUrl'] ?? '';
+            $videoUrl = $item['videoUrl'] ?? '';
+            $videoClip = $item['videoClip'] ?? '';
+            $gifUrl = $item['gifUrl'] ?? '';
 
-        $tags = is_array($item['tags'] ?? null)
-            ? json_encode($item['tags'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-            : (is_string($item['tags'] ?? null) ? $item['tags'] : '[]');
+            $tags = is_array($item['tags'] ?? null)
+                ? json_encode($item['tags'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                : (is_string($item['tags'] ?? null) ? $item['tags'] : '[]');
 
-        $featured = !empty($item['featured']) ? 1 : 0;
+            $featured = !empty($item['featured']) ? 1 : 0;
 
-        $metrics = is_array($item['metrics'] ?? null)
-            ? json_encode($item['metrics'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-            : (is_string($item['metrics'] ?? null) ? $item['metrics'] : '[]');
+            $metrics = is_array($item['metrics'] ?? null)
+                ? json_encode($item['metrics'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                : (is_string($item['metrics'] ?? null) ? $item['metrics'] : '[]');
 
-        $displayOrder = isset($item['display_order']) ? (int)$item['display_order'] : $index;
-        $createdAt = $item['createdAt'] ?? date('c');
-        $updatedAt = date('c');
+            $displayOrder = isset($item['display_order']) ? (int)$item['display_order'] : $index;
+            $createdAt = $item['createdAt'] ?? date('c');
+            $updatedAt = date('c');
 
-        $stmtUpsert->execute([
-            ':id'            => $projId,
-            ':title'         => $title,
-            ':category'      => $category,
-            ':year'          => $year,
-            ':client'        => $client,
-            ':shortDesc'     => $shortDesc,
-            ':fullDesc'      => $fullDesc,
-            ':image'         => $image,
-            ':galleryImages' => $galleryImages,
-            ':logo'          => $logo,
-            ':sliderImage'   => $sliderImage,
-            ':sliderTitle'   => $sliderTitle,
-            ':sliderOrder'   => $sliderOrder,
-            ':videoUrl'      => $videoUrl,
-            ':videoClip'     => $videoClip,
-            ':gifUrl'        => $gifUrl,
-            ':tags'          => $tags,
-            ':featured'      => $featured,
-            ':metrics'       => $metrics,
-            ':display_order' => $displayOrder,
-            ':createdAt'     => $createdAt,
-            ':updatedAt'     => $updatedAt
+            $stmtUpsert->execute([
+                ':id'               => $projId,
+                ':title'            => $title,
+                ':category'         => $category,
+                ':year'             => $year,
+                ':client'           => $client,
+                ':shortDesc'        => $shortDesc,
+                ':fullDesc'         => $fullDesc,
+                ':image'            => $image,
+                ':galleryImages'    => $galleryImages,
+                ':logo'             => $logo,
+                ':sliderImage'      => $sliderImage,
+                ':sliderTitle'      => $sliderTitle,
+                ':sliderOrder'      => $sliderOrder,
+                ':externalLink'     => $externalLink,
+                ':externalLinkText' => $externalLinkText,
+                ':disciplineId'     => $disciplineId,
+                ':videoUrl'         => $videoUrl,
+                ':videoClip'        => $videoClip,
+                ':gifUrl'           => $gifUrl,
+                ':tags'             => $tags,
+                ':featured'         => $featured,
+                ':metrics'          => $metrics,
+                ':display_order'    => $displayOrder,
+                ':createdAt'        => $createdAt,
+                ':updatedAt'        => $updatedAt
+            ]);
+        }
+
+        sendJsonResponse([
+            'success' => true,
+            'message' => 'Proyecto(s) guardado(s) exitosamente en Hostinger MySQL.',
+            'savedCount' => count($projectsList)
         ]);
+    } catch (Exception $e) {
+        sendJsonResponse([
+            'success' => false,
+            'error'   => 'Error al guardar proyecto en Hostinger MySQL: ' . $e->getMessage()
+        ], 500);
     }
-
-    sendJsonResponse([
-        'success' => true,
-        'message' => 'Proyecto(s) guardado(s) exitosamente en Hostinger MySQL.',
-        'savedCount' => count($projectsList)
-    ]);
 }
 
 // ==================== DELETE ====================

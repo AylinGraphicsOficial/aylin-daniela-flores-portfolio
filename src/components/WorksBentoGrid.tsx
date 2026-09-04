@@ -71,58 +71,71 @@ const DisciplineSliderCard: React.FC<{
             alt={activeSlide.title || discipline.titleEs}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover rounded-xl md:rounded-2xl group-hover:scale-105 transition-all duration-700 ease-out"
+            className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
 
-          {/* Slider Prev / Next Arrows (if more than 1 slide) */}
+          {/* Left / Right Arrow Controls (Visible only if more than 1 slide) */}
           {visibleSlides.length > 1 && (
             <>
               <button
                 type="button"
                 onClick={handlePrevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-[#76FF03] text-white hover:text-black border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
-                title="Diapositiva Anterior"
+                onMouseEnter={playHoverSound}
+                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/75 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
+                aria-label="Slide anterior"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
               <button
                 type="button"
                 onClick={handleNextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-[#76FF03] text-white hover:text-black border border-white/20 hover:border-[#76FF03] flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
-                title="Siguiente Diapositiva"
+                onMouseEnter={playHoverSound}
+                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/75 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
+                aria-label="Slide siguiente"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              {/* Dots Indicators */}
-              <div className="absolute bottom-5 right-6 flex items-center gap-1.5 z-10 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                {visibleSlides.map((s, idx) => (
+              {/* Progress Dots */}
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10">
+                {visibleSlides.map((_, idx) => (
                   <button
-                    key={s.id}
+                    key={idx}
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       playClickSound();
                       setCurrentSlideIndex(idx);
                     }}
-                    className={`h-2 rounded-full transition-all ${
+                    aria-label={`Ir a diapositiva ${idx + 1}`}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
                       idx === currentSlideIndex
                         ? 'w-6 bg-[#76FF03]'
-                        : 'w-2 bg-white/40 hover:bg-white'
+                        : 'w-1.5 bg-white/30 hover:bg-white/70'
                     }`}
                   />
                 ))}
               </div>
             </>
           )}
+
+          {/* Slide Title Badge (Optional) */}
+          {activeSlide.title && (
+            <div className="absolute top-4 left-4 z-20 px-3.5 py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-xs font-mono font-medium text-white shadow-md">
+              {activeSlide.title}
+            </div>
+          )}
         </div>
 
-        {/* Below-Card Typography: Title + Arrow + Subtitle + Description */}
-        <div className="mt-6 sm:mt-8">
-          {/* Title & Arrow Row */}
-          <div className="flex items-center gap-3 sm:gap-5">
-            <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-tight">
+        {/* Text Details & Interactive Link Below the Image */}
+        <div className="space-y-3">
+          <div
+            onClick={onSelect}
+            onMouseEnter={playHoverSound}
+            className="inline-flex items-center gap-3 cursor-pointer group/title"
+          >
+            <h3 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tight text-white group-hover/title:text-[#76FF03] transition-colors leading-none">
               {lang === 'es' ? discipline.titleEs : discipline.titleEn}
             </h3>
             <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-white/20 group-hover:border-[#76FF03] group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 group-hover:rotate-45 flex-shrink-0 shadow-lg">
@@ -148,6 +161,7 @@ const DisciplineSliderCard: React.FC<{
 export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   lang,
   onSelectProject,
+  onSelectDiscipline,
 }) => {
   const [projects, setProjects] = useState<Project[]>(getStoredProjects);
   const [disciplines, setDisciplines] = useState<Discipline[]>(getStoredDisciplines);
@@ -165,9 +179,13 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
 
   const handleDisciplineClick = (item: Discipline) => {
     playClickSound();
-    const target =
-      projects.find((p) => p.id === item.targetProjectId) || projects[0];
-    if (target) onSelectProject(target);
+    if (onSelectDiscipline) {
+      onSelectDiscipline(item);
+    } else {
+      const target =
+        projects.find((p) => p.id === item.targetProjectId) || projects[0];
+      if (target) onSelectProject(target);
+    }
   };
 
   return (

@@ -33,6 +33,9 @@ try {
             `sliderImage` VARCHAR(500) DEFAULT '',
             `sliderTitle` VARCHAR(255) DEFAULT '',
             `sliderOrder` INT DEFAULT 0,
+            `externalLink` VARCHAR(1000) DEFAULT '',
+            `externalLinkText` VARCHAR(255) DEFAULT '',
+            `disciplineId` VARCHAR(100) DEFAULT '',
             `videoUrl` VARCHAR(500) DEFAULT '',
             `videoClip` VARCHAR(500) DEFAULT '',
             `gifUrl` VARCHAR(500) DEFAULT '',
@@ -45,13 +48,21 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Migration: ensure logo and slider columns exist in projects
-    try {
-        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`");
-        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`");
-        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`");
-        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`");
-    } catch (Exception $e) {}
+    // Migration: ensure logo, slider and externalLink columns exist in projects
+    $initMigrations = [
+        "ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`",
+        "ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`",
+        "ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`",
+        "ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`",
+        "ALTER TABLE `projects` ADD COLUMN `externalLink` VARCHAR(1000) DEFAULT '' AFTER `sliderOrder`",
+        "ALTER TABLE `projects` ADD COLUMN `externalLinkText` VARCHAR(255) DEFAULT '' AFTER `externalLink`",
+        "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`"
+    ];
+    foreach ($initMigrations as $mig) {
+        try {
+            $pdo->exec($mig);
+        } catch (Exception $e) {}
+    }
 
     // 2. Create Disciplines Table
     $pdo->exec("

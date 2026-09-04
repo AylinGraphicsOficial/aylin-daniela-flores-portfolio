@@ -1001,7 +1001,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         isOpen={isEditModalOpen}
         project={editingProject}
         onClose={() => setIsEditModalOpen(false)}
-        onSave={(proj) => saveProject(proj)}
+        onSave={async (proj) => {
+          await saveProject(proj);
+        }}
         darkMode={darkMode}
       />
     </div>

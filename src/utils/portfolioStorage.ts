@@ -376,8 +376,23 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
     if (projRes.ok) {
       const remoteProjects = await projRes.json();
       if (Array.isArray(remoteProjects) && remoteProjects.length > 0) {
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(remoteProjects));
+        // Smart merge: retain local projects not yet present in remote DB
+        const localProjects = getStoredProjects();
+        const remoteIds = new Set(remoteProjects.map((p: Project) => p.id));
+        const unsyncedLocals = localProjects.filter((lp) => !remoteIds.has(lp.id));
+
+        const mergedProjects = [...remoteProjects, ...unsyncedLocals];
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mergedProjects));
         changed = true;
+
+        // Auto-push unsynced local projects to Hostinger in background
+        if (unsyncedLocals.length > 0) {
+          fetch(PROJECTS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projects: unsyncedLocals }),
+          }).catch(() => {});
+        }
       }
     }
 
@@ -611,11 +626,57 @@ export const getStoredProjects = (): Project[] => {
   }
 };
 
-export const saveProject = async (project: Project): Promise<void> => {
+export const getProjectsForDiscipline = (
+  disciplineId: string,
+  allProjects?: Project[],
+  allDisciplines?: Discipline[]
+): Project[] => {
+  const projects = allProjects || getStoredProjects();
+  const disciplines = allDisciplines || getStoredDisciplines();
+  const discipline = disciplines.find((d) => d.id === disciplineId);
+
+  return projects.filter((p) => {
+    // 1. Explicit disciplineId match on project
+    if (p.disciplineId && p.disciplineId === disciplineId) return true;
+
+    // 2. Explicit projectIds list on discipline
+    if (discipline && discipline.projectIds && discipline.projectIds.includes(p.id)) return true;
+
+    // 3. Fallback matching based on category
+    if (disciplineId === 'modelado-3d' && p.category === '3D MODELING') return true;
+    if (disciplineId === 'branding' && p.category === 'BRANDING') return true;
+    if (disciplineId === 'edicion-video' && (p.category === 'MOTION' || p.category === 'DIGITAL ART')) return true;
+    if (disciplineId === 'social-media' && (p.category === 'BRANDING' || p.category === 'DIGITAL ART')) return true;
+
+    return false;
+  });
+};
+
+export const toggleProjectInDiscipline = async (
+  disciplineId: string,
+  projectId: string
+): Promise<void> => {
+  const currentDisciplines = getStoredDisciplines();
+  const discIndex = currentDisciplines.findIndex((d) => d.id === disciplineId);
+  if (discIndex < 0) return;
+
+  const disc = currentDisciplines[discIndex];
+  const currentIds = disc.projectIds || [];
+  let nextIds: string[];
+  if (currentIds.includes(projectId)) {
+    nextIds = currentIds.filter((id) => id !== projectId);
+  } else {
+    nextIds = [...currentIds, projectId];
+  }
+  const updatedDisc = { ...disc, projectIds: nextIds };
+  await saveDiscipline(updatedDisc);
+};
+
+export const saveProject = async (project: Project): Promise<boolean> => {
   const current = getStoredProjects();
   const index = current.findIndex((p) => p.id === project.id);
   let updated: Project[];
-  const finalProject = {
+  const finalProject: Project = {
     ...project,
     id: project.id || `proj-${Date.now()}`,
     updatedAt: new Date().toISOString(),
@@ -633,13 +694,19 @@ export const saveProject = async (project: Project): Promise<void> => {
   notifyDataChanged();
 
   try {
-    await fetch(PROJECTS_API, {
+    const res = await fetch(PROJECTS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(finalProject),
     });
+    if (!res.ok) {
+      console.warn('Remote API returned non-OK status on saveProject:', res.status);
+      return false;
+    }
+    return true;
   } catch (err) {
     console.warn('Could not sync project with remote API:', err);
+    return false;
   }
 };
 

@@ -14,6 +14,9 @@ export interface Project {
   sliderImage?: string; // Imagen personalizada para el slider del Hero
   sliderTitle?: string; // Título personalizado para el slider del Hero
   sliderOrder?: number; // Orden de visualización en el slider del Hero
+  externalLink?: string; // Enlace externo donde se ubica el trabajo (Behance, Artstation, Demo en Vivo, Google Drive, etc.)
+  externalLinkText?: string; // Texto personalizado para el botón (ej. "VER MÁS DEL TRABAJO", "VER EN BEHANCE")
+  disciplineId?: string; // ID de la disciplina/sección a la que pertenece ('modelado-3d', 'branding', 'edicion-video', 'social-media')
   videoUrl?: string; // YouTube, Vimeo, direct MP4 URL
   videoClip?: string; // Small MP4 or WebM video file
   gifUrl?: string; // Animated GIF
@@ -51,6 +54,7 @@ export interface Discipline {
   image: string;
   slides: DisciplineSlide[];
   targetProjectId: string;
+  projectIds?: string[]; // Lista de IDs de proyectos asignados a esta disciplina
   visible: boolean;
   order: number;
 }

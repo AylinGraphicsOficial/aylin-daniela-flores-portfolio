@@ -3565,7 +3565,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         isOpen={isEditModalOpen}
         project={editingProject}
         onClose={() => setIsEditModalOpen(false)}
-        onSave={(proj) => saveProject(proj)}
+        onSave={async (proj) => {
+          const ok = await saveProject(proj);
+          if (ok) {
+            showNotification('¡Proyecto guardado y sincronizado con Hostinger MySQL con éxito!');
+          } else {
+            showNotification('¡Guardado localmente! Se sincronizará automáticamente al reconectar.');
+          }
+        }}
         darkMode={darkMode}
       />
     </div>

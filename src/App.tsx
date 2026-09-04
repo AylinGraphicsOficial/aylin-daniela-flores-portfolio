@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Language, Project } from './types';
+import { Language, Project, Discipline } from './types';
 import { WelcomeCurtain } from './components/WelcomeCurtain';
 import { WebGLFluidShader } from './components/WebGLFluidShader';
 import { CustomCursor } from './components/CustomCursor';
@@ -18,11 +18,13 @@ import { DiplomadosSection } from './components/DiplomadosSection';
 import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
 import { ProjectDetailPage } from './components/ProjectDetailPage';
+import { DisciplineDetailPage } from './components/DisciplineDetailPage';
 import { Footer } from './components/Footer';
 import { AdminLoginPage } from './components/dashboard/AdminLoginPage';
 import { AdminDashboardPage } from './components/dashboard/AdminDashboardPage';
 import {
   getStoredProjects,
+  getStoredDisciplines,
   subscribeToPortfolioChanges,
 } from './utils/portfolioStorage';
 
@@ -42,7 +44,8 @@ const CVViewerModal = lazy(() =>
 
 export default function App() {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'project-detail' | 'admin'>(() => {
+  const [activeDiscipline, setActiveDiscipline] = useState<Discipline | null>(null);
+  const [currentView, setCurrentView] = useState<'home' | 'project-detail' | 'discipline-detail' | 'admin'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#admin' || hash === '#/admin' || hash === '#dashboard' || hash === '#/dashboard') {
@@ -54,6 +57,14 @@ export default function App() {
         const found = allProjects.find((p) => p.id.toLowerCase() === id.toLowerCase());
         if (found) {
           return 'project-detail';
+        }
+      }
+      if (hash.startsWith('#disciplina/') || hash.startsWith('#discipline/') || hash.startsWith('#seccion/')) {
+        const id = hash.replace(/^#(disciplina|discipline|seccion)\//, '');
+        const allDisc = getStoredDisciplines();
+        const found = allDisc.find((d) => d.id.toLowerCase() === id.toLowerCase());
+        if (found) {
+          return 'discipline-detail';
         }
       }
     }
@@ -100,6 +111,17 @@ export default function App() {
           return;
         }
       }
+      if (hash.startsWith('#disciplina/') || hash.startsWith('#discipline/') || hash.startsWith('#seccion/')) {
+        const id = hash.replace(/^#(disciplina|discipline|seccion)\//, '');
+        const allDisc = getStoredDisciplines();
+        const found = allDisc.find((d) => d.id.toLowerCase() === id.toLowerCase());
+        if (found) {
+          setActiveDiscipline(found);
+          setCurrentView('discipline-detail');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      }
       setCurrentView('home');
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -111,18 +133,30 @@ export default function App() {
         const refreshed = allProjects.find((p) => p.id === activeProject.id);
         if (refreshed) setActiveProject(refreshed);
       }
+      if (activeDiscipline) {
+        const allDisc = getStoredDisciplines();
+        const refreshedDisc = allDisc.find((d) => d.id === activeDiscipline.id);
+        if (refreshedDisc) setActiveDiscipline(refreshedDisc);
+      }
     });
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       unsubscribe();
     };
-  }, [activeProject]);
+  }, [activeProject, activeDiscipline]);
 
   const openProjectDetail = (project: Project) => {
     setActiveProject(project);
     setCurrentView('project-detail');
     window.location.hash = `#proyecto/${project.id}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openDisciplineDetail = (discipline: Discipline) => {
+    setActiveDiscipline(discipline);
+    setCurrentView('discipline-detail');
+    window.location.hash = `#disciplina/${discipline.id}`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -134,9 +168,13 @@ export default function App() {
 
   const navigateHome = () => {
     setCurrentView('home');
+    setActiveDiscipline(null);
     if (
       window.location.hash.includes('proyect') ||
       window.location.hash.includes('project') ||
+      window.location.hash.includes('disciplina') ||
+      window.location.hash.includes('discipline') ||
+      window.location.hash.includes('seccion') ||
       window.location.hash.includes('admin') ||
       window.location.hash.includes('dashboard')
     ) {
@@ -261,6 +299,16 @@ export default function App() {
           <ProjectDetailPage
             project={activeProject}
             lang={lang}
+            onBackToPortfolio={activeDiscipline ? () => openDisciplineDetail(activeDiscipline) : navigateHome}
+            onSelectProject={openProjectDetail}
+            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+          />
+        </main>
+      ) : currentView === 'discipline-detail' && activeDiscipline ? (
+        <main className="relative z-10">
+          <DisciplineDetailPage
+            discipline={activeDiscipline}
+            lang={lang}
             onBackToPortfolio={navigateHome}
             onSelectProject={openProjectDetail}
             onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
@@ -281,6 +329,7 @@ export default function App() {
             <WorksBentoGrid
               lang={lang}
               onSelectProject={openProjectDetail}
+              onSelectDiscipline={openDisciplineDetail}
             />
           </div>
 
