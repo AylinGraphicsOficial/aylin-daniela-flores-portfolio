@@ -47,9 +47,14 @@ async function cleanAndDeploy() {
       await client.uploadFrom(localPath, remoteName);
     }
 
-    // Upload assets
+    // Upload assets safely
     await client.ensureDir(`${rootDir}/assets`);
-    await client.uploadFromDir("dist/assets", `${rootDir}/assets`);
+    await client.cd(`${rootDir}/assets`);
+    const assetFiles = fs.readdirSync("dist/assets");
+    for (const f of assetFiles) {
+      await uploadFileSafely(`dist/assets/${f}`, f);
+      console.log(`Uploaded asset: ${f}`);
+    }
     console.log("Assets uploaded!");
 
     // Upload api files safely
@@ -64,7 +69,7 @@ async function cleanAndDeploy() {
     }
     console.log("API uploaded!");
 
-    // Helper to safely sync directory with size check
+    // Helper to safely sync directory with size check and recursive support
     async function syncDirectory(localDir, remoteDir) {
       if (!fs.existsSync(localDir)) return;
       await client.ensureDir(remoteDir);
@@ -74,7 +79,10 @@ async function cleanAndDeploy() {
       for (const file of files) {
         const localPath = `${localDir}/${file}`;
         const stat = fs.statSync(localPath);
-        if (stat.isFile()) {
+        if (stat.isDirectory()) {
+          await syncDirectory(localPath, `${remoteDir}/${file}`);
+          await client.cd(remoteDir);
+        } else if (stat.isFile()) {
           const match = remoteList.find(r => r.name === file);
           if (!match || match.size !== stat.size) {
             console.log(`Uploading ${file} to ${remoteDir}...`);
@@ -84,10 +92,11 @@ async function cleanAndDeploy() {
       }
     }
 
-    // Sync models & uploads
+    // Sync models, uploads & images
     await syncDirectory("dist/models", `${rootDir}/models`);
     await syncDirectory("dist/uploads", `${rootDir}/uploads`);
-    console.log("3D Models and Uploads synced!");
+    await syncDirectory("dist/images", `${rootDir}/images`);
+    console.log("3D Models, Uploads and Images synced!");
 
     // Upload root files
     await client.cd(rootDir);
