@@ -1,19 +1,34 @@
-DirectoryIndex index.html
+DirectoryIndex production.html index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # Fallback to public/ directory if requested asset was cloned by Git
+  # 1. Fallback to public/ directory if requested asset was cloned by Git
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
   RewriteRule ^(.*)$ /public/$1 [L]
 
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  # Do not rewrite missing static assets, uploads or images to index.html; return 404 cleanly
-  RewriteCond %{REQUEST_URI} !\.(css|js|webp|png|jpg|jpeg|gif|svg|ico|glb|gltf|mp4|webm|pdf|woff|woff2|ttf|eot)$ [NC]
+  # 2. Route root and index.html to production.html if it exists
+  RewriteCond %{DOCUMENT_ROOT}/production.html -f
+  RewriteRule ^$ /production.html [L]
+
+  RewriteCond %{DOCUMENT_ROOT}/production.html -f
+  RewriteRule ^index\.html$ /production.html [L]
+
+  # 3. If file or directory exists physically, serve directly with no rewrite
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 4. Never rewrite static assets to HTML; let server return clean 404 if missing
+  RewriteCond %{REQUEST_URI} \.(css|js|mjs|webp|png|jpg|jpeg|gif|svg|ico|glb|gltf|mp4|webm|pdf|woff|woff2|ttf|eot)$ [NC]
+  RewriteRule ^ - [L]
+
+  # 5. SPA Fallback: rewrite client-side routes to production.html (or index.html)
+  RewriteCond %{DOCUMENT_ROOT}/production.html -f
+  RewriteRule . /production.html [L]
+
   RewriteRule . /index.html [L]
 </IfModule>
 
