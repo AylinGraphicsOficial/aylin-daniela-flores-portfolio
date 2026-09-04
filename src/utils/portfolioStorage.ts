@@ -1,4 +1,4 @@
-import { Project, Discipline, ExperienceItem } from '../types';
+import { Project, Discipline, ExperienceItem, SocialLink } from '../types';
 import { projectsData, experienceData } from '../data/portfolioData';
 
 const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v2';
@@ -478,6 +478,22 @@ export const saveStoredLab3D = (data: Lab3DData) => {
   return saveStoredSection('lab3d', data);
 };
 
+export const initialSocialLinks: SocialLink[] = [
+  { id: 'soc-1', label: 'INSTAGRAM', href: 'https://instagram.com', iconPreset: 'instagram', visible: true, order: 1 },
+  { id: 'soc-2', label: 'BEHANCE', href: 'https://behance.net', iconPreset: 'behance', visible: true, order: 2 },
+  { id: 'soc-3', label: 'LINKEDIN', href: 'https://linkedin.com', iconPreset: 'linkedin', visible: true, order: 3 },
+  { id: 'soc-4', label: 'DRIBBBLE', href: 'https://dribbble.com', iconPreset: 'dribbble', visible: true, order: 4 },
+  { id: 'soc-5', label: 'ARTSTATION', href: 'https://artstation.com', iconPreset: 'artstation', visible: true, order: 5 },
+];
+
+export const getStoredSocials = (): SocialLink[] => {
+  return getStoredSection<SocialLink[]>('socials', initialSocialLinks);
+};
+
+export const saveStoredSocials = (data: SocialLink[]) => {
+  return saveStoredSection('socials', data);
+};
+
 // ==================== DATABASE STATUS HELPER ====================
 
 export interface DatabaseStatusInfo {
@@ -743,6 +759,7 @@ export const exportPortfolioJSON = (): string => {
     experience: getStoredExperience(),
     diplomados: getStoredDiplomados(),
     lab3d: getStoredLab3D(),
+    socials: getStoredSocials(),
   };
   return JSON.stringify(data, null, 2);
 };

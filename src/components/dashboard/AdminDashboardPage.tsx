@@ -40,8 +40,12 @@ import {
   Eye,
   EyeOff,
   X,
+  Share2,
+  ArrowUp,
+  ArrowDown,
+  Link as LinkIcon,
 } from 'lucide-react';
-import { Project, Discipline, ExperienceItem } from '../../types';
+import { Project, Discipline, ExperienceItem, SocialLink } from '../../types';
 import {
   getStoredProjects,
   getStoredDisciplines,
@@ -68,10 +72,13 @@ import {
   Lab3DData,
   Lab3DModelItem,
   uploadMediaFile,
+  getStoredSocials,
+  saveStoredSocials,
 } from '../../utils/portfolioStorage';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
 import { DisciplineSliderEditor } from './DisciplineSliderEditor';
+import { SocialIcon } from '../SocialIcon';
 
 interface AdminDashboardPageProps {
   onNavigateHome: () => void;
@@ -99,6 +106,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     | 'experience'
     | 'diplomados'
     | 'lab3d'
+    | 'socials'
     | 'media'
     | 'backup'
   >('overview');
@@ -114,6 +122,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [experiences, setExperiences] = useState<ExperienceItem[]>(getStoredExperience);
   const [diplomados, setDiplomados] = useState<DiplomadoItem[]>(getStoredDiplomados);
   const [lab3dData, setLab3dData] = useState<Lab3DData>(getStoredLab3D);
+
+  // Socials State
+  const [socials, setSocials] = useState<SocialLink[]>(getStoredSocials);
+  const [newSocialLabel, setNewSocialLabel] = useState('');
+  const [newSocialUrl, setNewSocialUrl] = useState('');
+  const [newSocialPreset, setNewSocialPreset] = useState<SocialLink['iconPreset']>('instagram');
+  const [newSocialLogoUrl, setNewSocialLogoUrl] = useState('');
+  const [isUploadingSocialLogo, setIsUploadingSocialLogo] = useState(false);
+  const [uploadingLogoId, setUploadingLogoId] = useState<string | null>(null);
+  const [isSavingSocials, setIsSavingSocials] = useState(false);
 
   // New Diplomado Form State
   const [newDipTitle, setNewDipTitle] = useState('');
@@ -157,6 +175,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setExperiences(getStoredExperience());
       setDiplomados(getStoredDiplomados());
       setLab3dData(getStoredLab3D());
+      setSocials(getStoredSocials());
     };
     loadData();
 
@@ -404,6 +423,111 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     showNotification('¡Configuración del Laboratorio 3D guardada en Hostinger MySQL!');
   };
 
+  // Socials Handlers
+  const handleNewSocialLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingSocialLogo(true);
+    const res = await uploadMediaFile(file);
+    setIsUploadingSocialLogo(false);
+    if (res.success && res.url) {
+      setNewSocialLogoUrl(res.url);
+      showNotification('¡Logotipo subido exitosamente a Hostinger!');
+    } else {
+      alert(res.error || 'Error al subir el logotipo.');
+    }
+  };
+
+  const handleItemSocialLogoUpload = async (id: string, file: File) => {
+    setUploadingLogoId(id);
+    const res = await uploadMediaFile(file);
+    setUploadingLogoId(null);
+    if (res.success && res.url) {
+      const updated = socials.map((s) => (s.id === id ? { ...s, logoUrl: res.url } : s));
+      setSocials(updated);
+      await saveStoredSocials(updated);
+      showNotification('¡Logotipo actualizado y guardado en Hostinger!');
+    } else {
+      alert(res.error || 'Error al subir el logotipo.');
+    }
+  };
+
+  const handleRemoveItemLogo = async (id: string) => {
+    const updated = socials.map((s) => (s.id === id ? { ...s, logoUrl: '' } : s));
+    setSocials(updated);
+    await saveStoredSocials(updated);
+    showNotification('¡Logotipo removido (usando icono vectorial)!');
+  };
+
+  const handleAddSocial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSocialLabel.trim() || !newSocialUrl.trim()) {
+      alert('Por favor ingresa un nombre y una URL válida para la red social.');
+      return;
+    }
+    const newId = `soc-${Date.now()}`;
+    const newLink: SocialLink = {
+      id: newId,
+      label: newSocialLabel.trim(),
+      href: newSocialUrl.trim(),
+      logoUrl: newSocialLogoUrl.trim() || undefined,
+      iconPreset: newSocialPreset || 'globe',
+      visible: true,
+      order: socials.length + 1,
+    };
+    const updated = [...socials, newLink];
+    setSocials(updated);
+    await saveStoredSocials(updated);
+    setNewSocialLabel('');
+    setNewSocialUrl('');
+    setNewSocialLogoUrl('');
+    showNotification('¡Red social agregada y sincronizada en Hostinger MySQL!');
+  };
+
+  const handleUpdateSocialField = (id: string, field: keyof SocialLink, value: any) => {
+    setSocials((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+    );
+  };
+
+  const handleToggleSocialVisibility = async (id: string) => {
+    const updated = socials.map((s) =>
+      s.id === id ? { ...s, visible: !s.visible } : s
+    );
+    setSocials(updated);
+    await saveStoredSocials(updated);
+    showNotification('¡Visibilidad de red social actualizada!');
+  };
+
+  const handleMoveSocial = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= socials.length) return;
+    const reordered = [...socials];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+    const withOrder = reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+    setSocials(withOrder);
+    await saveStoredSocials(withOrder);
+    showNotification('¡Orden de redes sociales actualizado!');
+  };
+
+  const handleDeleteSocial = async (id: string, label: string) => {
+    if (window.confirm(`¿Deseas eliminar "${label}" de las redes sociales?`)) {
+      const updated = socials.filter((s) => s.id !== id);
+      setSocials(updated);
+      await saveStoredSocials(updated);
+      showNotification('¡Red social eliminada!');
+    }
+  };
+
+  const handleSaveAllSocials = async () => {
+    setIsSavingSocials(true);
+    playClickSound();
+    await saveStoredSocials(socials);
+    setIsSavingSocials(false);
+    showNotification('¡Todas las redes sociales guardadas en Hostinger MySQL!');
+  };
+
   // Backup Handlers
   const handleExportJSON = () => {
     playClickSound();
@@ -645,6 +769,27 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             >
               <Box className="w-4 h-4" />
               <span>Laboratorio 3D</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('socials');
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'socials'
+                  ? darkMode
+                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
+                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+              }`}
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Redes Sociales & Logos</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+                {socials.length}
+              </span>
             </button>
 
             <button
@@ -1915,6 +2060,393 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </button>
                 </div>
               </form>
+            </div>
+          )}
+
+          {/* ================= TAB: REDES SOCIALES & LOGOS ================= */}
+          {activeTab === 'socials' && (
+            <div className="space-y-8">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight flex items-center gap-2.5">
+                    <Share2 className="w-5 h-5 text-emerald-400" />
+                    <span>Redes Sociales & Enlaces con Logo ({socials.length})</span>
+                  </h2>
+                  <p className={`text-xs ${textMuted} mt-1`}>
+                    Administra tus perfiles sociales y plataformas con su logotipo oficial o icono vectorial. Aparecen en el pie de página del portafolio.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSaveAllSocials}
+                  disabled={isSavingSocials}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-900/30 self-start sm:self-auto transition-all"
+                >
+                  {isSavingSocials ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  <span>Guardar Todo en MySQL</span>
+                </button>
+              </div>
+
+              {/* Card 1: Formulario para añadir nueva red social */}
+              <form
+                onSubmit={handleAddSocial}
+                className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-6 shadow-sm`}
+              >
+                <div className="flex items-center gap-2 pb-3 border-b border-slate-700/50">
+                  <Plus className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
+                    Añadir Nueva Red Social o Plataforma
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {/* Nombre / Etiqueta */}
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Nombre / Etiqueta <span className="text-rose-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newSocialLabel}
+                      onChange={(e) => setNewSocialLabel(e.target.value)}
+                      placeholder="Ej. Instagram, ArtStation, YouTube, Vimeo..."
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-medium`}
+                      required
+                    />
+                  </div>
+
+                  {/* URL del Enlace */}
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      URL del Perfil <span className="text-rose-400">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={newSocialUrl}
+                      onChange={(e) => setNewSocialUrl(e.target.value)}
+                      placeholder="https://..."
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
+                      required
+                    />
+                  </div>
+
+                  {/* Preset Vectorial */}
+                  <div>
+                    <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                      Icono Vectorial Predeterminado
+                    </label>
+                    <select
+                      value={newSocialPreset}
+                      onChange={(e) => setNewSocialPreset(e.target.value as any)}
+                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs cursor-pointer`}
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="behance">Behance</option>
+                      <option value="linkedin">LinkedIn</option>
+                      <option value="dribbble">Dribbble</option>
+                      <option value="artstation">ArtStation</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="tiktok">TikTok</option>
+                      <option value="twitter">X / Twitter</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="github">GitHub</option>
+                      <option value="globe">Sitio Web / Enlace Global</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Subir Logo Personalizado Opcional */}
+                <div className="p-4 rounded-xl bg-black/20 border border-slate-700/60 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-bold text-slate-200 block">
+                        Logotipo Personalizado (Opcional)
+                      </span>
+                      <span className="text-[11px] text-slate-400 block mt-0.5">
+                        Puedes subir un logo en SVG, PNG o WebP a Hostinger, o dejarlo vacío para usar el icono vectorial.
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {newSocialLogoUrl && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+                          <img
+                            src={newSocialLogoUrl}
+                            alt="Logo preview"
+                            className="w-5 h-5 object-contain"
+                          />
+                          <span className="truncate max-w-[120px]">Logo cargado</span>
+                          <button
+                            type="button"
+                            onClick={() => setNewSocialLogoUrl('')}
+                            className="text-rose-400 hover:text-rose-300 ml-1 cursor-pointer"
+                            title="Quitar logo"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+
+                      <label className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold cursor-pointer transition-colors shadow-sm">
+                        <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{isUploadingSocialLogo ? 'Subiendo...' : 'Subir Logotipo Imagen/SVG'}</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          disabled={isUploadingSocialLogo}
+                          onChange={handleNewSocialLogoUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vista previa y botón agregar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 font-mono">Vista Previa:</span>
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-[#76FF03]/30 text-xs font-mono font-bold text-[#76FF03]">
+                      <SocialIcon
+                        preset={newSocialPreset}
+                        logoUrl={newSocialLogoUrl || undefined}
+                        className="w-4 h-4 text-[#76FF03]"
+                      />
+                      <span>{newSocialLabel || 'NOMBRE_RED'}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all self-end sm:self-auto"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Agregar Red Social</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Card 2: Lista de Redes Sociales Actuales */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                    Redes Sociales Activas en el Portafolio ({socials.length})
+                  </h3>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    Usa las flechas para ordenar cómo aparecen en el pie de página
+                  </span>
+                </div>
+
+                {socials.length === 0 ? (
+                  <div className={`p-8 text-center rounded-2xl border ${bgCard} space-y-2`}>
+                    <Share2 className="w-8 h-8 text-slate-500 mx-auto" />
+                    <p className="text-sm font-semibold text-slate-300">No hay redes sociales configuradas</p>
+                    <p className="text-xs text-slate-500">Agrega perfiles arriba para que aparezcan en el sitio.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {socials.map((social, index) => {
+                      const isUploadingThis = uploadingLogoId === social.id;
+                      return (
+                        <div
+                          key={social.id || index}
+                          className={`p-4 sm:p-5 rounded-2xl border ${bgCard} flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all ${
+                            social.visible === false ? 'opacity-50' : ''
+                          }`}
+                        >
+                          {/* Columna Izquierda: Icono / Logo y datos principales */}
+                          <div className="flex items-center gap-4 min-w-0 flex-1">
+                            {/* Visual Avatar / Icon Box */}
+                            <div className="w-12 h-12 rounded-xl bg-black/40 border border-slate-700/80 flex items-center justify-center flex-shrink-0 p-2 relative group">
+                              <SocialIcon
+                                preset={social.iconPreset || social.label.toLowerCase()}
+                                logoUrl={social.logoUrl}
+                                className="w-6 h-6 text-emerald-400 object-contain"
+                              />
+                              {social.logoUrl && (
+                                <span
+                                  className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900"
+                                  title="Logotipo personalizado activo"
+                                />
+                              )}
+                            </div>
+
+                            {/* Inputs de Edición Rápida */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-w-0">
+                              <div>
+                                <label className="text-[10px] font-mono text-slate-400 block mb-1">
+                                  Nombre / Etiqueta
+                                </label>
+                                <input
+                                  type="text"
+                                  value={social.label}
+                                  onChange={(e) =>
+                                    handleUpdateSocialField(social.id, 'label', e.target.value)
+                                  }
+                                  className={`w-full px-3 py-1.5 rounded-lg border ${bgInput} text-xs font-semibold`}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-[10px] font-mono text-slate-400 block mb-1">
+                                  Enlace URL
+                                </label>
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={social.href}
+                                    onChange={(e) =>
+                                      handleUpdateSocialField(social.id, 'href', e.target.value)
+                                    }
+                                    className={`w-full px-3 py-1.5 rounded-lg border ${bgInput} text-xs font-mono truncate`}
+                                  />
+                                  <a
+                                    href={social.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                                    title="Probar enlace"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Columna Centro: Configuración de Logo / Preset */}
+                          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-700/50">
+                            {/* Selector de Preset */}
+                            <div className="w-32">
+                              <select
+                                value={social.iconPreset || 'globe'}
+                                onChange={(e) =>
+                                  handleUpdateSocialField(social.id, 'iconPreset', e.target.value)
+                                }
+                                className={`w-full px-2.5 py-1.5 rounded-lg border ${bgInput} text-[11px] cursor-pointer`}
+                                title="Icono vectorial de respaldo"
+                              >
+                                <option value="instagram">Instagram</option>
+                                <option value="behance">Behance</option>
+                                <option value="linkedin">LinkedIn</option>
+                                <option value="dribbble">Dribbble</option>
+                                <option value="artstation">ArtStation</option>
+                                <option value="youtube">YouTube</option>
+                                <option value="tiktok">TikTok</option>
+                                <option value="twitter">X / Twitter</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="github">GitHub</option>
+                                <option value="globe">Sitio Web</option>
+                              </select>
+                            </div>
+
+                            {/* Subir o Quitar Logo */}
+                            {social.logoUrl ? (
+                              <div className="flex items-center gap-1">
+                                <label className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-emerald-400 text-[11px] font-semibold cursor-pointer transition-colors">
+                                  <span>{isUploadingThis ? 'Subiendo...' : 'Cambiar Logo'}</span>
+                                  <input
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                    disabled={isUploadingThis}
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleItemSocialLogoUpload(social.id, f);
+                                    }}
+                                    className="hidden"
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveItemLogo(social.id)}
+                                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 cursor-pointer"
+                                  title="Quitar logotipo personalizado y usar icono vectorial"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white text-[11px] font-medium cursor-pointer transition-colors">
+                                <Upload className="w-3 h-3 text-emerald-400" />
+                                <span>{isUploadingThis ? 'Subiendo...' : 'Subir Logo'}</span>
+                                <input
+                                  type="file"
+                                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                  disabled={isUploadingThis}
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) handleItemSocialLogoUpload(social.id, f);
+                                  }}
+                                  className="hidden"
+                                />
+                              </label>
+                            )}
+
+                            {/* Columna Derecha: Controles de orden, visibilidad y eliminación */}
+                            <div className="flex items-center gap-1 ml-auto lg:ml-0">
+                              {/* Reorder Up */}
+                              <button
+                                type="button"
+                                onClick={() => handleMoveSocial(index, 'up')}
+                                disabled={index === 0}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 hover:text-white cursor-pointer"
+                                title="Subir posición"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Reorder Down */}
+                              <button
+                                type="button"
+                                onClick={() => handleMoveSocial(index, 'down')}
+                                disabled={index === socials.length - 1}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 hover:text-white cursor-pointer"
+                                title="Bajar posición"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Toggle Visibility */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSocialVisibility(social.id)}
+                                className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
+                                  social.visible !== false
+                                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                                    : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+                                }`}
+                                title={social.visible !== false ? 'Visible en el sitio' : 'Oculto en el sitio'}
+                              >
+                                {social.visible !== false ? (
+                                  <Eye className="w-3.5 h-3.5" />
+                                ) : (
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+
+                              {/* Delete */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSocial(social.id, social.label)}
+                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 cursor-pointer transition-colors"
+                                title="Eliminar red social"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

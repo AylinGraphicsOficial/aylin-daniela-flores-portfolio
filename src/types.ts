@@ -97,3 +97,14 @@ export interface ProjectInquiry {
   company?: string;
   message: string;
 }
+
+export interface SocialLink {
+  id: string;
+  label: string;
+  href: string;
+  logoUrl?: string;
+  iconPreset?: string;
+  visible: boolean;
+  order?: number;
+}
+

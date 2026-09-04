@@ -1,25 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowUp, Lock } from 'lucide-react';
-import { playClickSound } from '../utils/audio';
+import { playClickSound, playHoverSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
+import { getStoredSocials, subscribeToPortfolioChanges } from '../utils/portfolioStorage';
+import { SocialLink } from '../types';
+import { SocialIcon } from './SocialIcon';
 
 interface FooterProps {
   onOpenAdminLogin?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(getStoredSocials);
+
+  useEffect(() => {
+    const updateSocials = () => {
+      setSocialLinks(getStoredSocials());
+    };
+    return subscribeToPortfolioChanges(updateSocials);
+  }, []);
+
   const scrollToTop = () => {
     playClickSound();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const socialLinks = [
-    { label: 'INSTAGRAM', href: 'https://instagram.com' },
-    { label: 'BEHANCE', href: 'https://behance.net' },
-    { label: 'LINKEDIN', href: 'https://linkedin.com' },
-    { label: 'DRIBBBLE', href: 'https://dribbble.com' },
-    { label: 'ARTSTATION', href: 'https://artstation.com' },
-  ];
+  const visibleSocials = socialLinks.filter((link) => link.visible !== false);
 
   return (
     <footer className="w-full py-16 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-20 flex flex-col justify-between items-center gap-8">
@@ -44,18 +50,25 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
           </div>
         </div>
 
-        {/* Social Links */}
-        <div className="flex flex-wrap justify-center gap-6">
-          {socialLinks.map((link) => (
+        {/* Social Links with Logo and Label */}
+        <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4">
+          {visibleSocials.map((link) => (
             <a
-              key={link.label}
+              key={link.id || link.label}
               href={link.href}
               target="_blank"
               rel="noreferrer"
               onClick={playClickSound}
-              className="text-xs font-mono font-bold text-gray-400 hover:text-[#76FF03] transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#76FF03] hover:after:w-full after:transition-all"
+              onMouseEnter={playHoverSound}
+              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#76FF03]/10 border border-white/10 hover:border-[#76FF03]/40 text-xs font-mono font-bold text-gray-300 hover:text-[#76FF03] transition-all duration-300 shadow-sm"
+              title={`Visitar ${link.label}`}
             >
-              {link.label}
+              <SocialIcon
+                preset={link.iconPreset || link.label.toLowerCase()}
+                logoUrl={link.logoUrl}
+                className="w-4 h-4 text-gray-400 group-hover:text-[#76FF03] group-hover:scale-110 transition-all"
+              />
+              <span>{link.label}</span>
             </a>
           ))}
         </div>
