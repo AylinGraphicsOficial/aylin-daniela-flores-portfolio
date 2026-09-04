@@ -29,6 +29,7 @@ try {
             `fullDesc` LONGTEXT,
             `image` VARCHAR(500) NOT NULL,
             `galleryImages` LONGTEXT,
+            `logo` VARCHAR(500) DEFAULT '',
             `videoUrl` VARCHAR(500) DEFAULT '',
             `videoClip` VARCHAR(500) DEFAULT '',
             `gifUrl` VARCHAR(500) DEFAULT '',
@@ -40,6 +41,11 @@ try {
             `updatedAt` VARCHAR(50) DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
+
+    // Migration: ensure logo column exists in projects
+    try {
+        $pdo->exec("ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`");
+    } catch (Exception $e) {}
 
     // 2. Create Disciplines Table
     $pdo->exec("

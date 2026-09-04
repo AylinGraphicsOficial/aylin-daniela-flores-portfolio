@@ -10,6 +10,7 @@ export interface Project {
   fullDesc: string;
   image: string;
   galleryImages?: string[];
+  logo?: string; // Logotipo o imagen representativa del proyecto / marca a la par del título
   videoUrl?: string; // YouTube, Vimeo, direct MP4 URL
   videoClip?: string; // Small MP4 or WebM video file
   gifUrl?: string; // Animated GIF

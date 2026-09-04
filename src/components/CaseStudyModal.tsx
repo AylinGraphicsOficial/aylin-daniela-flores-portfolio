@@ -67,14 +67,26 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
 
         {/* Scrollable Modal Body */}
         <div className="overflow-y-auto p-4 md:p-8 space-y-8 bg-[#081008]">
-          {/* Main Title & Subtitle */}
-          <div>
-            <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">
-              {project.title}
-            </h2>
-            <p className="text-base text-gray-300 max-w-3xl leading-relaxed">
-              {project.shortDesc}
-            </p>
+          {/* Main Title & Subtitle with Logo */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
+            <div>
+              <h2 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">
+                {project.title}
+              </h2>
+              <p className="text-base text-gray-300 max-w-3xl leading-relaxed">
+                {project.shortDesc}
+              </p>
+            </div>
+
+            {project.logo && (
+              <div className="flex-shrink-0 p-3 rounded-2xl bg-white/[0.04] border border-white/15 backdrop-blur-md shadow-lg">
+                <img
+                  src={project.logo}
+                  alt={`${project.title} Logo`}
+                  className="h-12 sm:h-16 w-auto max-w-[140px] object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+                />
+              </div>
+            )}
           </div>
 
           {/* Interactive Image Gallery Carousel with Zoom overlay */}

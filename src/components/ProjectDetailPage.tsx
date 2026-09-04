@@ -90,9 +90,21 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
       {/* Giant Wix-Style Project Title Header */}
       <div className="max-w-7xl mx-auto mb-12">
-        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter text-white leading-none mb-8">
-          {project.title}
-        </h1>
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8 mb-8">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter text-white leading-none inline-block">
+            {project.title}
+          </h1>
+
+          {project.logo && (
+            <div className="inline-flex items-center justify-center p-3 sm:p-4 md:p-5 rounded-2xl sm:rounded-3xl bg-white/[0.04] border border-white/15 backdrop-blur-md shadow-[0_0_25px_rgba(118,255,3,0.18)] hover:border-[#76FF03]/60 hover:scale-105 transition-all duration-300">
+              <img
+                src={project.logo}
+                alt={`${project.title} Logo`}
+                className="h-14 sm:h-20 md:h-24 lg:h-28 w-auto max-w-[140px] sm:max-w-[200px] md:max-w-[260px] object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+              />
+            </div>
+          )}
+        </div>
         <div className="w-full h-px bg-white/15 mb-12" />
 
         {/* 2-Column Wix Project Info Grid */}

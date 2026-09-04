@@ -49,6 +49,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     fullDesc: '',
     image: '',
     galleryImages: [],
+    logo: '',
     videoUrl: '',
     videoClip: '',
     gifUrl: '',
@@ -61,6 +62,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   const [tagInput, setTagInput] = useState('');
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingClip, setIsUploadingClip] = useState(false);
   const [isUploadingGif, setIsUploadingGif] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
@@ -76,6 +78,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       setFormData({
         ...project,
         galleryImages: project.galleryImages || [],
+        logo: project.logo || '',
         tags: project.tags || [],
         metrics: project.metrics || [{ label: 'Render Samples', value: '4,096 SPP' }],
       });
@@ -91,6 +94,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         fullDesc: '',
         image: '/images/orbit-stand.webp',
         galleryImages: [],
+        logo: '',
         videoUrl: '',
         videoClip: '',
         gifUrl: '',
@@ -119,6 +123,24 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       setFormData((prev) => ({ ...prev, image: result.url }));
     } else {
       setUploadError(result.error || 'Error al subir la imagen.');
+    }
+  };
+
+  // Subir logotipo representativo a Hostinger
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    setUploadError(null);
+
+    const result = await uploadMediaFile(file);
+    setIsUploadingLogo(false);
+
+    if (result.success && result.url) {
+      setFormData((prev) => ({ ...prev, logo: result.url }));
+    } else {
+      setUploadError(result.error || 'Error al subir el logotipo.');
     }
   };
 
@@ -294,6 +316,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       fullDesc: formData.fullDesc || '',
       image: formData.image || '/images/orbit-stand.webp',
       galleryImages: (formData.galleryImages || []).slice(0, MAX_GALLERY_IMAGES),
+      logo: formData.logo || '',
       videoUrl: formData.videoUrl || '',
       videoClip: formData.videoClip || '',
       gifUrl: formData.gifUrl || '',
@@ -442,6 +465,98 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 <span>{formData.featured ? '⭐ Destacado en Portada' : 'Normal'}</span>
               </button>
             </div>
+          </div>
+
+          {/* Row: Logo o Imagen Representativa (A la par del Título) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-black/25 border border-slate-700/70 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/50">
+              <div>
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 block">
+                  Logotipo o Imagen Representativa (A la par del Título)
+                </span>
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  Aparece junto al título principal en la página del proyecto y en el estudio de caso (PNG transparente, SVG o WebP recomendado).
+                </span>
+              </div>
+
+              <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold cursor-pointer transition-colors shadow-sm self-start sm:self-auto">
+                <Upload className="w-3.5 h-3.5" />
+                <span>{isUploadingLogo ? 'Subiendo...' : 'Subir Logotipo a Hostinger'}</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  disabled={isUploadingLogo}
+                  onChange={handleLogoFileUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+              {/* Input URL direct */}
+              <div className="sm:col-span-8">
+                <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                  Ruta o URL del Logotipo
+                </label>
+                <input
+                  type="text"
+                  value={formData.logo || ''}
+                  onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+                  placeholder="Ej. /images/brands/los-rebusca.svg o URL /uploads/..."
+                  className={`w-full px-4 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
+                />
+              </div>
+
+              {/* Preview Thumbnail Box */}
+              <div className="sm:col-span-4 flex items-center gap-3">
+                <div className="w-16 h-16 rounded-xl bg-black/50 border border-slate-700 flex items-center justify-center p-2 flex-shrink-0 relative overflow-hidden">
+                  {formData.logo ? (
+                    <img
+                      src={formData.logo}
+                      alt="Logo preview"
+                      className="max-h-full max-w-full object-contain filter drop-shadow-md"
+                    />
+                  ) : (
+                    <span className="text-[10px] text-slate-500 font-mono text-center leading-tight">
+                      Sin logo
+                    </span>
+                  )}
+                </div>
+
+                {formData.logo && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, logo: '' })}
+                    className="p-2 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Quitar logotipo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Quitar</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Live Mini Preview Header */}
+            {formData.title && (
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center gap-3">
+                <span className="text-[10px] font-mono text-slate-400 uppercase">Vista Previa Título:</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-base sm:text-lg font-black uppercase italic tracking-tight text-white">
+                    {formData.title}
+                  </span>
+                  {formData.logo && (
+                    <div className="p-1.5 px-2.5 rounded-lg bg-white/5 border border-white/15">
+                      <img
+                        src={formData.logo}
+                        alt="Mini logo"
+                        className="h-6 w-auto object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Row 3: Descriptions */}

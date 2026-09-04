@@ -16,6 +16,13 @@ if (!$pdo) {
     ], 500);
 }
 
+// Auto-migration: ensure logo column exists
+try {
+    $pdo->exec("ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`");
+} catch (Exception $e) {
+    // Column already exists or table not ready
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 $id     = $_GET['id'] ?? '';
@@ -31,6 +38,7 @@ if ($method === 'GET') {
         }
         $row['featured'] = (bool)$row['featured'];
         $row['galleryImages'] = json_decode($row['galleryImages'] ?? '[]', true) ?: [];
+        $row['logo'] = $row['logo'] ?? '';
         $row['tags'] = json_decode($row['tags'] ?? '[]', true) ?: [];
         $row['metrics'] = json_decode($row['metrics'] ?? '[]', true) ?: [];
         sendJsonResponse($row);
@@ -50,6 +58,7 @@ if ($method === 'GET') {
             'fullDesc'      => $row['fullDesc'],
             'image'         => $row['image'],
             'galleryImages' => json_decode($row['galleryImages'] ?? '[]', true) ?: [],
+            'logo'          => $row['logo'] ?? '',
             'videoUrl'      => $row['videoUrl'] ?? '',
             'videoClip'     => $row['videoClip'] ?? '',
             'gifUrl'        => $row['gifUrl'] ?? '',
@@ -104,11 +113,11 @@ if ($method === 'POST' || $method === 'PUT') {
 
     $upsertSql = "INSERT INTO `projects` (
         `id`, `title`, `category`, `year`, `client`, `shortDesc`, `fullDesc`,
-        `image`, `galleryImages`, `videoUrl`, `videoClip`, `gifUrl`, `tags`,
+        `image`, `galleryImages`, `logo`, `videoUrl`, `videoClip`, `gifUrl`, `tags`,
         `featured`, `metrics`, `display_order`, `createdAt`, `updatedAt`
     ) VALUES (
         :id, :title, :category, :year, :client, :shortDesc, :fullDesc,
-        :image, :galleryImages, :videoUrl, :videoClip, :gifUrl, :tags,
+        :image, :galleryImages, :logo, :videoUrl, :videoClip, :gifUrl, :tags,
         :featured, :metrics, :display_order, :createdAt, :updatedAt
     ) ON DUPLICATE KEY UPDATE
         `title` = VALUES(`title`),
@@ -119,6 +128,7 @@ if ($method === 'POST' || $method === 'PUT') {
         `fullDesc` = VALUES(`fullDesc`),
         `image` = VALUES(`image`),
         `galleryImages` = VALUES(`galleryImages`),
+        `logo` = VALUES(`logo`),
         `videoUrl` = VALUES(`videoUrl`),
         `videoClip` = VALUES(`videoClip`),
         `gifUrl` = VALUES(`gifUrl`),
@@ -145,6 +155,7 @@ if ($method === 'POST' || $method === 'PUT') {
             ? json_encode($item['galleryImages'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) 
             : (is_string($item['galleryImages'] ?? null) ? $item['galleryImages'] : '[]');
 
+        $logo = $item['logo'] ?? '';
         $videoUrl = $item['videoUrl'] ?? '';
         $videoClip = $item['videoClip'] ?? '';
         $gifUrl = $item['gifUrl'] ?? '';
@@ -173,6 +184,7 @@ if ($method === 'POST' || $method === 'PUT') {
             ':fullDesc'      => $fullDesc,
             ':image'         => $image,
             ':galleryImages' => $galleryImages,
+            ':logo'          => $logo,
             ':videoUrl'      => $videoUrl,
             ':videoClip'     => $videoClip,
             ':gifUrl'        => $gifUrl,
