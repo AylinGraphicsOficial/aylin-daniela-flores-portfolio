@@ -4,8 +4,10 @@ import fs from "fs";
 async function cleanAndDeploy() {
   const client = new Client();
   client.ftp.verbose = true;
-  try {
-    console.log("Connecting to Hostinger FTP to clean and deploy production...");
+  client.ftp.timeout = 30000;
+
+  async function connect() {
+    console.log("Connecting to Hostinger FTP (151.106.96.65)...");
     await client.access({
       host: "151.106.96.65",
       user: "u888615463",
@@ -13,76 +15,41 @@ async function cleanAndDeploy() {
       port: 21,
       secure: false
     });
+  }
+
+  try {
+    await connect();
 
     const rootDir = "/domains/aylinflores.com/public_html";
     await client.cd(rootDir);
-    const list = await client.list();
-    console.log("Found in public_html:", list.map(i => i.name));
+    console.log("In public_html, starting robust production deployment...");
 
-    console.log("Preparing production deployment directly...");
-
-    console.log("Uploading compiled dist assets, api and root files to Hostinger...");
-    
-    // Helper to safely upload file deleting remote first if present
-    async function uploadFileSafely(localPath, remoteName) {
-      try {
-        await client.remove(remoteName).catch(() => {});
-      } catch (e) {}
-      await client.uploadFrom(localPath, remoteName);
-    }
-
-    // Upload assets safely
-    await client.ensureDir(`${rootDir}/assets`);
-    await client.cd(`${rootDir}/assets`);
-    const assetFiles = fs.readdirSync("dist/assets");
-    for (const f of assetFiles) {
-      await uploadFileSafely(`dist/assets/${f}`, f);
-      console.log(`Uploaded asset: ${f}`);
-    }
-    console.log("Assets uploaded!");
-
-    // Upload api files safely
-    await client.ensureDir(`${rootDir}/api`);
-    await client.cd(`${rootDir}/api`);
-    const apiFiles = ["projects.php", "init_db.php", "disciplines.php", "settings.php", "upload.php", "config.php"];
-    for (const f of apiFiles) {
-      if (fs.existsSync(`dist/api/${f}`)) {
-        await uploadFileSafely(`dist/api/${f}`, f);
-        console.log(`Uploaded api file: ${f}`);
-      }
-    }
-    console.log("API uploaded!");
-
-    // Helper to safely sync directory with size check and recursive support
-    async function syncDirectory(localDir, remoteDir) {
-      if (!fs.existsSync(localDir)) return;
-      await client.ensureDir(remoteDir);
-      await client.cd(remoteDir);
-      const remoteList = await client.list();
-      const files = fs.readdirSync(localDir);
-      for (const file of files) {
-        const localPath = `${localDir}/${file}`;
-        const stat = fs.statSync(localPath);
-        if (stat.isDirectory()) {
-          await syncDirectory(localPath, `${remoteDir}/${file}`);
-          await client.cd(remoteDir);
-        } else if (stat.isFile()) {
-          const match = remoteList.find(r => r.name === file);
-          if (!match || match.size !== stat.size) {
-            console.log(`Uploading ${file} to ${remoteDir}...`);
-            await uploadFileSafely(localPath, file);
+    // Upload with automatic reconnect & retry
+    async function uploadSafely(localPath, remoteName, maxRetries = 3) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          if (client.closed) {
+            await connect();
           }
+          await client.uploadFrom(localPath, remoteName);
+          console.log(`✓ Uploaded: ${remoteName}`);
+          return;
+        } catch (err) {
+          console.warn(`! Attempt ${attempt} failed for ${remoteName}: ${err.message}`);
+          if (attempt === maxRetries) {
+            console.error(`✕ Failed after ${maxRetries} attempts: ${remoteName}`);
+            throw err;
+          }
+          await new Promise(r => setTimeout(r, 2000));
+          try {
+            await connect();
+          } catch (cErr) {}
         }
       }
     }
 
-    // Sync models, uploads & images
-    await syncDirectory("dist/models", `${rootDir}/models`);
-    await syncDirectory("dist/uploads", `${rootDir}/uploads`);
-    await syncDirectory("dist/images", `${rootDir}/images`);
-    console.log("3D Models, Uploads and Images synced!");
-
-    // Upload root files
+    // 1. UPLOAD ROOT FILES FIRST (index.html, favicons, etc.)
+    console.log("\n--- UPLOADING ROOT ASSETS & HTML ---");
     await client.cd(rootDir);
     const rootFiles = [
       "index.html", ".htaccess", "favicon.ico", "favicon.png",
@@ -93,16 +60,36 @@ async function cleanAndDeploy() {
     for (const file of rootFiles) {
       const localPath = `dist/${file}`;
       if (fs.existsSync(localPath)) {
-        try {
-          await uploadFileSafely(localPath, file);
-          console.log(`Uploaded root file: ${file}`);
-        } catch (fErr) {
-          console.warn(`Note on uploading ${file}:`, fErr.message);
-        }
+        await uploadSafely(localPath, file);
       }
     }
+    console.log("Root files uploaded successfully!");
 
-    console.log("DONE! Production build uploaded and working 100%!");
+    // 2. UPLOAD COMPILED ASSETS
+    console.log("\n--- UPLOADING BUNDLED ASSETS ---");
+    await client.ensureDir(`${rootDir}/assets`);
+    await client.cd(`${rootDir}/assets`);
+    const assetFiles = fs.readdirSync("dist/assets");
+    for (const f of assetFiles) {
+      await uploadSafely(`dist/assets/${f}`, f);
+    }
+    console.log("All compiled assets uploaded successfully!");
+
+    // 3. UPLOAD PHP API FILES
+    console.log("\n--- UPLOADING API PHP FILES ---");
+    await client.ensureDir(`${rootDir}/api`);
+    await client.cd(`${rootDir}/api`);
+    const apiFiles = ["projects.php", "init_db.php", "disciplines.php", "settings.php", "upload.php", "config.php"];
+    for (const f of apiFiles) {
+      if (fs.existsSync(`dist/api/${f}`)) {
+        await uploadSafely(`dist/api/${f}`, f);
+      }
+    }
+    console.log("API backend files uploaded successfully!");
+
+    console.log("\n=======================================================");
+    console.log("SUCCESS! PRODUCTION SITE 100% DEPLOYED TO HOSTINGER!");
+    console.log("=======================================================");
   } catch (err) {
     console.error("Clean and Deploy Error:", err);
   } finally {

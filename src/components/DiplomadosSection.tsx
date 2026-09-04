@@ -14,6 +14,7 @@ interface DiplomadosSectionProps {
 export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) => {
   const isEs = lang === 'es';
   const [diplomados, setDiplomados] = useState<DiplomadoItem[]>(getStoredDiplomados);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -24,7 +25,9 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
     return () => unsubscribe();
   }, []);
 
-  const visibleDiplomados = diplomados.filter((d) => d.visible !== false);
+  const visibleDiplomados = diplomados.filter(
+    (d) => d.visible !== false && !failedImages[d.id]
+  );
 
   if (visibleDiplomados.length === 0) return null;
 
@@ -80,6 +83,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
                   className="h-[180px] md:h-[210px] w-auto max-w-[320px] md:max-w-[400px] object-contain rounded-xl block pointer-events-none"
                   loading="lazy"
                   draggable={false}
+                  onError={() => setFailedImages((prev) => ({ ...prev, [item.id]: true }))}
                 />
               </div>
 
