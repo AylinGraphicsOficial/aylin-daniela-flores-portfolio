@@ -19,23 +19,7 @@ async function cleanAndDeploy() {
     const list = await client.list();
     console.log("Found in public_html:", list.map(i => i.name));
 
-    // Delete raw uncompiled repository folders and files cloned by Hostinger Git
-    const uncompiledItems = [
-      "src", ".git", ".github", "scratch", "public", "domains",
-      "package.json", "package-lock.json", "bun.lock", "tsconfig.json",
-      "vite.config.ts", "README.md", "metadata.json", ".env.example", ".gitignore"
-    ];
-
-    for (const item of list) {
-      if (uncompiledItems.includes(item.name)) {
-        console.log(`Deleting uncompiled raw item: ${item.name}`);
-        if (item.isDirectory) {
-          await client.removeDir(`${rootDir}/${item.name}`);
-        } else {
-          await client.remove(`${rootDir}/${item.name}`);
-        }
-      }
-    }
+    console.log("Preparing production deployment directly...");
 
     console.log("Uploading compiled dist assets, api and root files to Hostinger...");
     

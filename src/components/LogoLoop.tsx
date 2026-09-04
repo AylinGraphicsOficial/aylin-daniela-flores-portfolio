@@ -23,7 +23,7 @@ export interface LogoImageItem {
 export type LogoItem = LogoNodeItem | LogoImageItem;
 
 export interface LogoLoopProps {
-  logos: LogoItem[];
+  logos: (LogoItem | any)[];
   speed?: number;
   direction?: 'left' | 'right' | 'up' | 'down';
   width?: number | string;
@@ -34,7 +34,7 @@ export interface LogoLoopProps {
   fadeOut?: boolean;
   fadeOutColor?: string;
   scaleOnHover?: boolean;
-  renderItem?: (item: LogoItem, key: React.Key) => React.ReactNode;
+  renderItem?: (item: any, key: React.Key) => React.ReactNode;
   ariaLabel?: string;
   className?: string;
   style?: React.CSSProperties;

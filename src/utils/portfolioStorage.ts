@@ -176,9 +176,10 @@ export interface AboutSectionData {
 export interface DiplomadoItem {
   id: string;
   title: string;
+  degree?: string;
+  institution?: string;
   src: string;
   year?: string;
-  institution?: string;
   visible?: boolean;
 }
 
@@ -223,42 +224,54 @@ export const initialAboutData: AboutSectionData = {
 export const initialDiplomadosData: DiplomadoItem[] = [
   {
     id: 'dip-1',
-    title: 'Diplomado Adobe After Effects (2023)',
+    title: 'Diplomado Adobe After Effects',
+    degree: 'Especialista en Motion Graphics & Animación',
+    institution: 'Academia de Formación Digital',
     src: '/images/diplomados/diplomado-after-effects-2023.webp',
     year: '2023',
     visible: true,
   },
   {
     id: 'dip-2',
-    title: 'Taller de Creación de Contenido (2025)',
+    title: 'Taller de Creación de Contenido',
+    degree: 'Certificación en Estrategia de Contenido Digital',
+    institution: 'Crehana / Domestika',
     src: '/images/diplomados/diplomado-creacion-contenido-2025.webp',
     year: '2025',
     visible: true,
   },
   {
     id: 'dip-3',
-    title: 'Diseño Gráfico Publicitario (2021)',
+    title: 'Diseño Gráfico Publicitario',
+    degree: 'Especialidad en Diseño Gráfico Publicitario',
+    institution: 'CETEC-ES Centro de Estudios Técnicos',
     src: '/images/diplomados/diplomado-diseno-grafico-publicitario-2021.webp',
     year: '2021',
     visible: true,
   },
   {
     id: 'dip-4',
-    title: 'Webinar Branding para Diseñadores (2023)',
+    title: 'Branding para Diseñadores',
+    degree: 'Diploma de Participación en Branding & Identidad',
+    institution: 'Webinar Especializado',
     src: '/images/diplomados/diplomado-branding-disenadores-2023.webp',
     year: '2023',
     visible: true,
   },
   {
     id: 'dip-5',
-    title: 'Introducción al Diseño Narrativo para Videojuegos',
+    title: 'Diseño Narrativo para Videojuegos',
+    degree: 'Certificado de Aprobación en Diseño Narrativo',
+    institution: 'Domestika',
     src: '/images/diplomados/diplomado-diseno-narrativo-videojuegos.webp',
     year: '2023',
     visible: true,
   },
   {
     id: 'dip-6',
-    title: 'Diseño de Personajes para Animación y Videojuegos (2022)',
+    title: 'Diseño de Personajes para Videojuegos',
+    degree: 'Certificado de Animación y Personajes 3D',
+    institution: 'Domestika',
     src: '/images/diplomados/diplomado-diseno-personajes-animacion-2022.webp',
     year: '2022',
     visible: true,

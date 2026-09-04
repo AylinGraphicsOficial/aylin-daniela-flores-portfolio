@@ -44,9 +44,11 @@ import {
   Share2,
   ArrowUp,
   ArrowDown,
+  GripVertical,
+  GraduationCap,
   Link as LinkIcon,
 } from 'lucide-react';
-import { Project, Discipline, ExperienceItem, SocialLink } from '../../types';
+import { Project, Discipline, ExperienceItem, SocialLink, DiplomadoItem } from '../../types';
 import {
   getStoredProjects,
   getStoredDisciplines,
@@ -68,7 +70,6 @@ import {
   saveStoredExperience,
   getStoredDiplomados,
   saveStoredDiplomados,
-  DiplomadoItem,
   getStoredLab3D,
   saveStoredLab3D,
   Lab3DData,
@@ -137,9 +138,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   // New Diplomado Form State
   const [newDipTitle, setNewDipTitle] = useState('');
+  const [newDipDegree, setNewDipDegree] = useState('');
+  const [newDipInstitution, setNewDipInstitution] = useState('');
   const [newDipSrc, setNewDipSrc] = useState('');
   const [newDipYear, setNewDipYear] = useState('2025');
   const [isUploadingDip, setIsUploadingDip] = useState(false);
+  const [editingDip, setEditingDip] = useState<DiplomadoItem | null>(null);
+  const [isDipModalOpen, setIsDipModalOpen] = useState(false);
 
   // 3D Model Form State
   const [newModelName, setNewModelName] = useState('');
@@ -147,9 +152,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [newModelStats, setNewModelStats] = useState('');
   const [isUploadingModel, setIsUploadingModel] = useState(false);
 
-  // New Experience Form State
+  // New Experience Form State & Drag-and-Drop
   const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
   const [isExpModalOpen, setIsExpModalOpen] = useState(false);
+  const [draggedExpIndex, setDraggedExpIndex] = useState<number | null>(null);
+  const [dragOverExpIndex, setDragOverExpIndex] = useState<number | null>(null);
 
   // Uploading Profile Photo
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -180,6 +187,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setSocials(getStoredSocials());
     };
     loadData();
+
+    // Sincronización proactiva con Hostinger MySQL al abrir el dashboard
+    syncFromRemoteServer().then(() => {
+      loadData();
+    });
 
     checkDatabaseStatus().then(setDbStatus);
 
@@ -400,6 +412,55 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setEditingExp(null);
   };
 
+  // Experience Drag & Drop Handlers
+  const handleExpDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedExpIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', `${index}`);
+  };
+
+  const handleExpDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverExpIndex !== index) {
+      setDragOverExpIndex(index);
+    }
+  };
+
+  const handleExpDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedExpIndex === null || draggedExpIndex === dropIndex) {
+      setDraggedExpIndex(null);
+      setDragOverExpIndex(null);
+      return;
+    }
+
+    const updated = [...experiences];
+    const [movedItem] = updated.splice(draggedExpIndex, 1);
+    updated.splice(dropIndex, 0, movedItem);
+
+    setDraggedExpIndex(null);
+    setDragOverExpIndex(null);
+    handleSaveExperienceList(updated);
+  };
+
+  const handleExpDragEnd = () => {
+    setDraggedExpIndex(null);
+    setDragOverExpIndex(null);
+  };
+
+  const handleMoveExperience = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= experiences.length) return;
+
+    playClickSound();
+    const updated = [...experiences];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    handleSaveExperienceList(updated);
+  };
+
   // Diplomados Handlers
   const handleAddDiplomado = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -410,6 +471,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     const newDip: DiplomadoItem = {
       id: `dip-${Date.now()}`,
       title: newDipTitle.trim(),
+      degree: newDipDegree.trim() || 'Certificado Oficial',
+      institution: newDipInstitution.trim() || '',
       src: newDipSrc.trim(),
       year: newDipYear.trim() || '2025',
       visible: true,
@@ -418,8 +481,28 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setDiplomados(updated);
     await saveStoredDiplomados(updated);
     setNewDipTitle('');
+    setNewDipDegree('');
+    setNewDipInstitution('');
     setNewDipSrc('');
     showNotification('¡Diplomado añadido y guardado en Hostinger MySQL!');
+  };
+
+  const handleSaveEditingDiplomado = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDip) return;
+    const index = diplomados.findIndex((d) => d.id === editingDip.id);
+    let updated: DiplomadoItem[];
+    if (index >= 0) {
+      updated = [...diplomados];
+      updated[index] = editingDip;
+    } else {
+      updated = [editingDip, ...diplomados];
+    }
+    setDiplomados(updated);
+    await saveStoredDiplomados(updated);
+    setIsDipModalOpen(false);
+    setEditingDip(null);
+    showNotification('¡Diplomado actualizado y guardado en Hostinger MySQL!');
   };
 
   const handleDiplomadoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1704,41 +1787,119 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </button>
               </div>
 
-              {/* Experience Cards */}
+              {/* Experience Cards with Native Drag & Drop */}
               <div className="space-y-4">
                 {experiences.map((item, idx) => (
                   <div
                     key={item.id}
-                    className={`p-6 rounded-2xl border ${bgCard} flex flex-col md:flex-row items-start justify-between gap-4`}
+                    draggable
+                    onDragStart={(e) => handleExpDragStart(e, idx)}
+                    onDragOver={(e) => handleExpDragOver(e, idx)}
+                    onDragLeave={() => setDragOverExpIndex(null)}
+                    onDrop={(e) => handleExpDrop(e, idx)}
+                    onDragEnd={handleExpDragEnd}
+                    className={`p-5 rounded-2xl border transition-all duration-200 ${bgCard} flex flex-col md:flex-row items-start justify-between gap-4 ${
+                      draggedExpIndex === idx ? 'opacity-40 scale-[0.98] border-dashed border-emerald-500' : ''
+                    } ${
+                      dragOverExpIndex === idx && draggedExpIndex !== idx ? 'border-emerald-400 bg-emerald-500/10 ring-2 ring-emerald-500/30' : ''
+                    }`}
                   >
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-emerald-400">
-                          #{idx + 1}
-                        </span>
-                        <h4 className="text-base font-bold">{item.role}</h4>
-                        {item.isCurrent && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400">
-                            Actual
+                    <div className="flex items-start gap-3 flex-1 w-full">
+                      {/* Drag Handle & Reorder buttons */}
+                      <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
+                        <div
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800/80 cursor-grab active:cursor-grabbing transition-colors"
+                          title="Arrastra este módulo para cambiar su posición en el portafolio"
+                        >
+                          <GripVertical className="w-5 h-5" />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveExperience(idx, 'up')}
+                            disabled={idx === 0}
+                            className="p-1 text-slate-400 hover:text-emerald-400 disabled:opacity-20 disabled:hover:text-slate-400 rounded cursor-pointer disabled:cursor-not-allowed transition-colors"
+                            title="Subir módulo"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveExperience(idx, 'down')}
+                            disabled={idx === experiences.length - 1}
+                            className="p-1 text-slate-400 hover:text-emerald-400 disabled:opacity-20 disabled:hover:text-slate-400 rounded cursor-pointer disabled:cursor-not-allowed transition-colors"
+                            title="Bajar módulo"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Content Details */}
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            #{idx + 1}
                           </span>
+                          <h4 className="text-base font-bold text-white truncate">{item.role}</h4>
+                          {item.isCurrent && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                              Actual
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs font-mono text-slate-400">
+                          <span className="text-emerald-400 font-semibold">{item.company}</span>
+                          {item.period ? ` • ${item.period}` : ''}
+                          {item.location ? ` • ${item.location}` : ''}
+                        </p>
+
+                        {item.description && (
+                          <p className={`text-xs ${textMuted} leading-relaxed max-w-2xl`}>
+                            {item.description}
+                          </p>
+                        )}
+
+                        {item.responsibilities && item.responsibilities.length > 0 && (
+                          <div className="pt-2">
+                            <span className="text-[10px] font-mono uppercase text-emerald-400/80 font-bold block mb-1">
+                              Responsabilidades ({item.responsibilities.length}):
+                            </span>
+                            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                              {item.responsibilities.slice(0, 3).map((r, rI) => (
+                                <li key={rI} className="truncate">{r}</li>
+                              ))}
+                              {item.responsibilities.length > 3 && (
+                                <li className="text-[10px] text-slate-500 list-none">+{item.responsibilities.length - 3} más...</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+
+                        {item.toolsUsed && item.toolsUsed.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1.5">
+                            {item.toolsUsed.map((tool, tI) => (
+                              <span
+                                key={tI}
+                                className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800/90 text-slate-300 border border-slate-700/60"
+                              >
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      <p className="text-xs font-mono text-slate-400">
-                        {item.company} • {item.period} • {item.location}
-                      </p>
-                      <p className={`text-xs ${textMuted} leading-relaxed max-w-2xl`}>
-                        {item.description}
-                      </p>
                     </div>
 
-                    <div className="flex items-center gap-2 self-end md:self-center">
+                    <div className="flex items-center gap-2 self-end md:self-center shrink-0">
                       <button
                         type="button"
                         onClick={() => {
                           setEditingExp(item);
                           setIsExpModalOpen(true);
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium cursor-pointer transition-colors flex items-center gap-1"
+                        className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5"
                       >
                         <Edit className="w-3.5 h-3.5" />
                         <span>Editar</span>
@@ -1747,7 +1908,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         type="button"
                         onClick={() => handleDeleteExperience(item.id)}
                         className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer transition-colors"
-                        title="Eliminar"
+                        title="Eliminar experiencia"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1780,31 +1941,80 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   <span>Subir Nuevo Diplomado / Certificado a Hostinger</span>
                 </span>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    required
-                    value={newDipTitle}
-                    onChange={(e) => setNewDipTitle(e.target.value)}
-                    placeholder="Título (ej. Diplomado After Effects 2023)"
-                    className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-semibold`}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                      Nombre del Diplomado / Curso *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newDipTitle}
+                      onChange={(e) => setNewDipTitle(e.target.value)}
+                      placeholder="Ej. Diplomado Adobe After Effects"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border ${bgInput} text-xs font-semibold`}
+                    />
+                  </div>
 
-                  <input
-                    type="text"
-                    required
-                    value={newDipSrc}
-                    onChange={(e) => setNewDipSrc(e.target.value)}
-                    placeholder="URL de la imagen (/uploads/...)"
-                    className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
-                  />
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                      Título que se Otorga *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newDipDegree}
+                      onChange={(e) => setNewDipDegree(e.target.value)}
+                      placeholder="Ej. Especialista en Motion Graphics"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border ${bgInput} text-xs font-semibold text-emerald-400`}
+                    />
+                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <label className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700">
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                      Institución / Entidad Emisora
+                    </label>
+                    <input
+                      type="text"
+                      value={newDipInstitution}
+                      onChange={(e) => setNewDipInstitution(e.target.value)}
+                      placeholder="Ej. CETEC-ES / Domestika"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border ${bgInput} text-xs`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                      Año
+                    </label>
+                    <input
+                      type="text"
+                      value={newDipYear}
+                      onChange={(e) => setNewDipYear(e.target.value)}
+                      placeholder="Ej. 2023 o 2025"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                  <div className="flex-1 w-full">
+                    <input
+                      type="text"
+                      required
+                      value={newDipSrc}
+                      onChange={(e) => setNewDipSrc(e.target.value)}
+                      placeholder="URL de la imagen del diploma (/uploads/... o /images/...)"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <label className="flex-1 sm:flex-initial py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700 transition-colors">
                       {isUploadingDip ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
                       ) : (
-                        <Upload className="w-3.5 h-3.5" />
+                        <Upload className="w-3.5 h-3.5 text-emerald-400" />
                       )}
                       <span>{isUploadingDip ? 'Subiendo...' : 'Subir Certificado'}</span>
                       <input
@@ -1818,9 +2028,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
                     <button
                       type="submit"
-                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase cursor-pointer shadow-sm"
+                      className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase cursor-pointer shadow-sm flex items-center gap-1.5"
                     >
-                      Añadir
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Añadir Diplomado</span>
                     </button>
                   </div>
                 </div>
@@ -1839,11 +2050,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       <img src={dip.src} alt={dip.title} className="w-full h-full object-contain" />
                     </div>
 
-                    <div>
-                      <h4 className="text-xs font-bold line-clamp-2">{dip.title}</h4>
-                      <span className="text-[10px] text-slate-400 font-mono block mt-1">
-                        {dip.year || '2025'}
-                      </span>
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-white line-clamp-1" title={dip.title}>
+                        {dip.title}
+                      </h4>
+                      <p className="text-[11px] font-mono text-emerald-400 font-semibold truncate" title={dip.degree}>
+                        {dip.degree || 'Certificado Oficial'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-mono truncate">
+                        {dip.institution ? `${dip.institution} • ` : ''}{dip.year || '2025'}
+                      </p>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
@@ -1858,14 +2074,27 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         <span>{dip.visible !== false ? 'Visible' : 'Oculto'}</span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteDiplomado(dip.id)}
-                        className="p-1 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingDip(dip);
+                            setIsDipModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-300 hover:text-emerald-400 hover:bg-slate-800 rounded cursor-pointer transition-colors"
+                          title="Editar diplomado"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteDiplomado(dip.id)}
+                          className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -3039,15 +3268,15 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   required
                   value={editingExp.role}
                   onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })}
-                  placeholder="Ej. Directora de Diseño Gráfico"
+                  placeholder="Ej. Directora del Área de Diseño Gráfico"
                   className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-300 block mb-1">
-                    Empresa / Estudio *
+                    Empresa / Estudio / Organización *
                   </label>
                   <input
                     type="text"
@@ -3055,7 +3284,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     value={editingExp.company}
                     onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })}
                     placeholder="Ej. Imprenta Bifronte"
-                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs`}
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
                   />
                 </div>
 
@@ -3074,6 +3303,35 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                    Ubicación
+                  </label>
+                  <input
+                    type="text"
+                    value={editingExp.location || ''}
+                    onChange={(e) => setEditingExp({ ...editingExp, location: e.target.value })}
+                    placeholder="Ej. Sonsonate, El Salvador (Remoto / Global)"
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs`}
+                  />
+                </div>
+
+                <div className="pt-4 sm:pt-3">
+                  <label className="flex items-center gap-2 cursor-pointer bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60 hover:border-emerald-500/50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={!!editingExp.isCurrent}
+                      onChange={(e) => setEditingExp({ ...editingExp, isCurrent: e.target.checked })}
+                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-slate-900 border-slate-700"
+                    />
+                    <span className="text-xs font-medium text-slate-200">
+                      ¿Es tu puesto / trabajo actual?
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-medium text-slate-300 block mb-1">
                   Descripción General
@@ -3082,8 +3340,50 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   rows={3}
                   value={editingExp.description}
                   onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })}
-                  placeholder="Resumen del puesto y responsabilidades..."
+                  placeholder="Resumen de las actividades y contribuciones en este puesto..."
                   className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed`}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  Responsabilidades y Logros Clave (Una por línea)
+                </label>
+                <textarea
+                  rows={4}
+                  value={(editingExp.responsibilities || []).join('\n')}
+                  onChange={(e) =>
+                    setEditingExp({
+                      ...editingExp,
+                      responsibilities: e.target.value
+                        .split('\n')
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0),
+                    })
+                  }
+                  placeholder="• Dirección, gestión y ejecución integral del área gráfica&#10;• Planificación de metodologías de aprendizaje y contenido&#10;• Supervisión de procesos de preprensa técnica y branding"
+                  className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed font-sans`}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  Herramientas / Software Utilizado (Separadas por comas)
+                </label>
+                <input
+                  type="text"
+                  value={(editingExp.toolsUsed || []).join(', ')}
+                  onChange={(e) =>
+                    setEditingExp({
+                      ...editingExp,
+                      toolsUsed: e.target.value
+                        .split(',')
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0),
+                    })
+                  }
+                  placeholder="Adobe Illustrator, Adobe Photoshop, Blender, ZBrush, After Effects..."
+                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
                 />
               </div>
 
@@ -3091,15 +3391,130 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsExpModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold hover:bg-slate-800 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase transition-colors shadow-sm"
                 >
-                  Guardar
+                  Guardar Experiencia
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Diplomado Edit Modal */}
+      {isDipModalOpen && editingDip && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div
+            className={`relative w-full max-w-lg p-6 sm:p-8 rounded-2xl border ${bgCard} shadow-2xl space-y-4`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-700/50">
+              <h3 className="text-lg font-bold">Editar Diplomado / Certificación</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDipModalOpen(false);
+                  setEditingDip(null);
+                }}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditingDiplomado} className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  Nombre del Diplomado / Curso *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingDip.title}
+                  onChange={(e) => setEditingDip({ ...editingDip, title: e.target.value })}
+                  placeholder="Ej. Diplomado Adobe After Effects"
+                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  Título que se Otorga *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingDip.degree || ''}
+                  onChange={(e) => setEditingDip({ ...editingDip, degree: e.target.value })}
+                  placeholder="Ej. Especialidad en Motion Graphics & Animación"
+                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold text-emerald-400`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                    Institución Emisora
+                  </label>
+                  <input
+                    type="text"
+                    value={editingDip.institution || ''}
+                    onChange={(e) => setEditingDip({ ...editingDip, institution: e.target.value })}
+                    placeholder="Ej. CETEC-ES / Domestika"
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs`}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">
+                    Año
+                  </label>
+                  <input
+                    type="text"
+                    value={editingDip.year || ''}
+                    onChange={(e) => setEditingDip({ ...editingDip, year: e.target.value })}
+                    placeholder="Ej. 2023 o 2025"
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-300 block mb-1">
+                  URL de Imagen del Certificado *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingDip.src}
+                  onChange={(e) => setEditingDip({ ...editingDip, src: e.target.value })}
+                  placeholder="/uploads/... o /images/..."
+                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDipModalOpen(false);
+                    setEditingDip(null);
+                  }}
+                  className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold hover:bg-slate-800"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase shadow-sm"
+                >
+                  Guardar Cambios
                 </button>
               </div>
             </form>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
+import { Calendar, MapPin, CheckCircle2 } from 'lucide-react';
 import { Language, ExperienceItem } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound } from '../utils/audio';
@@ -99,9 +99,6 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                           {item.company}
                         </p>
                       </div>
-                      <div className="text-gray-400 group-hover:text-[#76FF03] transition-colors">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                      </div>
                     </div>
 
                     {/* Period & Location */}
@@ -123,8 +120,8 @@ export const ExperienceTimeline: React.FC<ExperienceTimelineProps> = ({ lang }) 
                       {item.description}
                     </p>
 
-                    {/* Expanded details */}
-                    {isExpanded && item.responsibilities && item.responsibilities.length > 0 && (
+                    {/* Key Responsibilities */}
+                    {item.responsibilities && item.responsibilities.length > 0 && (
                       <div className="pt-4 border-t border-white/10 space-y-3 animate-fade-in">
                         <span className="text-[11px] font-mono uppercase tracking-wider text-[#76FF03] font-bold block">
                           Responsabilidades Clave:

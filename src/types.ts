@@ -67,6 +67,16 @@ export interface ExperienceItem {
   toolsUsed: string[];
 }
 
+export interface DiplomadoItem {
+  id: string;
+  title: string;
+  degree?: string;
+  institution?: string;
+  year?: string;
+  src: string;
+  visible?: boolean;
+}
+
 export interface SkillCategory {
   id: string;
   name: string;

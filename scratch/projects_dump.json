@@ -1,0 +1,367 @@
+﻿[
+    {
+        "id": "kinetic-touch-hands",
+        "title": "Re-Branding | Los Rebusca",
+        "category": "BRANDING",
+        "year": "2025",
+        "client": "Los Rebusca Estudio",
+        "shortDesc": "Se desarroll├│ un proceso de rebranding para Los\nRebusca, enfocado en fortalecer su identidad y mejorar su reconocimiento dentro de su p├║blico.",
+        "fullDesc": "Se desarroll├│ un proceso de rebranding para Los\nRebusca, enfocado en fortalecer su identidad y mejorar su reconocimiento dentro de su p├║blico objetivo. La propuesta no se centr├│ en la modificaci├│n directa del logotipo o la identidad visual principal de\nla marca, sino en la renovaci├│n est├®tica y conceptual de sus productos.\nEl objetivo fue modernizar su presentaci├│n sin\nperder su esencia original, incorporando elementos\ngr├íficos inspirados en la cultura local, el entretenimiento y el esp├¡ritu din├ímico que caracteriza al\nproyecto.",
+        "image": "/uploads/upload_1788482995_2dac4e_imagen_naipes_300x.webp",
+        "galleryImages": [
+            "/uploads/upload_1788483016_4eb356_naipe1_300x.webp",
+            "/uploads/upload_1788483020_8cdc04_naipe2_300x.webp",
+            "/uploads/upload_1788483023_fdf748_naipe3_300x.webp",
+            "/uploads/upload_1788483025_23bb2b_naipe4_300x.webp",
+            "/uploads/upload_1788483028_3ab4df_packagin_1_300x.webp",
+            "/uploads/upload_1788483035_7a7356_post_losrebusca_300x.webp"
+        ],
+        "logo": "/images/brands/los-rebusca.svg",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "Digital Art",
+            "Concept",
+            "Publicidad"
+        ],
+        "featured": true,
+        "metrics": [
+            {
+                "label": "Resoluci├│n",
+                "value": "8K UHD"
+            },
+            {
+                "label": "Profundidad",
+                "value": "32-bit Float"
+            }
+        ],
+        "display_order": 0,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T03:54:40+00:00"
+    },
+    {
+        "id": "retro-mini-render",
+        "title": "Retro Mini Classic 3D Render",
+        "category": "3D MODELING",
+        "year": "2023",
+        "client": "Apex Auto Studio",
+        "shortDesc": "Modelado hard-surface de alta fidelidad, shaders procedurales de pintura automotriz e iluminaci├│n fotogr├ífica en estudio.",
+        "fullDesc": "Exploraci├│n completa de visualizaci├│n automotriz combinando modelado poligonal de precisi├│n para el veh├¡culo cl├ísico y renderizado con Octane Render.",
+        "image": "/images/retro-mini.jpg",
+        "galleryImages": [
+            "/images/retro-mini.jpg",
+            "/images/orbit-stand.webp"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "3D Modeling",
+            "Blender",
+            "Octane Render",
+            "Automotive"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "Render Samples",
+                "value": "4,096 SPP"
+            },
+            {
+                "label": "Pol├¡gonos Sub-D",
+                "value": "1.2M Poly"
+            }
+        ],
+        "display_order": 1,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T03:46:56+00:00"
+    },
+    {
+        "id": "corporate-identity-system",
+        "title": "Nexus Fintech Corporate Identity System",
+        "category": "BRANDING",
+        "year": "2024",
+        "client": "Nexus Global Finance",
+        "shortDesc": "Dise├▒o integral de identidad de marca, sistema tipogr├ífico din├ímico y manual de normas corporativas.",
+        "fullDesc": "Construcci├│n completa de la identidad para una plataforma de servicios financieros de ├║ltima generaci├│n.",
+        "image": "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1400&q=85",
+        "galleryImages": [
+            "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1400&q=85"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "Branding",
+            "Typography",
+            "Visual Identity",
+            "Illustrator"
+        ],
+        "featured": true,
+        "metrics": [
+            {
+                "label": "Touchpoints",
+                "value": "45+ Assets"
+            },
+            {
+                "label": "Gu├¡a de Marca",
+                "value": "80 P├íginas"
+            }
+        ],
+        "display_order": 3,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T03:47:09+00:00"
+    },
+    {
+        "id": "orbit-stand-exhibition",
+        "title": "Kinetic 3D Stand Exhibition",
+        "category": "3D MODELING",
+        "year": "2024",
+        "client": "Orbit Brand Expo",
+        "shortDesc": "Dise├▒o de stand comercial arquitect├│nico para ferias internacionales con iluminaci├│n LED integrada.",
+        "fullDesc": "Desarrollo de espacio de exhibici├│n interactivo en 3D optimizado para flujo de asistentes y presentaci├│n de productos.",
+        "image": "/images/orbit-stand.webp",
+        "galleryImages": [
+            "/images/orbit-stand.webp",
+            "/images/orbit-stand-diana.webp"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "3D Modeling",
+            "Architecture",
+            "Exhibition Stand",
+            "Lighting"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "├ürea Stand",
+                "value": "72 m┬▓"
+            },
+            {
+                "label": "Iluminaci├│n",
+                "value": "Fotometr├¡a IES"
+            }
+        ],
+        "display_order": 4,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T02:59:18+00:00"
+    },
+    {
+        "id": "diana-brand-experience",
+        "title": "Diana Interactive Brand Stand",
+        "category": "BRANDING",
+        "year": "2024",
+        "client": "Diana Consumer Brands",
+        "shortDesc": "Experiencia de marca f├¡sica y digital con stands tem├íticos y visual merchandising.",
+        "fullDesc": "Ecosistema de marca en 3D para activaci├│n de producto en puntos de venta y convenciones de retail.",
+        "image": "/images/orbit-stand-diana.webp",
+        "galleryImages": [
+            "/images/orbit-stand-diana.webp"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "Branding",
+            "Point of Sale",
+            "3D Stand",
+            "Merchandising"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "Impacto",
+                "value": "15K Visitantes"
+            },
+            {
+                "label": "Materiales",
+                "value": "PBR Shaders"
+            }
+        ],
+        "display_order": 5,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T02:59:22+00:00"
+    },
+    {
+        "id": "lumina-beverage-packaging",
+        "title": "Lumina Craft Botanical Beverage 3D",
+        "category": "3D MODELING",
+        "year": "2023",
+        "client": "Lumina Botanical Co.",
+        "shortDesc": "Modelado de botellas de vidrio, condensaci├│n procedural y simulaci├│n de l├¡quidos.",
+        "fullDesc": "Renderizado fotorrealista para campa├▒a de lanzamiento de bebidas bot├ínicas artesanales con etiquetas met├ílicas.",
+        "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=85",
+        "galleryImages": [
+            "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=85"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "3D Modeling",
+            "Packaging",
+            "Liquid Simulation",
+            "Octane"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "Gotas de Agua",
+                "value": "Part├¡culas Geo"
+            },
+            {
+                "label": "Vidrio Caustics",
+                "value": "Spectral Path"
+            }
+        ],
+        "display_order": 6,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T02:59:24+00:00"
+    },
+    {
+        "id": "digital-product-ui-3d",
+        "title": "Next-Gen Digital Tablet & UI 3D",
+        "category": "DIGITAL ART",
+        "year": "2024",
+        "client": "Orbit Interactive",
+        "shortDesc": "Visualizaci├│n de dispositivo tablet interactivo con interfaz de usuario hologr├ífica en tiempo real.",
+        "fullDesc": "Dise├▒o y renderizado 3D de hardware futurista mostrando visualizaci├│n de datos y panel de control de audio.",
+        "image": "/images/orbit-tablet.webp",
+        "galleryImages": [
+            "/images/orbit-tablet.webp"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "Digital Art",
+            "UI Design",
+            "Hard Surface",
+            "Cyber"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "Pantalla OLED",
+                "value": "Emissive 4K"
+            },
+            {
+                "label": "Texturas",
+                "value": "Substance 3D"
+            }
+        ],
+        "display_order": 7,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-08-28T15:38:04+00:00"
+    },
+    {
+        "id": "orbit-carrito-render",
+        "title": "3D Stand & Carrito Retail Visual",
+        "category": "3D MODELING",
+        "year": "2024",
+        "client": "Street Craft Gourmet",
+        "shortDesc": "Carrito m├│vil comercial para plazas y eventos con detalles en madera y metal mate.",
+        "fullDesc": "Render de alta definici├│n para previsualizaci├│n de fabricaci├│n de mueble comercial m├│vil.",
+        "image": "/images/orbit-carrito.png",
+        "galleryImages": [
+            "/images/orbit-carrito.png"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "3D Modeling",
+            "Retail Design",
+            "Commercial Unit"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "Dimensiones",
+                "value": "2.40 ├ù 1.10 m"
+            },
+            {
+                "label": "Render Engine",
+                "value": "Cycles GPU"
+            }
+        ],
+        "display_order": 8,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-08-28T15:38:04+00:00"
+    },
+    {
+        "id": "cyber-kinetic-intro",
+        "title": "Aura Kinetic Motion Typography",
+        "category": "MOTION",
+        "year": "2024",
+        "client": "Kinetic Motion Festival",
+        "shortDesc": "Animaci├│n tipogr├ífica experimental con distorsi├│n crom├ítica y ritmo sonoro de alta energ├¡a.",
+        "fullDesc": "Secuencia de apertura de festival audiovisual combinando After Effects, tracking 3D y dise├▒o de sonido.",
+        "image": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=85",
+        "galleryImages": [
+            "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=85"
+        ],
+        "logo": "",
+        "sliderImage": "",
+        "sliderTitle": "",
+        "sliderOrder": 0,
+        "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "videoClip": "",
+        "gifUrl": "",
+        "tags": [
+            "Motion Graphics",
+            "After Effects",
+            "Kinetic Type",
+            "Sound Design"
+        ],
+        "featured": false,
+        "metrics": [
+            {
+                "label": "Framerate",
+                "value": "60 FPS"
+            },
+            {
+                "label": "Compositing",
+                "value": "32 Layers"
+            }
+        ],
+        "display_order": 9,
+        "createdAt": "2026-08-28T15:38:04+00:00",
+        "updatedAt": "2026-09-04T02:59:26+00:00"
+    }
+]
