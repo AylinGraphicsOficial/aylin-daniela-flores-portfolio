@@ -184,6 +184,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                     maskImage: 'linear-gradient(to bottom, black 65%, rgba(0,0,0,0.7) 80%, transparent 98%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, black 65%, rgba(0,0,0,0.7) 80%, transparent 98%)',
                   }}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.src.endsWith('/images/fotografia-aylin.png')) {
+                      target.src = '/images/fotografia-aylin.png';
+                    }
+                  }}
                 />
               </div>
             }

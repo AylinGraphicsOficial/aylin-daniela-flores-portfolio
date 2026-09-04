@@ -551,6 +551,9 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                         src={formData.logo}
                         alt="Mini logo"
                         className="h-6 w-auto object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     </div>
                   )}
@@ -606,7 +609,15 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="w-28 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center flex-shrink-0">
                 {formData.image ? (
-                  <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/retro-mini.jpg';
+                    }}
+                  />
                 ) : (
                   <ImageIcon className="w-6 h-6 text-slate-500" />
                 )}
@@ -726,7 +737,15 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                   className="relative rounded-xl overflow-hidden bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 group flex flex-col justify-between transition-all shadow-md"
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden bg-black/60 flex items-center justify-center relative">
-                    <img src={imgUrl} alt={`Detalle ${gIdx + 1}`} className="w-full h-full object-contain p-1" />
+                    <img
+                      src={imgUrl}
+                      alt={`Detalle ${gIdx + 1}`}
+                      className="w-full h-full object-contain p-1"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/retro-mini.jpg';
+                      }}
+                    />
 
                     {/* Hover Zoom preview trigger */}
                     <button

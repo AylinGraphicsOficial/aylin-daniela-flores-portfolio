@@ -11,14 +11,17 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
   logoUrl,
   className = 'w-4 h-4',
 }) => {
+  const [imgError, setImgError] = React.useState(false);
+
   // If a custom logo URL is uploaded to Hostinger, render it
-  if (logoUrl && logoUrl.trim().length > 0) {
+  if (logoUrl && logoUrl.trim().length > 0 && !imgError) {
     return (
       <img
         src={logoUrl}
         alt="Social icon"
         loading="lazy"
         className={`${className} object-contain rounded`}
+        onError={() => setImgError(true)}
       />
     );
   }

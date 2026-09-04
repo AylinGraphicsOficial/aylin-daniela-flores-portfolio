@@ -392,6 +392,9 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
     if (secRes.ok) {
       const remoteSections = await secRes.json();
       if (remoteSections && typeof remoteSections === 'object') {
+        if (remoteSections.about && (!remoteSections.about.photo || remoteSections.about.photo.includes('ChatGPT'))) {
+          remoteSections.about.photo = '/images/fotografia-aylin.png';
+        }
         localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(remoteSections));
         changed = true;
       }

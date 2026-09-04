@@ -1411,6 +1411,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               src={p.image}
                               alt={p.title}
                               className="w-10 h-8 rounded-lg object-cover bg-slate-900 border border-slate-700"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/images/retro-mini.jpg';
+                              }}
                             />
                             <span className="font-semibold truncate max-w-xs">{p.title}</span>
                           </td>
@@ -1513,6 +1517,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           src={proj.image}
                           alt={proj.title}
                           className="w-full h-full object-contain p-2"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = '/images/retro-mini.jpg';
+                          }}
                         />
                         <button
                           type="button"
@@ -1614,6 +1622,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         src={aboutData.photo || '/images/fotografia-aylin.png'}
                         alt="Foto de Perfil"
                         className="w-full h-full object-contain"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.endsWith('/images/fotografia-aylin.png')) {
+                            target.src = '/images/fotografia-aylin.png';
+                          }
+                        }}
                       />
                     </div>
                     <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer shadow-sm transition-colors">
@@ -2047,7 +2061,15 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     }`}
                   >
                     <div className="aspect-[16/11] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 flex items-center justify-center p-2">
-                      <img src={dip.src} alt={dip.title} className="w-full h-full object-contain" />
+                      <img
+                        src={dip.src}
+                        alt={dip.title}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/images/diplomados/diplomado-after-effects-2023.webp';
+                        }}
+                      />
                     </div>
 
                     <div className="space-y-1">
@@ -2902,6 +2924,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                                 src={activeSliderImg}
                                 alt={activeSliderTitle}
                                 className="w-full h-full object-contain p-2"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = '/images/retro-mini.jpg';
+                                }}
                               />
                               <div className="absolute bottom-2 left-2 right-2 px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-white/10 flex items-center justify-between">
                                 <span className="text-xs font-bold text-white truncate max-w-[70%]">
@@ -2974,6 +3000,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                                         src={renderItem.url}
                                         alt={renderItem.label}
                                         className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                          e.currentTarget.onerror = null;
+                                          e.currentTarget.src = '/images/retro-mini.jpg';
+                                        }}
                                       />
                                       <span className="absolute bottom-0.5 inset-x-0 text-[8px] font-mono text-center bg-black/85 text-slate-200 truncate px-0.5">
                                         {rIdx === 0 ? 'Cover' : `#${rIdx}`}
@@ -3044,6 +3074,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               src={proj.image}
                               alt={proj.title}
                               className="w-full h-full object-contain p-2"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/images/retro-mini.jpg';
+                              }}
                             />
                             <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-black/80 backdrop-blur-sm text-[10px] font-mono text-slate-300 font-semibold uppercase">
                               {proj.category}
@@ -3124,6 +3158,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               src={file.url}
                               alt={file.filename}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/images/retro-mini.jpg';
+                              }}
                             />
                           )}
                         </div>

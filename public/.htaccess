@@ -12,6 +12,8 @@ DirectoryIndex index.html
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+  # Do not rewrite missing static assets, uploads or images to index.html; return 404 cleanly
+  RewriteCond %{REQUEST_URI} !\.(css|js|webp|png|jpg|jpeg|gif|svg|ico|glb|gltf|mp4|webm|pdf|woff|woff2|ttf|eot)$ [NC]
   RewriteRule . /index.html [L]
 </IfModule>
 
