@@ -446,11 +446,51 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
   }
 };
 
-// Initial background sync when module loads in browser
+// ==================== MULTI-DEVICE REAL-TIME SYNC ENGINE ====================
+
+export const getCategoryFallbackImage = (category?: string): string => {
+  switch (category) {
+    case '3D MODELING':
+      return '/images/orbit-stand.webp';
+    case 'BRANDING':
+      return '/images/orbit-stand-diana.webp';
+    case 'MOTION':
+      return '/images/diplomados/diplomado-after-effects-2023.webp';
+    case 'DIGITAL ART':
+      return '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp';
+    default:
+      return '/images/orbit-stand-diana.webp';
+  }
+};
+
+export const resolveMediaUrl = (url?: string, fallback = '/images/orbit-stand-diana.webp'): string => {
+  if (!url || typeof url !== 'string' || !url.trim()) return fallback;
+  return url.trim();
+};
+
+// Initial and continuous real-time sync across devices and tabs
 if (typeof window !== 'undefined') {
+  // 1. Initial background sync when module loads
   setTimeout(() => {
     syncFromRemoteServer();
   }, 100);
+
+  // 2. React immediately when the user focuses the window or switches tabs
+  window.addEventListener('focus', () => {
+    syncFromRemoteServer();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncFromRemoteServer();
+    }
+  });
+
+  // 3. Autonomous periodic live polling every 20 seconds
+  setInterval(() => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      syncFromRemoteServer();
+    }
+  }, 20000);
 }
 
 // ==================== SECTIONS DATA GETTERS & SETTERS ====================

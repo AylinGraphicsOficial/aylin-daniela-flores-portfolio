@@ -143,6 +143,12 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
                   alt={item.title}
                   loading={index < 3 ? 'eager' : 'lazy'}
                   decoding="async"
+                  onError={(e) => {
+                    const fallback = item.category === 'BRANDING' ? '/images/orbit-stand-diana.webp' : '/images/orbit-stand.webp';
+                    if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
+                      e.currentTarget.src = fallback;
+                    }
+                  }}
                   className="hero-slide-img w-auto h-full max-h-[92%] sm:max-h-[95%] max-w-[90vw] lg:max-w-[65vw] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-transform duration-1000 ease-out group-hover/slider:scale-[1.02]"
                 />
               </div>

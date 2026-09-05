@@ -21,15 +21,20 @@ async function fastSyncHostinger() {
     const targetDir = "/domains/aylinflores.com/public_html";
     await client.cd(targetDir);
 
-    // 1. Upload index.html
-    console.log("Uploading index.html...");
+    // 1. Upload HTML
+    console.log("Uploading index.html & production.html...");
     await client.uploadFrom("dist/index.html", "index.html");
+    await client.uploadFrom("dist/index.html", "production.html");
 
     // 2. Upload assets directory
     console.log("Uploading assets folder...");
     await client.uploadFromDir("dist/assets", "assets");
 
-    console.log(">>> DEPLOYMENT SUCCESSFUL! Latest bundle is live on aylinflores.com! <<<");
+    // 3. Upload uploads directory
+    console.log("Uploading uploads folder...");
+    await client.uploadFromDir("public/uploads", "uploads");
+
+    console.log(">>> DEPLOYMENT SUCCESSFUL! Latest bundle & uploads are live on aylinflores.com! <<<");
   } catch (err) {
     console.error("Hostinger Fast Deploy Error:", err);
   } finally {

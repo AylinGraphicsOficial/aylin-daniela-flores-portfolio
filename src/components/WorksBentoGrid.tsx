@@ -4,6 +4,7 @@ import { Project, Language, Discipline, DisciplineSlide } from '../types';
 import {
   getStoredProjects,
   getStoredDisciplines,
+  getCategoryFallbackImage,
   subscribeToPortfolioChanges,
 } from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
@@ -72,6 +73,12 @@ const DisciplineSliderCard: React.FC<{
             alt={activeSlide.title || discipline.titleEs}
             loading="lazy"
             decoding="async"
+            onError={(e) => {
+              const fallback = discipline.image || '/images/orbit-stand-diana.webp';
+              if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
+                e.currentTarget.src = fallback;
+              }
+            }}
             className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
 
@@ -293,6 +300,12 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                     alt={project.title}
                     loading="lazy"
                     decoding="async"
+                    onError={(e) => {
+                      const fallback = getCategoryFallbackImage(project.category);
+                      if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
+                        e.currentTarget.src = fallback;
+                      }
+                    }}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>

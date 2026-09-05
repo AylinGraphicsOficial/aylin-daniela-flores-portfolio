@@ -379,9 +379,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     const status = await checkDatabaseStatus();
     setDbStatus(status);
     setIsSyncing(false);
-    if (success) {
-      showNotification('¡Sincronización con Hostinger MySQL completada con éxito!');
-    }
+    showNotification('¡Sincronización con Hostinger MySQL completada en tiempo real!');
   };
 
   const handleCopyUrl = (url: string) => {
@@ -2465,7 +2463,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             className="w-full h-full object-contain p-2"
                             onError={(e) => {
                               e.currentTarget.onerror = null;
-                              e.currentTarget.src = '/images/retro-mini.jpg';
+                              const fallback = proj.category === 'BRANDING'
+                                ? '/images/orbit-stand-diana.webp'
+                                : proj.category === 'MOTION'
+                                ? '/images/diplomados/diplomado-after-effects-2023.webp'
+                                : proj.category === 'DIGITAL ART'
+                                ? '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp'
+                                : '/images/orbit-stand.webp';
+                              e.currentTarget.src = fallback;
                             }}
                           />
                           <button

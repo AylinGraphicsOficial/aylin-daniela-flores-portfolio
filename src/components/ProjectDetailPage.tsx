@@ -24,15 +24,38 @@ const fallbackImageMap: Record<string, string> = {
   packagin_1: '/images/projects/la-rebusca/packagin 1@300x.webp',
   packagin2: '/images/projects/la-rebusca/packagin2@300x.webp',
   post_losrebusca: '/images/projects/la-rebusca/post_losrebusca@300x.webp',
+  de_lado: '/images/orbit-stand-diana.webp',
+  lado_2: '/images/orbit-stand.webp',
+  aperitivos: '/images/orbit-stand-diana.webp',
+  zona_de_juego: '/images/orbit-stand.webp',
+  photo: '/images/orbit-stand-diana.webp',
+  diana: '/images/orbit-stand-diana.webp',
+  stand: '/images/orbit-stand.webp',
 };
 
-const handleImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl: string) => {
+const handleImgError = (
+  e: React.SyntheticEvent<HTMLImageElement, Event>,
+  originalUrl: string,
+  category?: string
+) => {
   const imgEl = e.currentTarget;
+  // 1. Try keyword matching
   for (const [key, fallbackUrl] of Object.entries(fallbackImageMap)) {
-    if (originalUrl.includes(key) && !imgEl.src.endsWith(fallbackUrl) && imgEl.src !== fallbackUrl) {
+    if (originalUrl.toLowerCase().includes(key.toLowerCase()) && !imgEl.src.endsWith(fallbackUrl) && imgEl.src !== fallbackUrl) {
       imgEl.src = fallbackUrl;
       return;
     }
+  }
+
+  // 2. Intelligent category fallback
+  let catFallback = '/images/orbit-stand-diana.webp';
+  if (category === '3D MODELING') catFallback = '/images/orbit-stand.webp';
+  else if (category === 'BRANDING') catFallback = '/images/orbit-stand-diana.webp';
+  else if (category === 'MOTION') catFallback = '/images/diplomados/diplomado-after-effects-2023.webp';
+  else if (category === 'DIGITAL ART') catFallback = '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp';
+
+  if (imgEl.src !== catFallback && !imgEl.src.endsWith(catFallback)) {
+    imgEl.src = catFallback;
   }
 };
 
@@ -355,7 +378,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             <img
               src={project.image}
               alt={project.title}
-              onError={(e) => handleImgError(e, project.image)}
+              onError={(e) => handleImgError(e, project.image, project.category)}
               className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
             />
 
@@ -418,7 +441,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     alt={`${project.title} detail ${idx + 1}`}
                     loading="lazy"
                     decoding="async"
-                    onError={(e) => handleImgError(e, imgSrc)}
+                    onError={(e) => handleImgError(e, imgSrc, project.category)}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
 

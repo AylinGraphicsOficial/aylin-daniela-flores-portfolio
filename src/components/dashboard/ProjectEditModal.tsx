@@ -905,7 +905,14 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = isVideo ? '/images/diplomados/diplomado-after-effects-2023.webp' : '/images/retro-mini.jpg';
+                          const fallback = isVideo
+                            ? '/images/diplomados/diplomado-after-effects-2023.webp'
+                            : formData.category === 'BRANDING'
+                            ? '/images/orbit-stand-diana.webp'
+                            : formData.category === 'DIGITAL ART' || formData.disciplineId === 'social-media'
+                            ? '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp'
+                            : '/images/orbit-stand.webp';
+                          e.currentTarget.src = fallback;
                         }}
                       />
                     ) : (
@@ -1068,7 +1075,10 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                           className="w-full h-full object-contain p-1"
                           onError={(e) => {
                             e.currentTarget.onerror = null;
-                            e.currentTarget.src = '/images/retro-mini.jpg';
+                            const fallback = formData.category === 'BRANDING'
+                              ? '/images/orbit-stand-diana.webp'
+                              : '/images/orbit-stand.webp';
+                            e.currentTarget.src = fallback;
                           }}
                         />
 
