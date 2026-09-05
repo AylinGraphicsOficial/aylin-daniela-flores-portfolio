@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Eye,
+  EyeOff,
   Lock,
   ZoomIn,
   ExternalLink,
@@ -73,6 +74,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   const [isUploadingClip, setIsUploadingClip] = useState(false);
   const [isUploadingGif, setIsUploadingGif] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [isUploadingSliderImage, setIsUploadingSliderImage] = useState(false);
   const [galleryUploadStatus, setGalleryUploadStatus] = useState<string | null>(null);
   const [zoomPreviewOpen, setZoomPreviewOpen] = useState<boolean>(false);
   const [zoomPreviewIndex, setZoomPreviewIndex] = useState<number>(0);
@@ -84,6 +86,10 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     if (project) {
       setFormData({
         ...project,
+        visibleInCatalog: project.visibleInCatalog !== false,
+        sliderImage: project.sliderImage || '',
+        sliderTitle: project.sliderTitle || '',
+        sliderOrder: project.sliderOrder ?? 1,
         galleryImages: project.galleryImages || [],
         logo: project.logo || '',
         externalLink: project.externalLink || '',
@@ -116,7 +122,11 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         videoClip: '',
         gifUrl: '',
         tags: ['3D Modeling', 'Blender', 'Octane'],
-        featured: true,
+        featured: false,
+        visibleInCatalog: true,
+        sliderImage: '',
+        sliderTitle: '',
+        sliderOrder: 1,
         metrics: [{ label: 'Render Samples', value: '4,096 SPP' }],
       });
       setTagInput('3D Modeling, Blender, Octane');
@@ -287,6 +297,24 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       setFormData((prev) => ({ ...prev, gifUrl: result.url }));
     } else {
       setUploadError(result.error || 'Error al subir el GIF animado.');
+    }
+  };
+
+  // Subir imagen para Hero Slider (16:9)
+  const handleSliderImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingSliderImage(true);
+    setUploadError(null);
+
+    const result = await uploadMediaFile(file);
+    setIsUploadingSliderImage(false);
+
+    if (result.success && result.url) {
+      setFormData((prev) => ({ ...prev, sliderImage: result.url }));
+    } else {
+      setUploadError(result.error || 'Error al subir la imagen para el slider.');
     }
   };
 
@@ -504,8 +532,8 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Client, Year & Featured Toggle */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Row 2: Client, Year, Catalog Visibility & Discipline Assignment */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="text-xs font-medium text-slate-300 block mb-1.5">
                 Cliente / Estudio *
@@ -535,21 +563,156 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
             <div>
               <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                Proyecto Destacado (Portada)
+                ¿Mostrar en Catálogo de Trabajos?
               </label>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, featured: !formData.featured })}
-                className={`w-full py-2.5 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
-                  formData.featured
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    visibleInCatalog: formData.visibleInCatalog === false ? true : false,
+                  })
+                }
+                className={`w-full py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+                  formData.visibleInCatalog !== false
                     ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                    : 'bg-rose-500/20 border-rose-500 text-rose-300'
                 }`}
               >
-                <Star className={`w-4 h-4 ${formData.featured ? 'fill-emerald-400' : ''}`} />
-                <span>{formData.featured ? '⭐ Destacado en Portada' : 'Normal'}</span>
+                {formData.visibleInCatalog !== false ? (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    <span>Visible en Catálogo</span>
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="w-4 h-4" />
+                    <span>Oculto del Catálogo</span>
+                  </>
+                )}
               </button>
             </div>
+
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                Especialidad / Sección
+              </label>
+              <select
+                value={formData.disciplineId || ''}
+                onChange={(e) => setFormData({ ...formData, disciplineId: e.target.value })}
+                className={`w-full px-3 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-semibold`}
+              >
+                <option value="">Automática (por categoría)</option>
+                <option value="modelado-3d">01 MODELADO 3D</option>
+                <option value="branding">02 BRANDING</option>
+                <option value="edicion-video">03 EDICIÓN DE VIDEO</option>
+                <option value="social-media">04 SOCIAL MEDIA</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Configuración Slider Principal (Hero Carousel) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-black/35 border border-slate-700/70 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/50">
+              <div>
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-2">
+                  <Star className="w-4 h-4 fill-yellow-400" />
+                  <span>Slider Principal (Hero de la Portada)</span>
+                </span>
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  Define si este proyecto rota en el slider superior de la página principal.
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, featured: !formData.featured })}
+                className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold transition-all cursor-pointer self-start sm:self-auto ${
+                  formData.featured
+                    ? 'bg-yellow-500/20 border-yellow-400 text-yellow-300 shadow-sm'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Star className={`w-3.5 h-3.5 ${formData.featured ? 'fill-yellow-400' : ''}`} />
+                <span>{formData.featured ? '⭐ Activo en Slider Hero' : 'Inactivo en Slider'}</span>
+              </button>
+            </div>
+
+            {formData.featured && (
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-1">
+                <div className="sm:col-span-3">
+                  <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                    Orden de Rotación (1, 2, 3...)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={formData.sliderOrder ?? 1}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sliderOrder: parseInt(e.target.value, 10) || 1 })
+                    }
+                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono font-bold`}
+                  />
+                </div>
+
+                <div className="sm:col-span-9">
+                  <label className="text-[11px] font-medium text-slate-300 block mb-1">
+                    Título Corto para el Slider (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.sliderTitle || ''}
+                    onChange={(e) => setFormData({ ...formData, sliderTitle: e.target.value })}
+                    placeholder={formData.title || 'Título por defecto'}
+                    className={`w-full px-4 py-2 rounded-xl border ${bgInput} outline-none text-xs`}
+                  />
+                </div>
+
+                {/* Slider Custom Banner 16:9 */}
+                <div className="sm:col-span-12 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-medium text-slate-300 block">
+                      Banner Panorámico 16:9 para el Slider (Opcional - Si se deja vacío usa la imagen principal)
+                    </label>
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold cursor-pointer transition-colors">
+                      {isUploadingSliderImage ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Upload className="w-3 h-3" />
+                      )}
+                      <span>{isUploadingSliderImage ? 'Subiendo...' : 'Subir Banner 16:9 a Hostinger'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingSliderImage}
+                        onChange={handleSliderImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.sliderImage || ''}
+                    onChange={(e) => setFormData({ ...formData, sliderImage: e.target.value })}
+                    placeholder="URL del banner 16:9 (/images/... o /uploads/...)"
+                    className={`w-full px-4 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
+                  />
+                  {formData.sliderImage && (
+                    <div className="relative aspect-[21/9] sm:aspect-[16/6] w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-700/60 mt-2">
+                      <img
+                        src={formData.sliderImage}
+                        alt="Slider Banner Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-yellow-300 font-bold">
+                        Banner Slider Activo
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Row: Logo o Imagen Representativa (A la par del Título) */}

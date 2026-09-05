@@ -36,11 +36,12 @@ try {
             `externalLink` VARCHAR(1000) DEFAULT '',
             `externalLinkText` VARCHAR(255) DEFAULT '',
             `disciplineId` VARCHAR(100) DEFAULT '',
-            `videoUrl` VARCHAR(500) DEFAULT '',
-            `videoClip` VARCHAR(500) DEFAULT '',
-            `gifUrl` VARCHAR(500) DEFAULT '',
+            `videoUrl` VARCHAR(1000) DEFAULT '',
+            `videoClip` VARCHAR(1000) DEFAULT '',
+            `gifUrl` VARCHAR(1000) DEFAULT '',
             `tags` LONGTEXT,
             `featured` TINYINT(1) NOT NULL DEFAULT 0,
+            `visibleInCatalog` TINYINT(1) NOT NULL DEFAULT 1,
             `metrics` LONGTEXT,
             `display_order` INT NOT NULL DEFAULT 0,
             `createdAt` VARCHAR(50) DEFAULT NULL,
@@ -48,7 +49,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Migration: ensure logo, slider and externalLink columns exist in projects
+    // Migration: ensure modern columns exist in projects
     $initMigrations = [
         "ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`",
         "ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`",
@@ -56,7 +57,11 @@ try {
         "ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`",
         "ALTER TABLE `projects` ADD COLUMN `externalLink` VARCHAR(1000) DEFAULT '' AFTER `sliderOrder`",
         "ALTER TABLE `projects` ADD COLUMN `externalLinkText` VARCHAR(255) DEFAULT '' AFTER `externalLink`",
-        "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`"
+        "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`",
+        "ALTER TABLE `projects` ADD COLUMN `videoUrl` VARCHAR(1000) DEFAULT '' AFTER `disciplineId`",
+        "ALTER TABLE `projects` ADD COLUMN `videoClip` VARCHAR(1000) DEFAULT '' AFTER `videoUrl`",
+        "ALTER TABLE `projects` ADD COLUMN `gifUrl` VARCHAR(1000) DEFAULT '' AFTER `videoClip`",
+        "ALTER TABLE `projects` ADD COLUMN `visibleInCatalog` TINYINT(1) NOT NULL DEFAULT 1 AFTER `featured`"
     ];
     foreach ($initMigrations as $mig) {
         try {
@@ -79,12 +84,17 @@ try {
             `descEn` TEXT,
             `image` VARCHAR(500) NOT NULL,
             `slides` LONGTEXT,
+            `projectIds` LONGTEXT,
             `targetProjectId` VARCHAR(100) DEFAULT '',
             `visible` TINYINT(1) NOT NULL DEFAULT 1,
             `display_order` INT NOT NULL DEFAULT 0,
             `updatedAt` VARCHAR(50) DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
+
+    try {
+        $pdo->exec("ALTER TABLE `disciplines` ADD COLUMN `projectIds` LONGTEXT AFTER `slides`");
+    } catch (Exception $e) {}
 
     // 3. Create Media Library Table
     $pdo->exec("

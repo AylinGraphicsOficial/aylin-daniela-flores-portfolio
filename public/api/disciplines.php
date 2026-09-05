@@ -12,6 +12,11 @@ if (!$pdo) {
     sendJsonResponse(['error' => 'Base de datos temporalmente no disponible'], 500);
 }
 
+// Auto-migration: ensure projectIds exists
+try {
+    $pdo->exec("ALTER TABLE `disciplines` ADD COLUMN `projectIds` LONGTEXT AFTER `slides`");
+} catch (Exception $e) {}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 // ==================== GET: List all disciplines with slides ====================
@@ -33,6 +38,7 @@ if ($method === 'GET') {
             'descEn'         => $row['descEn'] ?? '',
             'image'          => $row['image'],
             'slides'         => json_decode($row['slides'] ?? '[]', true) ?: [],
+            'projectIds'     => json_decode($row['projectIds'] ?? '[]', true) ?: [],
             'targetProjectId'=> $row['targetProjectId'] ?? '',
             'visible'        => (bool)$row['visible'],
             'display_order'  => (int)$row['display_order'],
@@ -57,11 +63,11 @@ if ($method === 'POST' || $method === 'PUT') {
 
     $upsertSql = "INSERT INTO `disciplines` (
         `id`, `number`, `verticalTextEs`, `verticalTextEn`, `titleEs`, `titleEn`,
-        `subtitleEs`, `subtitleEn`, `descEs`, `descEn`, `image`, `slides`,
+        `subtitleEs`, `subtitleEn`, `descEs`, `descEn`, `image`, `slides`, `projectIds`,
         `targetProjectId`, `visible`, `display_order`, `updatedAt`
     ) VALUES (
         :id, :number, :verticalTextEs, :verticalTextEn, :titleEs, :titleEn,
-        :subtitleEs, :subtitleEn, :descEs, :descEn, :image, :slides,
+        :subtitleEs, :subtitleEn, :descEs, :descEn, :image, :slides, :projectIds,
         :targetProjectId, :visible, :display_order, :updatedAt
     ) ON DUPLICATE KEY UPDATE
         `number` = VALUES(`number`),
@@ -75,6 +81,7 @@ if ($method === 'POST' || $method === 'PUT') {
         `descEn` = VALUES(`descEn`),
         `image` = VALUES(`image`),
         `slides` = VALUES(`slides`),
+        `projectIds` = VALUES(`projectIds`),
         `targetProjectId` = VALUES(`targetProjectId`),
         `visible` = VALUES(`visible`),
         `display_order` = VALUES(`display_order`),
@@ -87,6 +94,10 @@ if ($method === 'POST' || $method === 'PUT') {
         $slidesJson = is_array($item['slides'] ?? null)
             ? json_encode($item['slides'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
             : (is_string($item['slides'] ?? null) ? $item['slides'] : '[]');
+
+        $projectIdsJson = is_array($item['projectIds'] ?? null)
+            ? json_encode($item['projectIds'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+            : (is_string($item['projectIds'] ?? null) ? $item['projectIds'] : '[]');
 
         $stmtUpsert->execute([
             ':id'             => $item['id'],
@@ -101,6 +112,7 @@ if ($method === 'POST' || $method === 'PUT') {
             ':descEn'         => $item['descEn'] ?? '',
             ':image'          => $item['image'] ?? '/images/orbit-stand.webp',
             ':slides'         => $slidesJson,
+            ':projectIds'     => $projectIdsJson,
             ':targetProjectId'=> $item['targetProjectId'] ?? '',
             ':visible'        => isset($item['visible']) && !$item['visible'] ? 0 : 1,
             ':display_order'  => isset($item['display_order']) ? (int)$item['display_order'] : $index + 1,

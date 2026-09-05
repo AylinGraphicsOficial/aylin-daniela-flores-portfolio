@@ -83,8 +83,9 @@ async function cleanAndDeploy() {
     await client.ensureDir(`${rootDir}/api`);
     const apiFiles = ["projects.php", "init_db.php", "disciplines.php", "settings.php", "upload.php", "config.php", "messages.php", "comments.php"];
     for (const f of apiFiles) {
-      if (fs.existsSync(`dist/api/${f}`)) {
-        await uploadSafely(`dist/api/${f}`, f);
+      const localApi = fs.existsSync(`dist/api/${f}`) ? `dist/api/${f}` : `public/api/${f}`;
+      if (fs.existsSync(localApi)) {
+        await uploadSafely(localApi, f);
       }
     }
     console.log("API backend files uploaded successfully!");

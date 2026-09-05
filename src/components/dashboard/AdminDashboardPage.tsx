@@ -1147,7 +1147,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               }`}
             >
               <Star className="w-4 h-4 flex-shrink-0" />
-              <span className="flex-1 text-left truncate">Destacados en Portada</span>
+              <span className="flex-1 text-left truncate">Slider Principal (Hero)</span>
               <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/30 text-gray-300 font-bold flex-shrink-0">
                 {featuredProjects.length}
               </span>
@@ -2112,15 +2112,37 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       <span className="text-xs text-slate-400 block line-clamp-1 font-mono mb-2">
                         {proj.client}
                       </span>
-                      <div className="flex items-center gap-2 mb-3">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-3">
                         <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                          className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
+                            proj.visibleInCatalog !== false
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                          }`}
+                        >
+                          {proj.visibleInCatalog !== false ? '👁️ Catálogo' : '🚫 Oculto'}
+                        </span>
+
+                        {proj.featured && (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                            ⭐ Slider #{proj.sliderOrder ?? 1}
+                          </span>
+                        )}
+
+                        {proj.disciplineId && (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 truncate max-w-[120px]">
+                            {proj.disciplineId}
+                          </span>
+                        )}
+
+                        <span
+                          className={`text-[9px] font-mono px-2 py-0.5 rounded ${
                             (proj.galleryImages || []).length >= 6
                               ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                               : 'bg-slate-800 text-slate-300'
                           }`}
                         >
-                          {(proj.galleryImages || []).length}/6 vistas de detalle
+                          {(proj.galleryImages || []).length}/6 vistas
                         </span>
                       </div>
                     </div>

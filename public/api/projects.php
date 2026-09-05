@@ -27,7 +27,8 @@ $migrations = [
     "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`",
     "ALTER TABLE `projects` ADD COLUMN `videoUrl` VARCHAR(1000) DEFAULT '' AFTER `disciplineId`",
     "ALTER TABLE `projects` ADD COLUMN `videoClip` VARCHAR(1000) DEFAULT '' AFTER `videoUrl`",
-    "ALTER TABLE `projects` ADD COLUMN `gifUrl` VARCHAR(1000) DEFAULT '' AFTER `videoClip`"
+    "ALTER TABLE `projects` ADD COLUMN `gifUrl` VARCHAR(1000) DEFAULT '' AFTER `videoClip`",
+    "ALTER TABLE `projects` ADD COLUMN `visibleInCatalog` TINYINT(1) NOT NULL DEFAULT 1 AFTER `featured`"
 ];
 foreach ($migrations as $migrationSql) {
     try {
@@ -51,6 +52,7 @@ if ($method === 'GET') {
             sendJsonResponse(['error' => 'Proyecto no encontrado'], 404);
         }
         $row['featured'] = (bool)$row['featured'];
+        $row['visibleInCatalog'] = !isset($row['visibleInCatalog']) || (bool)$row['visibleInCatalog'];
         $row['galleryImages'] = json_decode($row['galleryImages'] ?? '[]', true) ?: [];
         $row['logo'] = $row['logo'] ?? '';
         $row['sliderImage'] = $row['sliderImage'] ?? '';
@@ -90,6 +92,7 @@ if ($method === 'GET') {
             'gifUrl'           => $row['gifUrl'] ?? '',
             'tags'             => json_decode($row['tags'] ?? '[]', true) ?: [],
             'featured'         => (bool)$row['featured'],
+            'visibleInCatalog' => !isset($row['visibleInCatalog']) || (bool)$row['visibleInCatalog'],
             'metrics'          => json_decode($row['metrics'] ?? '[]', true) ?: [],
             'display_order'    => (int)$row['display_order'],
             'createdAt'        => $row['createdAt'],
@@ -142,13 +145,13 @@ if ($method === 'POST' || $method === 'PUT') {
         `image`, `galleryImages`, `logo`, `sliderImage`, `sliderTitle`, `sliderOrder`,
         `externalLink`, `externalLinkText`, `disciplineId`,
         `videoUrl`, `videoClip`, `gifUrl`, `tags`,
-        `featured`, `metrics`, `display_order`, `createdAt`, `updatedAt`
+        `featured`, `visibleInCatalog`, `metrics`, `display_order`, `createdAt`, `updatedAt`
     ) VALUES (
         :id, :title, :category, :year, :client, :shortDesc, :fullDesc,
         :image, :galleryImages, :logo, :sliderImage, :sliderTitle, :sliderOrder,
         :externalLink, :externalLinkText, :disciplineId,
         :videoUrl, :videoClip, :gifUrl, :tags,
-        :featured, :metrics, :display_order, :createdAt, :updatedAt
+        :featured, :visibleInCatalog, :metrics, :display_order, :createdAt, :updatedAt
     ) ON DUPLICATE KEY UPDATE
         `title` = VALUES(`title`),
         `category` = VALUES(`category`),
@@ -170,6 +173,7 @@ if ($method === 'POST' || $method === 'PUT') {
         `gifUrl` = VALUES(`gifUrl`),
         `tags` = VALUES(`tags`),
         `featured` = VALUES(`featured`),
+        `visibleInCatalog` = VALUES(`visibleInCatalog`),
         `metrics` = VALUES(`metrics`),
         `display_order` = VALUES(`display_order`),
         `updatedAt` = VALUES(`updatedAt`)
@@ -209,6 +213,7 @@ if ($method === 'POST' || $method === 'PUT') {
                 : (is_string($item['tags'] ?? null) ? $item['tags'] : '[]');
 
             $featured = !empty($item['featured']) ? 1 : 0;
+            $visibleInCatalog = isset($item['visibleInCatalog']) && !$item['visibleInCatalog'] ? 0 : 1;
 
             $metrics = is_array($item['metrics'] ?? null)
                 ? json_encode($item['metrics'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
@@ -240,6 +245,7 @@ if ($method === 'POST' || $method === 'PUT') {
                 ':gifUrl'           => $gifUrl,
                 ':tags'             => $tags,
                 ':featured'         => $featured,
+                ':visibleInCatalog' => $visibleInCatalog,
                 ':metrics'          => $metrics,
                 ':display_order'    => $displayOrder,
                 ':createdAt'        => $createdAt,

@@ -695,7 +695,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </p>
                 </div>
 
-                <DisciplineSliderEditor disciplines={disciplines} darkMode={darkMode} />
+                <DisciplineSliderEditor disciplines={disciplines} projects={projects} darkMode={darkMode} />
               </div>
             )}
 

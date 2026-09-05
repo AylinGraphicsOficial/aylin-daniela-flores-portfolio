@@ -51,6 +51,9 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
   const [newSlideTitle, setNewSlideTitle] = useState('');
   const [activeTab, setActiveTab] = useState<'slides' | 'texts' | 'projects'>('slides');
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingSlideId, setUploadingSlideId] = useState<string | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState<boolean>(false);
+  const [isSavingRemote, setIsSavingRemote] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Project Picker Modal State
@@ -114,6 +117,46 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
 
   const handleSlideTitleChange = (slideId: string, title: string) => {
     updateDisciplineSlide(selectedDiscipline.id, slideId, { title });
+  };
+
+  const handleSlideImageChange = (slideId: string, image: string) => {
+    updateDisciplineSlide(selectedDiscipline.id, slideId, { image });
+  };
+
+  const handleReplaceSlideImage = async (slideId: string, file: File) => {
+    setUploadingSlideId(slideId);
+    setUploadError(null);
+    const result = await uploadMediaFile(file);
+    setUploadingSlideId(null);
+    if (result.success && result.url) {
+      updateDisciplineSlide(selectedDiscipline.id, slideId, { image: result.url });
+      showNotification('¡Imagen del slide actualizada y subida a Hostinger!');
+    } else {
+      setUploadError(result.error || 'Error al subir la nueva imagen del slide.');
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingCover(true);
+    setUploadError(null);
+    const result = await uploadMediaFile(file);
+    setIsUploadingCover(false);
+    if (result.success && result.url) {
+      handleTextUpdate('image', result.url);
+      showNotification('¡Imagen principal de portada actualizada!');
+    } else {
+      setUploadError(result.error || 'Error al subir imagen de portada.');
+    }
+  };
+
+  const handleSaveDisciplineToMySQL = async () => {
+    setIsSavingRemote(true);
+    playClickSound();
+    await saveDiscipline(selectedDiscipline);
+    setIsSavingRemote(false);
+    showNotification(`¡Especialidad "${selectedDiscipline.titleEs}" guardada y sincronizada con Hostinger MySQL!`);
   };
 
   const handleAddSlide = (e: React.FormEvent) => {
@@ -388,23 +431,59 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                             : 'border-slate-700/50 bg-slate-900/60 opacity-60'
                         }`}
                       >
-                        {/* Top: Image Preview & Order Badge */}
-                        <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-3 border border-slate-700/60 group">
+                        {/* Image Preview & Order Badge */}
+                        <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-2.5 border border-slate-700/60 group">
                           <img
                             src={slide.image}
                             alt={slide.title || 'Slide'}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = '/images/retro-mini.jpg';
+                            }}
                           />
                           <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 backdrop-blur-md text-[11px] font-mono text-emerald-400 font-bold border border-emerald-500/30">
                             #{idx + 1}
                           </div>
                         </div>
 
-                        {/* Title Input & Controls */}
-                        <div className="space-y-3">
+                        {/* Slide Image Change Controls */}
+                        <div className="space-y-2.5">
+                          <label className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 text-[11px] font-bold cursor-pointer transition-all shadow-sm">
+                            {uploadingSlideId === slide.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Upload className="w-3 h-3" />
+                            )}
+                            <span>{uploadingSlideId === slide.id ? 'Subiendo...' : 'Cambiar Imagen (Hostinger)'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingSlideId === slide.id}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleReplaceSlideImage(slide.id, file);
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+
                           <div>
-                            <label className="text-[10px] font-mono text-slate-400 block mb-1">
-                              Título del Slide:
+                            <label className="text-[10px] font-mono text-slate-400 block mb-0.5">
+                              Ruta / URL de la Imagen:
+                            </label>
+                            <input
+                              type="text"
+                              defaultValue={slide.image || ''}
+                              onBlur={(e) => handleSlideImageChange(slide.id, e.target.value)}
+                              className={`w-full px-2.5 py-1 rounded-lg border ${bgInput} text-[11px] font-mono outline-none`}
+                              placeholder="/images/... o /uploads/..."
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-mono text-slate-400 block mb-0.5">
+                              Título / Diploma / Certificado:
                             </label>
                             <input
                               type="text"
@@ -592,6 +671,58 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                   className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs leading-relaxed`}
                 />
               </div>
+
+              {/* Imagen Principal de Portada (Cover Fallback) */}
+              <div className="p-4 rounded-xl border border-slate-700/60 bg-slate-900/40 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 block">
+                      Imagen Principal / Portada de la Sección (Fallback)
+                    </label>
+                    <span className="text-[11px] text-slate-400">
+                      Se muestra cuando no hay diapositivas activas o como miniatura principal.
+                    </span>
+                  </div>
+
+                  <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold cursor-pointer transition-colors self-start sm:self-auto">
+                    {isUploadingCover ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Upload className="w-3 h-3" />
+                    )}
+                    <span>{isUploadingCover ? 'Subiendo...' : 'Subir Portada a Hostinger'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isUploadingCover}
+                      onChange={handleCoverUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <input
+                  type="text"
+                  value={selectedDiscipline.image || ''}
+                  onChange={(e) => handleTextUpdate('image', e.target.value)}
+                  placeholder="URL de la imagen de portada (/images/... o /uploads/...)"
+                  className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
+                />
+
+                {selectedDiscipline.image && (
+                  <div className="relative aspect-[16/8] sm:aspect-[21/9] w-full max-w-md rounded-xl overflow-hidden bg-slate-950 border border-slate-700/60">
+                    <img
+                      src={selectedDiscipline.image}
+                      alt={selectedDiscipline.titleEs}
+                      className="w-full h-full object-contain p-2"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/retro-mini.jpg';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -685,6 +816,27 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
               </div>
             </div>
           )}
+
+          {/* Bottom Action: Persist everything to MySQL */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-700/60">
+            <div className="text-xs text-slate-400">
+              <span className="text-emerald-400 font-bold">● Sincronización MySQL:</span> Los cambios se guardan localmente y puedes sincronizarlos directamente con la base de datos de Hostinger.
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveDisciplineToMySQL}
+              disabled={isSavingRemote}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+            >
+              {isSavingRemote ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )}
+              <span>{isSavingRemote ? 'Guardando en MySQL...' : 'Guardar Especialidad en MySQL'}</span>
+            </button>
+          </div>
         </div>
       )}
 

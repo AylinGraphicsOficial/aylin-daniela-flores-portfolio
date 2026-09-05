@@ -23,6 +23,7 @@ export interface Project {
   tags: string[];
   modelType?: 'car' | 'hand' | 'poly' | 'cube';
   featured?: boolean;
+  visibleInCatalog?: boolean; // Controla si se visualiza en el Catálogo de Proyectos (por defecto true)
   bentoSpan?: string; // Tailwind grid span classes
   deliverables?: string[];
   metrics?: { label: string; value: string }[];

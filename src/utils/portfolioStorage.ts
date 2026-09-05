@@ -1070,6 +1070,21 @@ export const saveDiscipline = async (discipline: Discipline): Promise<void> => {
   }
 };
 
+export const saveAllDisciplines = async (disciplines: Discipline[]): Promise<void> => {
+  localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(disciplines));
+  notifyDataChanged();
+
+  try {
+    await fetch(DISCIPLINES_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ disciplines }),
+    });
+  } catch (err) {
+    console.warn('Could not sync disciplines with remote API:', err);
+  }
+};
+
 export const toggleDisciplineSlideVisibility = (
   disciplineId: string,
   slideId: string

@@ -243,7 +243,9 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
 
         {/* 4-Column Grid: Closer Gap (gap-4 sm:gap-5), Larger Ratio (aspect-[16/10]), 15% Reduced Corners (rounded-[8px]) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {projects.map((project) => {
+          {projects
+            .filter((p) => p.visibleInCatalog !== false)
+            .map((project) => {
             const media = getProjectPrimaryMedia(project);
             const displayMediaSrc =
               media.type === 'gif'
