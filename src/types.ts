@@ -126,3 +126,26 @@ export interface SocialLink {
   order?: number;
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  service?: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CommentItem {
+  id: string;
+  name: string;
+  email?: string;
+  company?: string;
+  rating: number;
+  comment: string;
+  status: 'approved' | 'pending';
+  createdAt: string;
+  updatedAt?: string;
+}
+

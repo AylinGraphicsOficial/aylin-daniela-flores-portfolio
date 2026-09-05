@@ -1,9 +1,11 @@
-import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink } from '../types';
+import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink, ContactMessage, CommentItem } from '../types';
 import { projectsData, experienceData } from '../data/portfolioData';
 
 const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v2';
 const DISCIPLINES_STORAGE_KEY = 'aylin_portfolio_disciplines_v2';
 const SECTIONS_STORAGE_KEY = 'aylin_portfolio_sections_v2';
+const MESSAGES_STORAGE_KEY = 'aylin_portfolio_messages_v1';
+const COMMENTS_STORAGE_KEY = 'aylin_portfolio_comments_v1';
 const EVENT_NAME = 'aylin_portfolio_data_changed';
 const SYNC_STATUS_KEY = 'aylin_db_sync_status';
 
@@ -12,6 +14,8 @@ const API_BASE = '/api';
 const PROJECTS_API = `${API_BASE}/projects.php`;
 const DISCIPLINES_API = `${API_BASE}/disciplines.php`;
 const SETTINGS_API = `${API_BASE}/settings.php`;
+const MESSAGES_API = `${API_BASE}/messages.php`;
+const COMMENTS_API = `${API_BASE}/comments.php`;
 const UPLOAD_API = `${API_BASE}/upload.php`;
 const INIT_DB_API = `${API_BASE}/init_db.php`;
 
@@ -365,10 +369,12 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
   isSyncing = true;
 
   try {
-    const [projRes, discRes, secRes] = await Promise.all([
+    const [projRes, discRes, secRes, msgRes, cmtRes] = await Promise.all([
       fetch(PROJECTS_API, { cache: 'no-store' }),
       fetch(DISCIPLINES_API, { cache: 'no-store' }),
       fetch(SETTINGS_API, { cache: 'no-store' }),
+      fetch(MESSAGES_API, { cache: 'no-store' }).catch(() => null),
+      fetch(`${COMMENTS_API}?all=1`, { cache: 'no-store' }).catch(() => null),
     ]);
 
     let changed = false;
@@ -411,6 +417,22 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
           remoteSections.about.photo = '/images/fotografia-aylin.png';
         }
         localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(remoteSections));
+        changed = true;
+      }
+    }
+
+    if (msgRes && msgRes.ok) {
+      const remoteMsgs = await msgRes.json();
+      if (Array.isArray(remoteMsgs)) {
+        localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(remoteMsgs));
+        changed = true;
+      }
+    }
+
+    if (cmtRes && cmtRes.ok) {
+      const remoteCmts = await cmtRes.json();
+      if (Array.isArray(remoteCmts) && remoteCmts.length > 0) {
+        localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(remoteCmts));
         changed = true;
       }
     }
@@ -527,6 +549,247 @@ export const getStoredSocials = (): SocialLink[] => {
 
 export const saveStoredSocials = (data: SocialLink[]) => {
   return saveStoredSection('socials', data);
+};
+
+// ==================== MESSAGES & INBOX DATA ====================
+
+export const getStoredMessages = (): ContactMessage[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(MESSAGES_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveContactMessage = async (
+  msgData: Omit<ContactMessage, 'id' | 'createdAt' | 'isRead'>
+): Promise<ContactMessage> => {
+  const current = getStoredMessages();
+  const newMsg: ContactMessage = {
+    ...msgData,
+    id: `msg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  const updated = [newMsg, ...current];
+  localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updated));
+  notifyDataChanged();
+
+  try {
+    const res = await fetch(MESSAGES_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newMsg),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data?.id) {
+        newMsg.id = data.data.id;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not sync message with remote MySQL:', err);
+  }
+
+  return newMsg;
+};
+
+export const markMessageAsRead = async (id: string, isRead = true): Promise<boolean> => {
+  const current = getStoredMessages();
+  const msg = current.find((m) => m.id === id);
+  if (!msg) return false;
+
+  msg.isRead = isRead;
+  msg.updatedAt = new Date().toISOString();
+  localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(current));
+  notifyDataChanged();
+
+  try {
+    await fetch(MESSAGES_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, isRead }),
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not update message read status on remote server:', err);
+    return false;
+  }
+};
+
+export const deleteStoredMessage = async (id: string): Promise<boolean> => {
+  const current = getStoredMessages();
+  const updated = current.filter((m) => m.id !== id);
+  localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updated));
+  notifyDataChanged();
+
+  try {
+    await fetch(`${MESSAGES_API}?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not delete message on remote server:', err);
+    return false;
+  }
+};
+
+export const syncMessagesFromRemote = async (): Promise<ContactMessage[]> => {
+  try {
+    const res = await fetch(MESSAGES_API, { cache: 'no-store' });
+    if (res.ok) {
+      const remote = await res.json();
+      if (Array.isArray(remote)) {
+        localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(remote));
+        notifyDataChanged();
+        return remote;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch messages from remote server:', err);
+  }
+  return getStoredMessages();
+};
+
+// ==================== COMMENTS & FEEDBACK DATA ====================
+
+export const initialCommentsData: CommentItem[] = [
+  {
+    id: 'cmt-1',
+    name: 'Carlos Mendoza',
+    email: 'carlos@apexauto.com',
+    company: 'Apex Auto Studio',
+    rating: 5,
+    comment: 'El nivel de detalle en el modelado 3D del Retro Mini superó todas nuestras expectativas. La iluminación y los materiales procedurales son de calidad de cine.',
+    status: 'approved',
+    createdAt: '2026-08-20T14:30:00Z',
+  },
+  {
+    id: 'cmt-2',
+    name: 'Sofía Valiente',
+    email: 'sofia@holynation.com',
+    company: 'Holy Nation Apparel',
+    rating: 5,
+    comment: 'Aylin capturó a la perfección la esencia urbana y espiritual de nuestra marca. La identidad visual y la tipografía personalizada impulsaron nuestras ventas un 40%.',
+    status: 'approved',
+    createdAt: '2026-08-25T19:15:00Z',
+  },
+  {
+    id: 'cmt-3',
+    name: 'Roberto Henríquez',
+    email: 'r.henriquez@diana.com.sv',
+    company: 'Diana Brand Experience',
+    rating: 5,
+    comment: 'Trabajo excepcional en el stand 3D y visuales para nuestra convención. La fluidez en los tiempos de entrega y la dirección creativa fueron impecables.',
+    status: 'approved',
+    createdAt: '2026-09-01T10:00:00Z',
+  },
+];
+
+export const getStoredComments = (): CommentItem[] => {
+  if (typeof window === 'undefined') return initialCommentsData;
+  try {
+    const raw = localStorage.getItem(COMMENTS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : initialCommentsData;
+  } catch {
+    return initialCommentsData;
+  }
+};
+
+export const saveStoredComment = async (
+  commentData: Omit<CommentItem, 'id' | 'createdAt'>
+): Promise<CommentItem> => {
+  const current = getStoredComments();
+  const newComment: CommentItem = {
+    ...commentData,
+    id: `cmt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  const updated = [newComment, ...current];
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updated));
+  notifyDataChanged();
+
+  try {
+    const res = await fetch(COMMENTS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newComment),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data?.id) {
+        newComment.id = data.data.id;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not sync comment with remote MySQL:', err);
+  }
+
+  return newComment;
+};
+
+export const toggleCommentStatus = async (
+  id: string,
+  status: 'approved' | 'pending'
+): Promise<boolean> => {
+  const current = getStoredComments();
+  const cmt = current.find((c) => c.id === id);
+  if (!cmt) return false;
+
+  cmt.status = status;
+  cmt.updatedAt = new Date().toISOString();
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(current));
+  notifyDataChanged();
+
+  try {
+    await fetch(COMMENTS_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not update comment status on remote MySQL:', err);
+    return false;
+  }
+};
+
+export const deleteStoredComment = async (id: string): Promise<boolean> => {
+  const current = getStoredComments();
+  const updated = current.filter((c) => c.id !== id);
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updated));
+  notifyDataChanged();
+
+  try {
+    await fetch(`${COMMENTS_API}?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not delete comment on remote MySQL:', err);
+    return false;
+  }
+};
+
+export const syncCommentsFromRemote = async (): Promise<CommentItem[]> => {
+  try {
+    const res = await fetch(`${COMMENTS_API}?all=1`, { cache: 'no-store' });
+    if (res.ok) {
+      const remote = await res.json();
+      if (Array.isArray(remote) && remote.length > 0) {
+        localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(remote));
+        notifyDataChanged();
+        return remote;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch comments from remote server:', err);
+  }
+  return getStoredComments();
 };
 
 // ==================== DATABASE STATUS HELPER ====================
@@ -894,6 +1157,8 @@ export const exportPortfolioJSON = (): string => {
     diplomados: getStoredDiplomados(),
     lab3d: getStoredLab3D(),
     socials: getStoredSocials(),
+    messages: getStoredMessages(),
+    comments: getStoredComments(),
   };
   return JSON.stringify(data, null, 2);
 };
@@ -921,6 +1186,13 @@ export const importPortfolioJSON = async (jsonString: string): Promise<boolean> 
     if (parsed.experience) saveStoredExperience(parsed.experience);
     if (parsed.diplomados) saveStoredDiplomados(parsed.diplomados);
     if (parsed.lab3d) saveStoredLab3D(parsed.lab3d);
+    if (parsed.socials) saveStoredSocials(parsed.socials);
+    if (parsed.messages && Array.isArray(parsed.messages)) {
+      localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(parsed.messages));
+    }
+    if (parsed.comments && Array.isArray(parsed.comments)) {
+      localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(parsed.comments));
+    }
 
     notifyDataChanged();
     return true;

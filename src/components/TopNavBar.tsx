@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Globe, Menu, X, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Globe, Menu, X, Sparkles, Mail } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound, toggleAudio, play8BitArcadeSound } from '../utils/audio';
@@ -10,7 +10,7 @@ interface TopNavBarProps {
   lang: Language;
   onLanguageToggle: () => void;
   onOpenProjectPlanner: () => void;
-  currentView?: 'home' | 'projects' | 'project-detail';
+  currentView?: 'home' | 'projects' | 'project-detail' | 'discipline-detail' | 'contact' | 'admin';
   onNavigateHome?: () => void;
   onNavigateToProjects?: () => void;
 }
@@ -94,8 +94,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
         )}
 
-        {/* Right Action Tools: Sound, Language, CTA with Uniform Gap Spacing */}
-        <div className="hidden sm:flex items-center gap-3.5 sm:gap-4 pl-2">
+        {/* Right Action Tools: Sound, Language, Contactar, CTA with Uniform Gap Spacing */}
+        <div className="hidden sm:flex items-center gap-2.5 sm:gap-3 pl-2">
           {/* Sound FX Toggle */}
           <SpecularButton
             onClick={handleSoundToggle}
@@ -117,11 +117,27 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             variant="glass"
             size="sm"
             radius={10}
-            className="h-[38px] min-h-[38px] max-h-[38px] px-3.5 flex items-center space-x-1.5 text-xs font-mono text-gray-200"
+            className="h-[38px] min-h-[38px] max-h-[38px] px-3 flex items-center space-x-1.5 text-xs font-mono text-gray-200"
             title="Toggle English / Español"
           >
             <Globe className="w-3.5 h-3.5 text-[#76FF03]" />
             <span className="font-bold">{lang.toUpperCase()}</span>
+          </SpecularButton>
+
+          {/* Direct Contact Button */}
+          <SpecularButton
+            onClick={() => {
+              playClickSound();
+              onOpenProjectPlanner();
+            }}
+            variant="glass"
+            size="sm"
+            radius={10}
+            className="h-[38px] min-h-[38px] max-h-[38px] px-3.5 flex items-center space-x-1.5 text-xs font-mono font-bold text-gray-200 border-white/10 hover:border-[#76FF03]/40"
+            title="Página de contacto"
+          >
+            <Mail className="w-3.5 h-3.5 text-[#76FF03]" />
+            <span>{lang === 'es' ? 'CONTACTAR' : 'CONTACT'}</span>
           </SpecularButton>
 
           {/* Main CTA */}
@@ -215,6 +231,21 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             >
               {soundOn ? <Volume2 className="w-4 h-4 text-[#76FF03]" /> : <VolumeX className="w-4 h-4" />}
               <span>{soundOn ? 'Tactile Audio: On' : 'Tactile Audio: Off'}</span>
+            </SpecularButton>
+
+            <SpecularButton
+              onClick={() => {
+                playClickSound();
+                setMobileMenuOpen(false);
+                onOpenProjectPlanner();
+              }}
+              variant="glass"
+              size="md"
+              radius={10}
+              className="w-full text-xs font-bold text-gray-200 border-white/10"
+            >
+              <Mail className="w-4 h-4 text-[#76FF03]" />
+              <span>{lang === 'es' ? 'CONTACTAR' : 'CONTACT'}</span>
             </SpecularButton>
 
             <SpecularButton

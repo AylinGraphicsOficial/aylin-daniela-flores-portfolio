@@ -107,6 +107,35 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
+    // 5. Create Contact Messages Inbox Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `contact_messages` (
+            `id` VARCHAR(100) NOT NULL PRIMARY KEY,
+            `name` VARCHAR(255) NOT NULL,
+            `email` VARCHAR(255) NOT NULL,
+            `service` VARCHAR(255) DEFAULT '',
+            `message` LONGTEXT NOT NULL,
+            `isRead` TINYINT(1) NOT NULL DEFAULT 0,
+            `createdAt` VARCHAR(50) NOT NULL,
+            `updatedAt` VARCHAR(50) DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
+    // 6. Create Visitor & Client Comments Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `comments` (
+            `id` VARCHAR(100) NOT NULL PRIMARY KEY,
+            `name` VARCHAR(255) NOT NULL,
+            `email` VARCHAR(255) DEFAULT '',
+            `company` VARCHAR(255) DEFAULT '',
+            `rating` INT NOT NULL DEFAULT 5,
+            `comment` LONGTEXT NOT NULL,
+            `status` VARCHAR(20) NOT NULL DEFAULT 'approved',
+            `createdAt` VARCHAR(50) NOT NULL,
+            `updatedAt` VARCHAR(50) DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
     // Ensure uploads directory exists and is writable
     if (!file_exists(UPLOAD_DIR)) {
         @mkdir(UPLOAD_DIR, 0777, true);

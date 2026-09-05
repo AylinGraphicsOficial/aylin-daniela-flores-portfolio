@@ -19,6 +19,7 @@ import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
 import { ProjectDetailPage } from './components/ProjectDetailPage';
 import { DisciplineDetailPage } from './components/DisciplineDetailPage';
+import { ProjectContactPage } from './components/ProjectContactPage';
 import { Footer } from './components/Footer';
 import { AdminLoginPage } from './components/dashboard/AdminLoginPage';
 import { AdminDashboardPage } from './components/dashboard/AdminDashboardPage';
@@ -45,11 +46,14 @@ const CVViewerModal = lazy(() =>
 export default function App() {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [activeDiscipline, setActiveDiscipline] = useState<Discipline | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'project-detail' | 'discipline-detail' | 'admin'>(() => {
+  const [currentView, setCurrentView] = useState<'home' | 'project-detail' | 'discipline-detail' | 'contact' | 'admin'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#admin' || hash === '#/admin' || hash === '#dashboard' || hash === '#/dashboard') {
         return 'admin';
+      }
+      if (hash === '#contacto' || hash === '#contact' || hash === '#iniciar-proyecto' || hash === '#/contacto' || hash === '#/iniciar-proyecto') {
+        return 'contact';
       }
       if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
         const id = hash.replace(/^#(proyecto|project)\//, '');
@@ -100,6 +104,11 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+      if (hash === '#contacto' || hash === '#contact' || hash === '#iniciar-proyecto' || hash === '#/contacto' || hash === '#/iniciar-proyecto') {
+        setCurrentView('contact');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
         const id = hash.replace(/^#(proyecto|project)\//, '');
         const allProjects = getStoredProjects();
@@ -146,6 +155,12 @@ export default function App() {
     };
   }, [activeProject, activeDiscipline]);
 
+  const navigateToContact = () => {
+    window.location.hash = '#contacto';
+    setCurrentView('contact');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const openProjectDetail = (project: Project) => {
     setActiveProject(project);
     setCurrentView('project-detail');
@@ -176,7 +191,10 @@ export default function App() {
       window.location.hash.includes('discipline') ||
       window.location.hash.includes('seccion') ||
       window.location.hash.includes('admin') ||
-      window.location.hash.includes('dashboard')
+      window.location.hash.includes('dashboard') ||
+      window.location.hash.includes('contacto') ||
+      window.location.hash.includes('contact') ||
+      window.location.hash.includes('iniciar-proyecto')
     ) {
       history.pushState(null, '', window.location.pathname);
     }
@@ -275,7 +293,7 @@ export default function App() {
       <TopNavBar
         lang={lang}
         onLanguageToggle={toggleLanguage}
-        onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+        onOpenProjectPlanner={navigateToContact}
         currentView={currentView}
         onNavigateHome={navigateHome}
       />
@@ -294,14 +312,22 @@ export default function App() {
       />
 
       {/* Main Content Layout with Smooth Transitions */}
-      {currentView === 'project-detail' && activeProject ? (
+      {currentView === 'contact' ? (
+        <main className="relative z-10">
+          <ProjectContactPage
+            lang={lang}
+            onLanguageToggle={toggleLanguage}
+            onNavigateHome={navigateHome}
+          />
+        </main>
+      ) : currentView === 'project-detail' && activeProject ? (
         <main className="relative z-10">
           <ProjectDetailPage
             project={activeProject}
             lang={lang}
             onBackToPortfolio={activeDiscipline ? () => openDisciplineDetail(activeDiscipline) : navigateHome}
             onSelectProject={openProjectDetail}
-            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+            onOpenProjectPlanner={navigateToContact}
           />
         </main>
       ) : currentView === 'discipline-detail' && activeDiscipline ? (
@@ -311,7 +337,7 @@ export default function App() {
             lang={lang}
             onBackToPortfolio={navigateHome}
             onSelectProject={openProjectDetail}
-            onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+            onOpenProjectPlanner={navigateToContact}
           />
         </main>
       ) : (
@@ -320,7 +346,7 @@ export default function App() {
             <HeroSection
               lang={lang}
               onOpenCVModal={() => setIsCVModalOpen(true)}
-              onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+              onOpenProjectPlanner={navigateToContact}
               onSelectProject={openProjectDetail}
             />
           </div>
@@ -358,7 +384,7 @@ export default function App() {
           <div className="scroll-reveal">
             <ContactSection
               lang={lang}
-              onOpenProjectPlanner={() => setIsProjectPlannerOpen(true)}
+              onOpenProjectPlanner={navigateToContact}
             />
           </div>
         </main>
@@ -375,15 +401,8 @@ export default function App() {
           onClose={() => setSelectedCaseStudy(null)}
           onOpenProjectPlanner={() => {
             setSelectedCaseStudy(null);
-            setIsProjectPlannerOpen(true);
+            navigateToContact();
           }}
-        />
-
-        {/* Interactive Project Estimator & Scope Builder Modal */}
-        <ProjectPlannerModal
-          isOpen={isProjectPlannerOpen}
-          lang={lang}
-          onClose={() => setIsProjectPlannerOpen(false)}
         />
 
         {/* Structured CV / Resume Viewer Modal */}

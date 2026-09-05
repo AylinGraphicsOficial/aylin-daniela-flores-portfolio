@@ -47,8 +47,13 @@ import {
   GripVertical,
   GraduationCap,
   Link as LinkIcon,
+  Mail,
+  MessageSquare,
+  Inbox,
+  Clock,
+  Send,
 } from 'lucide-react';
-import { Project, Discipline, ExperienceItem, SocialLink, DiplomadoItem } from '../../types';
+import { Project, Discipline, ExperienceItem, SocialLink, DiplomadoItem, ContactMessage, CommentItem } from '../../types';
 import {
   getStoredProjects,
   getStoredDisciplines,
@@ -77,6 +82,15 @@ import {
   uploadMediaFile,
   getStoredSocials,
   saveStoredSocials,
+  getStoredMessages,
+  markMessageAsRead,
+  deleteStoredMessage,
+  syncMessagesFromRemote,
+  getStoredComments,
+  saveStoredComment,
+  toggleCommentStatus,
+  deleteStoredComment,
+  syncCommentsFromRemote,
 } from '../../utils/portfolioStorage';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
@@ -102,6 +116,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<
     | 'overview'
+    | 'inbox'
+    | 'comments'
     | 'projects'
     | 'disciplines'
     | 'featured'
@@ -175,6 +191,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [jsonInput, setJsonInput] = useState('');
   const [backupSuccessMsg, setBackupSuccessMsg] = useState<string | null>(null);
 
+  // Messages & Comments State
+  const [messages, setMessages] = useState<ContactMessage[]>(getStoredMessages);
+  const [comments, setComments] = useState<CommentItem[]>(getStoredComments);
+  const [messageSearch, setMessageSearch] = useState('');
+  const [messageFilter, setMessageFilter] = useState<'ALL' | 'UNREAD' | 'READ'>('ALL');
+  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
+  const [commentSearch, setCommentSearch] = useState('');
+  const [newManualCommentName, setNewManualCommentName] = useState('');
+  const [newManualCommentCompany, setNewManualCommentCompany] = useState('');
+  const [newManualCommentRating, setNewManualCommentRating] = useState(5);
+  const [newManualCommentText, setNewManualCommentText] = useState('');
+  const [isAddingManualComment, setIsAddingManualComment] = useState(false);
+
   // Sync data from storage & check remote DB status
   useEffect(() => {
     const loadData = () => {
@@ -185,12 +214,22 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setDiplomados(getStoredDiplomados());
       setLab3dData(getStoredLab3D());
       setSocials(getStoredSocials());
+      setMessages(getStoredMessages());
+      setComments(getStoredComments());
     };
     loadData();
 
     // Sincronización proactiva con Hostinger MySQL al abrir el dashboard
     syncFromRemoteServer().then(() => {
       loadData();
+    });
+
+    syncMessagesFromRemote().then((m) => {
+      if (m && m.length > 0) setMessages(m);
+    });
+
+    syncCommentsFromRemote().then((c) => {
+      if (c && c.length > 0) setComments(c);
     });
 
     checkDatabaseStatus().then(setDbStatus);
@@ -217,6 +256,70 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     play8BitArcadeSound();
     setBackupSuccessMsg(msg);
     setTimeout(() => setBackupSuccessMsg(null), 4000);
+  };
+
+  // Messages Handlers
+  const handleToggleMessageRead = async (id: string, currentReadStatus: boolean) => {
+    playClickSound();
+    const nextRead = !currentReadStatus;
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, isRead: nextRead } : m))
+    );
+    await markMessageAsRead(id, nextRead);
+    showNotification(nextRead ? 'Mensaje marcado como leído' : 'Mensaje marcado como no leído');
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    if (window.confirm('¿Deseas eliminar este mensaje de contacto permanentemente?')) {
+      playClickSound();
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+      if (selectedMessage?.id === id) setSelectedMessage(null);
+      await deleteStoredMessage(id);
+      showNotification('Mensaje eliminado de la bandeja de entrada y de Hostinger MySQL');
+    }
+  };
+
+  // Comments Handlers
+  const handleToggleCommentStatus = async (id: string, newStatus: 'approved' | 'pending') => {
+    playClickSound();
+    setComments((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
+    );
+    await toggleCommentStatus(id, newStatus);
+    showNotification(
+      newStatus === 'approved'
+        ? '¡Comentario aprobado y visible en la web!'
+        : 'Comentario ocultado'
+    );
+  };
+
+  const handleDeleteComment = async (id: string, authorName: string) => {
+    if (window.confirm(`¿Deseas eliminar el comentario de "${authorName}"?`)) {
+      playClickSound();
+      setComments((prev) => prev.filter((c) => c.id !== id));
+      await deleteStoredComment(id);
+      showNotification('Comentario eliminado con éxito');
+    }
+  };
+
+  const handleAddManualComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newManualCommentName.trim() || !newManualCommentText.trim()) return;
+    playClickSound();
+    const created = await saveStoredComment({
+      name: newManualCommentName.trim(),
+      company: newManualCommentCompany.trim(),
+      rating: newManualCommentRating,
+      comment: newManualCommentText.trim(),
+      status: 'approved',
+    });
+    setComments((prev) => [created, ...prev]);
+    setNewManualCommentName('');
+    setNewManualCommentCompany('');
+    setNewManualCommentRating(5);
+    setNewManualCommentText('');
+    setIsAddingManualComment(false);
+    showNotification('¡Comentario agregado y guardado en Hostinger MySQL!');
   };
 
   const handleManualSync = async () => {
@@ -762,6 +865,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     (acc, d) => acc + (d.slides?.length || 0),
     0
   );
+  const unreadMessagesCount = messages.filter((m) => !m.isRead).length;
 
   // Themes
   const bgApp = darkMode ? 'bg-[#0F172A] text-slate-100' : 'bg-[#F8FAFC] text-slate-900';
@@ -810,222 +914,257 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </span>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links with Distinct Color Shading per Section & Strict Left Alignment */}
           <nav className="space-y-1">
+            {/* 1. Resumen General - Emerald */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('overview');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'overview'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-emerald-600 text-white font-bold shadow-[0_0_15px_rgba(16,185,129,0.4)] border-emerald-400/40'
+                  : 'text-emerald-400 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30'
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Resumen General</span>
+              <LayoutDashboard className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Resumen General</span>
             </button>
 
+            {/* 2. Bandeja de Entrada - Neon Lime */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('inbox');
+              }}
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
+                activeTab === 'inbox'
+                  ? 'bg-[#76FF03] text-black font-black shadow-[0_0_15px_rgba(118,255,3,0.45)] border-[#76FF03]'
+                  : 'text-[#76FF03] hover:bg-[#76FF03]/10 border-transparent hover:border-[#76FF03]/30'
+              }`}
+            >
+              <Inbox className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Bandeja de Entrada</span>
+              {unreadMessagesCount > 0 ? (
+                <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-[#76FF03] text-black animate-pulse shadow-[0_0_8px_#76FF03]">
+                  {unreadMessagesCount} NUEVO{unreadMessagesCount > 1 ? 'S' : ''}
+                </span>
+              ) : messages.length > 0 ? (
+                <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
+                  {messages.length}
+                </span>
+              ) : null}
+            </button>
+
+            {/* 3. Comentarios & Reseñas - Purple */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('comments');
+              }}
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
+                activeTab === 'comments'
+                  ? 'bg-purple-600 text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.4)] border-purple-400/40'
+                  : 'text-purple-400 hover:bg-purple-500/10 border-transparent hover:border-purple-500/30'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Comentarios & Reseñas</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
+                {comments.length}
+              </span>
+            </button>
+
+            {/* 4. Proyectos & Galería - Ocean Blue */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('projects');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'projects'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-sky-600 text-white font-bold shadow-[0_0_15px_rgba(14,165,233,0.4)] border-sky-400/40'
+                  : 'text-sky-400 hover:bg-sky-500/10 border-transparent hover:border-sky-500/30'
               }`}
             >
-              <FolderKanban className="w-4 h-4" />
-              <span>Proyectos & Galería</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+              <FolderKanban className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Proyectos & Galería</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
                 {projects.length}
               </span>
             </button>
 
+            {/* 5. 4 Especialidades & Sliders - Indigo */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('disciplines');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'disciplines'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-indigo-600 text-white font-bold shadow-[0_0_15px_rgba(99,102,241,0.4)] border-indigo-400/40'
+                  : 'text-indigo-400 hover:bg-indigo-500/10 border-transparent hover:border-indigo-500/30'
               }`}
             >
-              <Layers className="w-4 h-4" />
-              <span>4 Especialidades & Sliders</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+              <Layers className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">4 Especialidades & Sliders</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
                 {totalSlides}
               </span>
             </button>
 
+            {/* 6. Sobre Mí & Perfil - Amber */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('about');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'about'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-amber-600 text-white font-bold shadow-[0_0_15px_rgba(245,158,11,0.4)] border-amber-400/40'
+                  : 'text-amber-400 hover:bg-amber-500/10 border-transparent hover:border-amber-500/30'
               }`}
             >
-              <User className="w-4 h-4" />
-              <span>Sobre Mí & Perfil</span>
+              <User className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Sobre Mí & Perfil</span>
             </button>
 
+            {/* 7. Experiencia Laboral - Cyan */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('experience');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'experience'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-cyan-600 text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] border-cyan-400/40'
+                  : 'text-cyan-400 hover:bg-cyan-500/10 border-transparent hover:border-cyan-500/30'
               }`}
             >
-              <Briefcase className="w-4 h-4" />
-              <span>Experiencia Laboral</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+              <Briefcase className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Experiencia Laboral</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
                 {experiences.length}
               </span>
             </button>
 
+            {/* 8. Diplomados & Cursos - Fuchsia */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('diplomados');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'diplomados'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-fuchsia-600 text-white font-bold shadow-[0_0_15px_rgba(217,70,239,0.4)] border-fuchsia-400/40'
+                  : 'text-fuchsia-400 hover:bg-fuchsia-500/10 border-transparent hover:border-fuchsia-500/30'
               }`}
             >
-              <Award className="w-4 h-4" />
-              <span>Diplomados & Cursos</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+              <Award className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Diplomados & Cursos</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
                 {diplomados.length}
               </span>
             </button>
 
+            {/* 9. Laboratorio 3D - Rose */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('lab3d');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'lab3d'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-rose-600 text-white font-bold shadow-[0_0_15px_rgba(244,63,94,0.4)] border-rose-400/40'
+                  : 'text-rose-400 hover:bg-rose-500/10 border-transparent hover:border-rose-500/30'
               }`}
             >
-              <Box className="w-4 h-4" />
-              <span>Laboratorio 3D</span>
+              <Box className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Laboratorio 3D</span>
             </button>
 
+            {/* 10. Redes Sociales & Logos - Pink */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('socials');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'socials'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-pink-600 text-white font-bold shadow-[0_0_15px_rgba(236,72,153,0.4)] border-pink-400/40'
+                  : 'text-pink-400 hover:bg-pink-500/10 border-transparent hover:border-pink-500/30'
               }`}
             >
-              <Share2 className="w-4 h-4" />
-              <span>Redes Sociales & Logos</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+              <Share2 className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Redes Sociales & Logos</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/30 text-gray-300 font-bold flex-shrink-0">
                 {socials.length}
               </span>
             </button>
 
+            {/* 11. Destacados en Portada - Yellow */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('featured');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'featured'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-yellow-500 text-black font-black shadow-[0_0_15px_rgba(234,179,8,0.4)] border-yellow-300'
+                  : 'text-yellow-400 hover:bg-yellow-500/10 border-transparent hover:border-yellow-500/30'
               }`}
             >
-              <Star className="w-4 h-4" />
-              <span>Destacados en Portada</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/20 font-bold">
+              <Star className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Destacados en Portada</span>
+              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/30 text-gray-300 font-bold flex-shrink-0">
                 {featuredProjects.length}
               </span>
             </button>
 
+            {/* 12. Medios /uploads/ - Teal */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('media');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'media'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-teal-600 text-white font-bold shadow-[0_0_15px_rgba(20,184,166,0.4)] border-teal-400/40'
+                  : 'text-teal-400 hover:bg-teal-500/10 border-transparent hover:border-teal-500/30'
               }`}
             >
-              <ImageIcon className="w-4 h-4" />
-              <span>Medios /uploads/</span>
+              <ImageIcon className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Medios /uploads/</span>
             </button>
 
+            {/* 13. Respaldo & Backup JSON - Slate */}
             <button
               type="button"
               onClick={() => {
                 playClickSound();
                 setActiveTab('backup');
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
                 activeTab === 'backup'
-                  ? darkMode
-                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
-                    : 'bg-white text-[#007A4D] font-bold shadow-sm'
-                  : 'opacity-80 hover:opacity-100 hover:bg-white/10'
+                  ? 'bg-slate-600 text-white font-bold shadow-[0_0_15px_rgba(100,116,139,0.4)] border-slate-400/40'
+                  : 'text-slate-300 hover:bg-slate-700/40 border-transparent hover:border-slate-500/30'
               }`}
             >
-              <Database className="w-4 h-4" />
-              <span>Respaldo & Backup JSON</span>
+              <Database className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Respaldo & Backup JSON</span>
             </button>
           </nav>
         </div>
@@ -1459,6 +1598,416 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= TAB: BANDEJA DE ENTRADA (CORREOS & MENSAJES) ================= */}
+          {activeTab === 'inbox' && (
+            <div className="space-y-6">
+              {/* Header & Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03] animate-ping" />
+                    <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                      <span>Bandeja de Entrada de Correo & Mensajes</span>
+                      <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[#76FF03]/20 text-[#76FF03] border border-[#76FF03]/30 font-bold">
+                        {messages.length} recibidos
+                      </span>
+                    </h2>
+                  </div>
+                  <p className={`text-xs ${textMuted}`}>
+                    Mensajes y cotizaciones enviados por visitantes a través del formulario de contacto e inicio de proyecto. Sincronizados en Hostinger MySQL.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playClickSound();
+                      syncMessagesFromRemote().then((m) => {
+                        setMessages(m);
+                        showNotification('¡Bandeja de entrada sincronizada con Hostinger MySQL!');
+                      });
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[#76FF03] border border-[#76FF03]/30 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Actualizar Bandeja</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters & Search */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-800/40 border border-slate-700/60">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {(['ALL', 'UNREAD', 'READ'] as const).map((filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setMessageFilter(filter);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                        messageFilter === filter
+                          ? 'bg-[#76FF03] text-black shadow-[0_0_10px_rgba(118,255,3,0.35)]'
+                          : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      {filter === 'ALL' && `TODOS (${messages.length})`}
+                      {filter === 'UNREAD' && `NO LEÍDOS (${messages.filter((m) => !m.isRead).length})`}
+                      {filter === 'READ' && `LEÍDOS (${messages.filter((m) => m.isRead).length})`}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative w-full md:w-72">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={messageSearch}
+                    onChange={(e) => setMessageSearch(e.target.value)}
+                    placeholder="Filtrar por nombre, correo, mensaje..."
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#76FF03]"
+                  />
+                </div>
+              </div>
+
+              {/* Messages List */}
+              {(() => {
+                const filteredMessages = messages.filter((m) => {
+                  const matchesFilter =
+                    messageFilter === 'ALL' ||
+                    (messageFilter === 'UNREAD' && !m.isRead) ||
+                    (messageFilter === 'READ' && m.isRead);
+                  const matchesSearch =
+                    messageSearch === '' ||
+                    m.name.toLowerCase().includes(messageSearch.toLowerCase()) ||
+                    m.email.toLowerCase().includes(messageSearch.toLowerCase()) ||
+                    (m.service && m.service.toLowerCase().includes(messageSearch.toLowerCase())) ||
+                    m.message.toLowerCase().includes(messageSearch.toLowerCase());
+                  return matchesFilter && matchesSearch;
+                });
+
+                if (filteredMessages.length === 0) {
+                  return (
+                    <div className="p-12 text-center rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
+                        <Inbox className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-300 uppercase">
+                        No hay mensajes en esta vista
+                      </h4>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        Cuando las personas llenen el formulario de contacto o inicio de proyecto en la página principal, los mensajes aparecerán aquí.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    {filteredMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-5 sm:p-6 rounded-2xl border transition-all ${
+                          !msg.isRead
+                            ? 'bg-slate-900/90 border-[#76FF03]/40 shadow-[0_0_20px_rgba(118,255,3,0.08)]'
+                            : 'bg-slate-900/40 border-slate-800/80'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                                !msg.isRead ? 'bg-[#76FF03] animate-pulse shadow-[0_0_8px_#76FF03]' : 'bg-slate-600'
+                              }`}
+                              title={!msg.isRead ? 'Mensaje nuevo no leído' : 'Mensaje leído'}
+                            />
+                            <div>
+                              <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                                <span>{msg.name}</span>
+                                {!msg.isRead && (
+                                  <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded bg-[#76FF03] text-black">
+                                    NUEVO
+                                  </span>
+                                )}
+                              </h3>
+                              <a
+                                href={`mailto:${msg.email}?subject=${encodeURIComponent(
+                                  'Respuesta a tu consulta de proyecto - Aylin Daniela Flores'
+                                )}`}
+                                className="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1 mt-0.5"
+                              >
+                                <Mail className="w-3 h-3" />
+                                <span>{msg.email}</span>
+                              </a>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {msg.service && (
+                              <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold">
+                                {msg.service}
+                              </span>
+                            )}
+                            <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{new Date(msg.createdAt).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Message Body */}
+                        <div className="p-4 rounded-xl bg-black/30 border border-white/5 text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
+                          {msg.message}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleMessageRead(msg.id, msg.isRead)}
+                              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>{msg.isRead ? 'Marcar como no leído' : 'Marcar como leído'}</span>
+                            </button>
+
+                            <a
+                              href={`mailto:${msg.email}?subject=${encodeURIComponent(
+                                `Re: Consulta sobre proyecto (${msg.service || 'Diseño'}) - Aylin Flores`
+                              )}&body=${encodeURIComponent(
+                                `Hola ${msg.name},\n\nGracias por escribir a través de mi portafolio. He recibido tu mensaje con respecto a ${msg.service || 'tu proyecto'}:\n\n"${msg.message}"\n\nQuedo a tu disposición para coordinar los siguientes pasos.\n\nSaludos cordiales,\nAylin Daniela Flores\nStudio Kinetic`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3.5 py-1.5 rounded-lg bg-[#76FF03] hover:bg-[#8aff24] text-black text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              <span>Responder por Correo</span>
+                            </a>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="p-2 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Eliminar mensaje"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ================= TAB: COMENTARIOS & RESEÑAS ================= */}
+          {activeTab === 'comments' && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-purple-400" />
+                    <span>Comentarios & Reseñas de la Comunidad ({comments.length})</span>
+                  </h2>
+                  <p className={`text-xs ${textMuted} mt-1`}>
+                    Feedback y testimonios dejados por clientes y visitantes en la sección de comentarios de la página principal. Sincronizado en Hostinger MySQL.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingManualComment(!isAddingManualComment)}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isAddingManualComment ? 'Cerrar Formulario' : 'Nuevo Comentario'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Manual Comment Creation Form */}
+              {isAddingManualComment && (
+                <div className="p-6 rounded-2xl border border-purple-500/40 bg-slate-900/90 shadow-xl space-y-4">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span>Agregar Testimonio o Reseña Manual</span>
+                  </h3>
+
+                  <form onSubmit={handleAddManualComment} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-mono text-slate-400 block mb-1">
+                          Nombre del Autor *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newManualCommentName}
+                          onChange={(e) => setNewManualCommentName(e.target.value)}
+                          placeholder="Ej. Roberto Henríquez"
+                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-mono text-slate-400 block mb-1">
+                          Empresa / Cargo
+                        </label>
+                        <input
+                          type="text"
+                          value={newManualCommentCompany}
+                          onChange={(e) => setNewManualCommentCompany(e.target.value)}
+                          placeholder="Ej. Diana Brand Experience"
+                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-mono text-slate-400 block mb-1">
+                        Calificación (Estrellas):
+                      </label>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setNewManualCommentRating(star)}
+                            className="p-1 cursor-pointer"
+                          >
+                            <Star
+                              className={`w-5 h-5 ${
+                                star <= newManualCommentRating ? 'text-amber-400 fill-amber-400' : 'text-slate-600'
+                              }`}
+                            />
+                          </button>
+                        ))}
+                        <span className="text-xs font-mono text-slate-400 ml-2">
+                          {newManualCommentRating} de 5 estrellas
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-mono text-slate-400 block mb-1">
+                        Contenido del Comentario *
+                      </label>
+                      <textarea
+                        required
+                        rows={3}
+                        value={newManualCommentText}
+                        onChange={(e) => setNewManualCommentText(e.target.value)}
+                        placeholder="Escribe la reseña o testimonio..."
+                        className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white"
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingManualComment(false)}
+                        className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold cursor-pointer"
+                      >
+                        Guardar Comentario
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Comments List */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {comments.map((cmt) => (
+                  <div
+                    key={cmt.id}
+                    className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between space-y-4 hover:border-purple-500/40 transition-all"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-amber-400">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3.5 h-3.5 ${
+                                i < cmt.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-700'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                            cmt.status === 'approved'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          }`}
+                        >
+                          {cmt.status === 'approved' ? 'Visible' : 'Oculto'}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-200 italic leading-relaxed">
+                        "{cmt.comment}"
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-white truncate">{cmt.name}</h4>
+                        {cmt.company && (
+                          <span className="text-[10px] font-mono text-slate-400 block truncate">
+                            {cmt.company}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleToggleCommentStatus(
+                              cmt.id,
+                              cmt.status === 'approved' ? 'pending' : 'approved'
+                            )
+                          }
+                          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                          title={cmt.status === 'approved' ? 'Ocultar' : 'Aprobar'}
+                        >
+                          {cmt.status === 'approved' ? (
+                            <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                          ) : (
+                            <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteComment(cmt.id, cmt.name)}
+                          className="p-1.5 rounded hover:bg-rose-500/10 text-rose-400 cursor-pointer"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
