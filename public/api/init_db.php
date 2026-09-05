@@ -141,10 +141,19 @@ try {
             `rating` INT NOT NULL DEFAULT 5,
             `comment` LONGTEXT NOT NULL,
             `status` VARCHAR(20) NOT NULL DEFAULT 'approved',
+            `featured` TINYINT(1) NOT NULL DEFAULT 1,
+            `displayOrder` INT NOT NULL DEFAULT 0,
             `createdAt` VARCHAR(50) NOT NULL,
             `updatedAt` VARCHAR(50) DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
+
+    try {
+        $pdo->exec("ALTER TABLE `comments` ADD COLUMN `featured` TINYINT(1) NOT NULL DEFAULT 1 AFTER `status`");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `comments` ADD COLUMN `displayOrder` INT NOT NULL DEFAULT 0 AFTER `featured`");
+    } catch (Exception $e) {}
 
     // Ensure uploads directory exists and is writable
     if (!file_exists(UPLOAD_DIR)) {

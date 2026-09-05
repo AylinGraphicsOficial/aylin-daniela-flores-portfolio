@@ -89,6 +89,8 @@ import {
   getStoredComments,
   saveStoredComment,
   toggleCommentStatus,
+  toggleCommentFeatured,
+  updateStoredComment,
   deleteStoredComment,
   syncCommentsFromRemote,
 } from '../../utils/portfolioStorage';
@@ -200,10 +202,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [messageFilter, setMessageFilter] = useState<'ALL' | 'UNREAD' | 'READ'>('ALL');
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [commentSearch, setCommentSearch] = useState('');
+  const [commentFilter, setCommentFilter] = useState<'ALL' | 'FEATURED' | 'APPROVED' | 'PENDING'>('ALL');
+  const [editingComment, setEditingComment] = useState<CommentItem | null>(null);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [newManualCommentName, setNewManualCommentName] = useState('');
   const [newManualCommentCompany, setNewManualCommentCompany] = useState('');
   const [newManualCommentRating, setNewManualCommentRating] = useState(5);
   const [newManualCommentText, setNewManualCommentText] = useState('');
+  const [newManualCommentFeatured, setNewManualCommentFeatured] = useState(true);
   const [isAddingManualComment, setIsAddingManualComment] = useState(false);
 
   // Sync data from storage & check remote DB status
@@ -295,6 +301,46 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     );
   };
 
+  const handleToggleFeaturedComment = async (id: string) => {
+    playClickSound();
+    let isNowFeatured = false;
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c.id === id) {
+          isNowFeatured = c.featured === false;
+          return { ...c, featured: isNowFeatured };
+        }
+        return c;
+      })
+    );
+    await toggleCommentFeatured(id);
+    showNotification(
+      isNowFeatured
+        ? '⭐ ¡Comentario marcado como DESTACADO en la portada!'
+        : 'Comentario desmarcado de la portada'
+    );
+  };
+
+  const handleEditComment = (cmt: CommentItem) => {
+    playClickSound();
+    setEditingComment({ ...cmt });
+    setIsCommentModalOpen(true);
+  };
+
+  const handleSaveEditedComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingComment) return;
+    playClickSound();
+
+    setComments((prev) =>
+      prev.map((c) => (c.id === editingComment.id ? editingComment : c))
+    );
+    await updateStoredComment(editingComment.id, editingComment);
+    setIsCommentModalOpen(false);
+    setEditingComment(null);
+    showNotification('¡Comentario actualizado y sincronizado en Hostinger MySQL!');
+  };
+
   const handleDeleteComment = async (id: string, authorName: string) => {
     if (window.confirm(`¿Deseas eliminar el comentario de "${authorName}"?`)) {
       playClickSound();
@@ -314,12 +360,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       rating: newManualCommentRating,
       comment: newManualCommentText.trim(),
       status: 'approved',
+      featured: newManualCommentFeatured,
     });
     setComments((prev) => [created, ...prev]);
     setNewManualCommentName('');
     setNewManualCommentCompany('');
     setNewManualCommentRating(5);
     setNewManualCommentText('');
+    setNewManualCommentFeatured(true);
     setIsAddingManualComment(false);
     showNotification('¡Comentario agregado y guardado en Hostinger MySQL!');
   };
@@ -1843,7 +1891,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     <span>Comentarios & Reseñas de la Comunidad ({comments.length})</span>
                   </h2>
                   <p className={`text-xs ${textMuted} mt-1`}>
-                    Feedback y testimonios dejados por clientes y visitantes en la sección de comentarios de la página principal. Sincronizado en Hostinger MySQL.
+                    Gestiona los testimonios de clientes y colaboradores. Elige cuáles son los **Destacados en Portada** que se muestran en la pantalla principal.
                   </p>
                 </div>
 
@@ -1856,6 +1904,51 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     <Plus className="w-4 h-4" />
                     <span>{isAddingManualComment ? 'Cerrar Formulario' : 'Nuevo Comentario'}</span>
                   </button>
+                </div>
+              </div>
+
+              {/* Filters & Search */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { id: 'ALL', label: `TODOS (${comments.length})` },
+                    {
+                      id: 'FEATURED',
+                      label: `⭐ DESTACADOS EN PORTADA (${comments.filter((c) => c.featured !== false && c.status === 'approved').length})`,
+                    },
+                    {
+                      id: 'APPROVED',
+                      label: `👁️ APROBADOS (${comments.filter((c) => c.status === 'approved').length})`,
+                    },
+                    {
+                      id: 'PENDING',
+                      label: `🚫 OCULTOS (${comments.filter((c) => c.status === 'pending').length})`,
+                    },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setCommentFilter(f.id as any)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
+                        commentFilter === f.id
+                          ? 'bg-purple-600 text-white shadow-sm'
+                          : 'bg-slate-800/80 hover:bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por autor, empresa o texto..."
+                    value={commentSearch}
+                    onChange={(e) => setCommentSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
                 </div>
               </div>
 
@@ -1911,7 +2004,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           >
                             <Star
                               className={`w-5 h-5 ${
-                                star <= newManualCommentRating ? 'text-amber-400 fill-amber-400' : 'text-slate-600'
+                                star <= newManualCommentRating
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-slate-600'
                               }`}
                             />
                           </button>
@@ -1936,6 +2031,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       />
                     </div>
 
+                    {/* Featured Checkbox */}
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-950/20 border border-purple-500/30">
+                      <input
+                        type="checkbox"
+                        id="manualCommentFeatured"
+                        checked={newManualCommentFeatured}
+                        onChange={(e) => setNewManualCommentFeatured(e.target.checked)}
+                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                      <label htmlFor="manualCommentFeatured" className="text-xs text-slate-200 cursor-pointer">
+                        <strong className="text-purple-300">⭐ Destacar en la Portada:</strong> Mostrar inmediatamente en la sección de testimonios de la página principal.
+                      </label>
+                    </div>
+
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
@@ -1956,81 +2065,336 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               )}
 
               {/* Comments List */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {comments.map((cmt) => (
-                  <div
-                    key={cmt.id}
-                    className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between space-y-4 hover:border-purple-500/40 transition-all"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-amber-400">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3.5 h-3.5 ${
-                                i < cmt.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-700'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
-                            cmt.status === 'approved'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          }`}
-                        >
-                          {cmt.status === 'approved' ? 'Visible' : 'Oculto'}
-                        </span>
-                      </div>
+              {(() => {
+                const filteredComments = comments.filter((c) => {
+                  const matchesFilter =
+                    commentFilter === 'ALL'
+                      ? true
+                      : commentFilter === 'FEATURED'
+                      ? c.featured !== false && c.status === 'approved'
+                      : commentFilter === 'APPROVED'
+                      ? c.status === 'approved'
+                      : c.status === 'pending';
 
-                      <p className="text-xs text-slate-200 italic leading-relaxed">
-                        "{cmt.comment}"
+                  const q = commentSearch.trim().toLowerCase();
+                  const matchesSearch =
+                    !q ||
+                    c.name.toLowerCase().includes(q) ||
+                    (c.company && c.company.toLowerCase().includes(q)) ||
+                    c.comment.toLowerCase().includes(q);
+
+                  return matchesFilter && matchesSearch;
+                });
+
+                if (filteredComments.length === 0) {
+                  return (
+                    <div className="py-12 text-center rounded-2xl border border-slate-800 bg-slate-900/40 space-y-2">
+                      <MessageSquare className="w-8 h-8 text-slate-600 mx-auto" />
+                      <p className="text-xs font-mono text-slate-400">
+                        No se encontraron comentarios con los filtros aplicados.
                       </p>
                     </div>
+                  );
+                }
 
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                      <div>
-                        <h4 className="text-xs font-bold text-white truncate">{cmt.name}</h4>
-                        {cmt.company && (
-                          <span className="text-[10px] font-mono text-slate-400 block truncate">
-                            {cmt.company}
-                          </span>
-                        )}
-                      </div>
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredComments.map((cmt) => {
+                      const isFeatured = cmt.featured !== false;
 
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleToggleCommentStatus(
-                              cmt.id,
-                              cmt.status === 'approved' ? 'pending' : 'approved'
-                            )
-                          }
-                          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-                          title={cmt.status === 'approved' ? 'Ocultar' : 'Aprobar'}
+                      return (
+                        <div
+                          key={cmt.id}
+                          className={`p-5 rounded-2xl border ${
+                            isFeatured ? 'border-amber-500/40 bg-slate-900/80 shadow-[0_4px_20px_rgba(245,158,11,0.08)]' : 'border-slate-800 bg-slate-900/60'
+                          } flex flex-col justify-between space-y-4 hover:border-purple-500/40 transition-all`}
                         >
-                          {cmt.status === 'approved' ? (
-                            <EyeOff className="w-3.5 h-3.5 text-amber-400" />
-                          ) : (
-                            <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteComment(cmt.id, cmt.name)}
-                          className="p-1.5 rounded hover:bg-rose-500/10 text-rose-400 cursor-pointer"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1 text-amber-400">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-3.5 h-3.5 ${
+                                      i < cmt.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-700'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                {isFeatured && (
+                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                    ⭐ En Portada
+                                  </span>
+                                )}
+                                <span
+                                  className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                                    cmt.status === 'approved'
+                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                      : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                  }`}
+                                >
+                                  {cmt.status === 'approved' ? 'Aprobado' : 'Oculto'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p className="text-xs text-slate-200 italic leading-relaxed whitespace-pre-line line-clamp-4">
+                              "{cmt.comment}"
+                            </p>
+                          </div>
+
+                          <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-bold text-white truncate">{cmt.name}</h4>
+                              {cmt.company && (
+                                <span className="text-[10px] font-mono text-slate-400 block truncate">
+                                  {cmt.company}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* Quick Toggle Featured in Homepage */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleFeaturedComment(cmt.id)}
+                                className={`px-2 py-1 rounded-lg text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                                  isFeatured
+                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                                    : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-white'
+                                }`}
+                                title={
+                                  isFeatured
+                                    ? 'Quitar de la portada'
+                                    : 'Destacar en la portada principal'
+                                }
+                              >
+                                <Star
+                                  className={`w-3.5 h-3.5 ${
+                                    isFeatured ? 'fill-amber-400 text-amber-400' : ''
+                                  }`}
+                                />
+                                <span>{isFeatured ? 'Portada' : 'Destacar'}</span>
+                              </button>
+
+                              {/* Edit Modal Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleEditComment(cmt)}
+                                className="p-1.5 rounded-lg hover:bg-purple-600/20 text-slate-400 hover:text-purple-300 transition-colors cursor-pointer"
+                                title="Editar comentario"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Toggle Approval Visibility */}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleToggleCommentStatus(
+                                    cmt.id,
+                                    cmt.status === 'approved' ? 'pending' : 'approved'
+                                  )
+                                }
+                                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                                title={cmt.status === 'approved' ? 'Ocultar' : 'Aprobar'}
+                              >
+                                {cmt.status === 'approved' ? (
+                                  <EyeOff className="w-3.5 h-3.5 text-amber-400" />
+                                ) : (
+                                  <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                                )}
+                              </button>
+
+                              {/* Delete Comment */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteComment(cmt.id, cmt.name)}
+                                className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-400 cursor-pointer"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
+
+              {/* ==================== EDIT COMMENT MODAL ==================== */}
+              {isCommentModalOpen && editingComment && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+                  onClick={() => setIsCommentModalOpen(false)}
+                >
+                  <div
+                    className="max-w-lg w-full rounded-2xl border border-purple-500/40 bg-slate-900 p-6 sm:p-7 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                          <MessageSquare className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-white">Editar Testimonio</h3>
+                          <p className="text-xs text-slate-400">
+                            Modifica los datos del comentario y su visibilidad en la portada.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsCommentModalOpen(false)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveEditedComment} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-mono text-slate-400 block mb-1">
+                            Nombre del Autor *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={editingComment.name}
+                            onChange={(e) =>
+                              setEditingComment({ ...editingComment, name: e.target.value })
+                            }
+                            className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono text-slate-400 block mb-1">
+                            Empresa / Cargo
+                          </label>
+                          <input
+                            type="text"
+                            value={editingComment.company || ''}
+                            onChange={(e) =>
+                              setEditingComment({ ...editingComment, company: e.target.value })
+                            }
+                            className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-mono text-slate-400 block mb-1">
+                          Calificación:
+                        </label>
+                        <div className="flex items-center gap-1.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() =>
+                                setEditingComment({ ...editingComment, rating: star })
+                              }
+                              className="p-1 cursor-pointer"
+                            >
+                              <Star
+                                className={`w-5 h-5 ${
+                                  star <= editingComment.rating
+                                    ? 'text-amber-400 fill-amber-400'
+                                    : 'text-slate-600'
+                                }`}
+                              />
+                            </button>
+                          ))}
+                          <span className="text-xs font-mono text-slate-400 ml-2">
+                            {editingComment.rating} de 5 estrellas
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-mono text-slate-400 block mb-1">
+                          Contenido del Comentario *
+                        </label>
+                        <textarea
+                          required
+                          rows={4}
+                          value={editingComment.comment}
+                          onChange={(e) =>
+                            setEditingComment({ ...editingComment, comment: e.target.value })
+                          }
+                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+
+                      {/* Featured Checkbox Toggle */}
+                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id="editCommentFeatured"
+                          checked={editingComment.featured !== false}
+                          onChange={(e) =>
+                            setEditingComment({
+                              ...editingComment,
+                              featured: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                        />
+                        <label
+                          htmlFor="editCommentFeatured"
+                          className="text-xs text-slate-200 cursor-pointer"
+                        >
+                          <strong className="text-amber-300">⭐ Destacar en la Portada:</strong>{' '}
+                          Mostrar en el slider de testimonios de la página de inicio.
+                        </label>
+                      </div>
+
+                      {/* Status Selector */}
+                      <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-slate-800/60 border border-slate-700">
+                        <span className="text-xs font-mono text-slate-300">
+                          Estado de Publicación:
+                        </span>
+                        <select
+                          value={editingComment.status}
+                          onChange={(e) =>
+                            setEditingComment({
+                              ...editingComment,
+                              status: e.target.value as 'approved' | 'pending',
+                            })
+                          }
+                          className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500"
+                        >
+                          <option value="approved">Aprobado (Visible)</option>
+                          <option value="pending">Pendiente (Oculto)</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => setIsCommentModalOpen(false)}
+                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+                        >
+                          Guardar Cambios
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

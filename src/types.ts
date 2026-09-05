@@ -146,6 +146,8 @@ export interface CommentItem {
   rating: number;
   comment: string;
   status: 'approved' | 'pending';
+  featured?: boolean;
+  displayOrder?: number;
   createdAt: string;
   updatedAt?: string;
 }

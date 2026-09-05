@@ -654,6 +654,7 @@ export const initialCommentsData: CommentItem[] = [
     rating: 5,
     comment: 'El nivel de detalle en el modelado 3D del Retro Mini superó todas nuestras expectativas. La iluminación y los materiales procedurales son de calidad de cine.',
     status: 'approved',
+    featured: true,
     createdAt: '2026-08-20T14:30:00Z',
   },
   {
@@ -664,6 +665,7 @@ export const initialCommentsData: CommentItem[] = [
     rating: 5,
     comment: 'Aylin capturó a la perfección la esencia urbana y espiritual de nuestra marca. La identidad visual y la tipografía personalizada impulsaron nuestras ventas un 40%.',
     status: 'approved',
+    featured: true,
     createdAt: '2026-08-25T19:15:00Z',
   },
   {
@@ -674,6 +676,7 @@ export const initialCommentsData: CommentItem[] = [
     rating: 5,
     comment: 'Trabajo excepcional en el stand 3D y visuales para nuestra convención. La fluidez en los tiempos de entrega y la dirección creativa fueron impecables.',
     status: 'approved',
+    featured: true,
     createdAt: '2026-09-01T10:00:00Z',
   },
 ];
@@ -694,6 +697,7 @@ export const saveStoredComment = async (
   const current = getStoredComments();
   const newComment: CommentItem = {
     ...commentData,
+    featured: commentData.featured !== undefined ? commentData.featured : true,
     id: `cmt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     createdAt: new Date().toISOString(),
   };
@@ -743,6 +747,58 @@ export const toggleCommentStatus = async (
     return true;
   } catch (err) {
     console.warn('Could not update comment status on remote MySQL:', err);
+    return false;
+  }
+};
+
+export const toggleCommentFeatured = async (id: string): Promise<boolean> => {
+  const current = getStoredComments();
+  const cmt = current.find((c) => c.id === id);
+  if (!cmt) return false;
+
+  cmt.featured = cmt.featured === false ? true : false;
+  cmt.updatedAt = new Date().toISOString();
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(current));
+  notifyDataChanged();
+
+  try {
+    await fetch(COMMENTS_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, featured: cmt.featured ? 1 : 0 }),
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not update comment featured status on remote MySQL:', err);
+    return false;
+  }
+};
+
+export const updateStoredComment = async (
+  id: string,
+  updatedFields: Partial<CommentItem>
+): Promise<boolean> => {
+  const current = getStoredComments();
+  const index = current.findIndex((c) => c.id === id);
+  if (index === -1) return false;
+
+  current[index] = {
+    ...current[index],
+    ...updatedFields,
+    updatedAt: new Date().toISOString(),
+  };
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(current));
+  notifyDataChanged();
+
+  try {
+    await fetch(COMMENTS_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updatedFields }),
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not update comment on remote MySQL:', err);
     return false;
   }
 };

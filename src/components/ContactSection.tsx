@@ -1,5 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, Check, Copy, MessageSquare, Star, Send, Sparkles, User, Building, Plus } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Clock,
+  Check,
+  Copy,
+  MessageSquare,
+  Star,
+  Send,
+  Sparkles,
+  User,
+  Building,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  Quote,
+  X,
+  Maximize2
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Language, CommentItem } from '../types';
 import { translations } from '../data/portfolioData';
@@ -22,6 +40,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   const [isCopied, setIsCopied] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
+  // Comment Expansion & Modal State
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+  const [selectedCommentForModal, setSelectedCommentForModal] = useState<CommentItem | null>(null);
+  const [carouselPage, setCarouselPage] = useState(0);
+
   // Comment Form State
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [commentName, setCommentName] = useState('');
@@ -30,6 +53,17 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentSuccess, setCommentSuccess] = useState(false);
+
+  // Close modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedCommentForModal) {
+        setSelectedCommentForModal(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedCommentForModal]);
 
   // Sync comments on mount
   useEffect(() => {
@@ -111,7 +145,18 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     }
   };
 
-  const approvedComments = comments.filter((c) => c.status === 'approved');
+  // Filtrar comentarios aprobados que estén marcados como destacados para la portada
+  const featuredComments = useMemo(() => {
+    const list = comments.filter((c) => c.status === 'approved' && c.featured !== false);
+    return list.length > 0 ? list : comments.filter((c) => c.status === 'approved');
+  }, [comments]);
+
+  const pageSize = 3;
+  const totalPages = Math.ceil(featuredComments.length / pageSize);
+  const currentItems = featuredComments.slice(
+    carouselPage * pageSize,
+    (carouselPage + 1) * pageSize
+  );
 
   return (
     <section id="contact" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
@@ -135,7 +180,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               : 'Opinions and feedback from clients, collaborators and community on 3D design and branding projects.'}
           </p>
           
-          <div className="pt-2">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
             <SpecularButton
               onClick={() => {
                 playClickSound();
@@ -149,6 +194,12 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               <Plus className="w-3.5 h-3.5" />
               <span>{isAddingComment ? (lang === 'es' ? 'CERRAR FORMULARIO' : 'CLOSE FORM') : (lang === 'es' ? 'DEJAR UN COMENTARIO' : 'LEAVE A REVIEW')}</span>
             </SpecularButton>
+
+            {featuredComments.length > pageSize && (
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-gray-400">
+                <span>{carouselPage + 1} / {totalPages}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -266,51 +317,363 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
           </div>
         )}
 
-        {/* Comments Grid Display */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {approvedComments.slice(0, 6).map((c) => (
+        {/* ==================== 1.1 COMMENTS DISPLAY: SPOTLIGHT OR GRID ==================== */}
+        {featuredComments.length === 0 ? (
+          <div className="max-w-md mx-auto text-center py-10 px-6 glass-panel rounded-2xl border border-white/10 space-y-2">
+            <Quote className="w-8 h-8 text-[#76FF03]/40 mx-auto" />
+            <p className="text-xs font-mono text-gray-400">
+              {lang === 'es'
+                ? 'Aún no hay testimonios destacados en la portada. ¡Sé el primero en compartir tu opinión!'
+                : 'No reviews featured yet. Be the first to leave your feedback!'}
+            </p>
+          </div>
+        ) : featuredComments.length === 1 ? (
+          /* Single Spotlight Featured Review (Centered & Highlighted) */
+          (() => {
+            const c = featuredComments[0];
+            const isExpanded = !!expandedIds[c.id];
+            const isLong = c.comment.length > 130;
+
+            return (
+              <div className="max-w-2xl mx-auto">
+                <div
+                  className="glass-panel p-7 sm:p-9 rounded-3xl border border-[#76FF03]/40 bg-gradient-to-b from-[#0a1a0a]/90 to-[#040804]/95 shadow-[0_15px_50px_rgba(118,255,3,0.12)] flex flex-col justify-between space-y-5 hover:border-[#76FF03] transition-all group relative"
+                >
+                  {/* Decorative Glow */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#76FF03]/10 rounded-full blur-2xl pointer-events-none" />
+
+                  <div className="space-y-4">
+                    {/* Top Bar: Stars + Badge + Modal Button */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < c.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono px-2.5 py-1 rounded-full font-bold bg-[#76FF03]/15 text-[#76FF03] border border-[#76FF03]/30 uppercase tracking-wider">
+                          ★ {lang === 'es' ? 'TESTIMONIO DESTACADO' : 'FEATURED REVIEW'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playClickSound();
+                            setSelectedCommentForModal(c);
+                          }}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-[#76FF03]/20 text-gray-400 hover:text-[#76FF03] transition-colors cursor-pointer"
+                          title={lang === 'es' ? 'Ver en modal completo' : 'View full review modal'}
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Comment Text with Quote Mark */}
+                    <div className="relative">
+                      <Quote className="w-8 h-8 text-[#76FF03]/15 absolute -top-3 -left-2 -z-0" />
+                      <p
+                        className={`text-sm sm:text-base text-gray-200 leading-relaxed italic relative z-10 transition-all duration-300 ${
+                          isExpanded ? 'whitespace-pre-line' : 'line-clamp-4'
+                        }`}
+                      >
+                        "{c.comment}"
+                      </p>
+                    </div>
+
+                    {/* Toggle Arrow Button if Long */}
+                    {isLong && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playClickSound();
+                          setExpandedIds((prev) => ({ ...prev, [c.id]: !isExpanded }));
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#76FF03] hover:text-white transition-colors cursor-pointer pt-1"
+                      >
+                        <span>
+                          {isExpanded
+                            ? (lang === 'es' ? 'Ocultar / Reducir' : 'Show less')
+                            : (lang === 'es' ? 'Ver comentario completo' : 'Read full comment')}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4 text-[#76FF03]" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-[#76FF03]" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Author Info Footer */}
+                  <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#76FF03]/20 to-[#38B000]/30 border border-[#76FF03]/50 flex items-center justify-center text-sm font-black text-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]">
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white group-hover:text-[#76FF03] transition-colors">
+                          {c.name}
+                        </h4>
+                        {c.company && (
+                          <span className="text-xs font-mono text-gray-400 block">
+                            {c.company}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <span className="text-[11px] font-mono text-gray-500">
+                      {new Date(c.createdAt).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()
+        ) : (
+          /* Multi-Comment Responsive Grid / Carousel with Arrow Navigation */
+          <div className="space-y-6">
             <div
-              key={c.id}
-              className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col justify-between space-y-4 hover:border-[#76FF03]/40 transition-all hover:shadow-[0_10px_30px_rgba(118,255,3,0.1)] group"
+              className={`grid gap-6 ${
+                featuredComments.length === 2
+                  ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto'
+                  : 'grid-cols-1 md:grid-cols-3'
+              }`}
             >
-              <div className="space-y-3">
+              {currentItems.map((c) => {
+                const isExpanded = !!expandedIds[c.id];
+                const isLong = c.comment.length > 130;
+
+                return (
+                  <div
+                    key={c.id}
+                    className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col justify-between space-y-4 hover:border-[#76FF03]/40 transition-all hover:shadow-[0_10px_30px_rgba(118,255,3,0.1)] group relative"
+                  >
+                    <div className="space-y-3">
+                      {/* Top Bar: Stars + Badge / Modal Action */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-amber-400">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3.5 h-3.5 ${
+                                i < c.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playClickSound();
+                            setSelectedCommentForModal(c);
+                          }}
+                          className="p-1 rounded-md bg-white/5 hover:bg-[#76FF03]/20 text-gray-400 hover:text-[#76FF03] transition-colors cursor-pointer"
+                          title={lang === 'es' ? 'Ver en modal' : 'Expand modal'}
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Comment Body with expand toggle */}
+                      <p
+                        className={`text-xs md:text-sm text-gray-300 leading-relaxed italic transition-all duration-300 ${
+                          isExpanded ? 'whitespace-pre-line' : 'line-clamp-4'
+                        }`}
+                      >
+                        "{c.comment}"
+                      </p>
+
+                      {/* Interactive Arrow Button to see full comment */}
+                      {isLong && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playClickSound();
+                            setExpandedIds((prev) => ({ ...prev, [c.id]: !isExpanded }));
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[#76FF03] hover:text-white transition-colors cursor-pointer pt-1"
+                        >
+                          <span>
+                            {isExpanded
+                              ? (lang === 'es' ? 'Mostrar menos' : 'Show less')
+                              : (lang === 'es' ? 'Ver comentario completo' : 'Read full comment')}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-3.5 h-3.5 text-[#76FF03]" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5 text-[#76FF03]" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Author Footer */}
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#76FF03]/10 border border-[#76FF03]/40 flex items-center justify-center text-xs font-bold text-[#76FF03] flex-shrink-0">
+                          {c.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-white group-hover:text-[#76FF03] transition-colors truncate">
+                            {c.name}
+                          </h4>
+                          {c.company && (
+                            <span className="text-[10px] font-mono text-gray-400 block truncate">
+                              {c.company}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span className="text-[10px] font-mono text-gray-500 flex-shrink-0 ml-2">
+                        {new Date(c.createdAt).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls with Arrows */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setCarouselPage((prev) => (prev > 0 ? prev - 1 : totalPages - 1));
+                  }}
+                  className="p-2.5 rounded-xl bg-white/5 hover:bg-[#76FF03]/20 border border-white/10 hover:border-[#76FF03]/40 text-gray-300 hover:text-[#76FF03] transition-all cursor-pointer"
+                  title={lang === 'es' ? 'Anterior' : 'Previous'}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: totalPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setCarouselPage(idx);
+                      }}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        carouselPage === idx
+                          ? 'w-7 bg-[#76FF03] shadow-[0_0_10px_#76FF03]'
+                          : 'w-2 bg-white/20 hover:bg-white/40'
+                      }`}
+                      title={`${lang === 'es' ? 'Página' : 'Page'} ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setCarouselPage((prev) => (prev < totalPages - 1 ? prev + 1 : 0));
+                  }}
+                  className="p-2.5 rounded-xl bg-white/5 hover:bg-[#76FF03]/20 border border-white/10 hover:border-[#76FF03]/40 text-gray-300 hover:text-[#76FF03] transition-all cursor-pointer"
+                  title={lang === 'es' ? 'Siguiente' : 'Next'}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ==================== 1.2 FULL TESTIMONIAL MODAL ==================== */}
+      {selectedCommentForModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setSelectedCommentForModal(null)}
+        >
+          <div
+            className="max-w-xl w-full glass-panel p-6 sm:p-8 rounded-3xl border border-[#76FF03]/40 bg-[#061206]/95 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedCommentForModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+              title={lang === 'es' ? 'Cerrar' : 'Close'}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-2xl bg-[#76FF03]/10 border border-[#76FF03]/40 flex items-center justify-center text-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]">
+                <Quote className="w-5 h-5" />
+              </div>
+              <div>
                 <div className="flex items-center gap-1 text-amber-400">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-3.5 h-3.5 ${
-                        i < c.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'
+                      className={`w-4 h-4 ${
+                        i < selectedCommentForModal.rating
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-gray-600'
                       }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs md:text-sm text-gray-300 leading-relaxed italic line-clamp-4">
-                  "{c.comment}"
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-white group-hover:text-[#76FF03] transition-colors truncate">
-                    {c.name}
-                  </h4>
-                  {c.company && (
-                    <span className="text-[10px] font-mono text-gray-400 block truncate">
-                      {c.company}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] font-mono text-gray-500">
-                  {new Date(c.createdAt).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
-                    month: 'short',
-                    year: 'numeric',
-                  })}
+                <span className="text-[10px] font-mono text-[#76FF03] uppercase tracking-wider font-bold block mt-0.5">
+                  ★ {lang === 'es' ? 'Testimonio Verificado' : 'Verified Review'}
                 </span>
               </div>
             </div>
-          ))}
+
+            <div className="my-5 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+              <p className="text-sm sm:text-base text-gray-100 leading-relaxed italic whitespace-pre-line">
+                "{selectedCommentForModal.comment}"
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#76FF03]/20 border border-[#76FF03] flex items-center justify-center text-sm font-bold text-[#76FF03]">
+                  {selectedCommentForModal.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">{selectedCommentForModal.name}</h4>
+                  {selectedCommentForModal.company && (
+                    <span className="text-xs font-mono text-gray-400 block">
+                      {selectedCommentForModal.company}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <span className="text-xs font-mono text-gray-500">
+                {new Date(selectedCommentForModal.createdAt).toLocaleDateString(
+                  lang === 'es' ? 'es-ES' : 'en-US',
+                  { month: 'long', year: 'numeric' }
+                )}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ==================== 2. CAPTURA 4 CENTRADA ("CREEMOS JUNTOS") ==================== */}
       <div className="max-w-2xl mx-auto text-center space-y-8 relative z-10">
