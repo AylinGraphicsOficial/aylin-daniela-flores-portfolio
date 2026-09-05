@@ -158,209 +158,110 @@ try {
     if ($projectCount === 0) {
         $initialProjects = [
             [
-                'id' => 'retro-mini-render',
-                'title' => 'Retro Mini Classic 3D Render',
+                'id' => 'demo-modelado-3d',
+                'title' => 'Orbit 3D Stand Exhibition [Demo Modelado 3D]',
                 'category' => '3D MODELING',
-                'year' => '2023',
-                'client' => 'Apex Auto Studio',
-                'shortDesc' => 'Modelado hard-surface de alta fidelidad, shaders procedurales de pintura automotriz e iluminación fotográfica en estudio.',
-                'fullDesc' => 'Exploración completa de visualización automotriz combinando modelado poligonal de precisión para el vehículo clásico y renderizado con Octane Render.',
-                'image' => '/images/retro-mini.jpg',
-                'galleryImages' => json_encode(['/images/retro-mini.jpg', '/images/orbit-stand.webp']),
+                'year' => '2025',
+                'client' => 'Studio Kinetic Demo',
+                'shortDesc' => 'Proyecto muestra de Modelado 3D: renderizado CGI de alta fidelidad, iluminación fotográfica y vistas de detalle.',
+                'fullDesc' => 'Proyecto base de demostración para la disciplina de Modelado 3D & CGI. Soporta imagen principal, galería completa de 6 renders de detalle con zoom interactivo, métricas de poligonaje y shaders procedurales.',
+                'image' => '/images/orbit-stand.webp',
+                'galleryImages' => json_encode([
+                    '/images/orbit-stand.webp',
+                    '/images/retro-mini.jpg',
+                    '/images/orbit-carrito.png'
+                ]),
                 'videoUrl' => '',
                 'videoClip' => '',
                 'gifUrl' => '',
-                'tags' => json_encode(['3D Modeling', 'Blender', 'Octane Render', 'Automotive']),
+                'tags' => json_encode(['3D Modeling', 'Blender', 'Octane Render', 'CGI Exhibition']),
                 'featured' => 1,
                 'metrics' => json_encode([
-                    ['label' => 'Render Samples', 'value' => '4,096 SPP'],
-                    ['label' => 'Polígonos Sub-D', 'value' => '1.2M Poly']
+                    ['label' => 'Render Engine', 'value' => 'Cycles / Octane'],
+                    ['label' => 'Muestras SPP', 'value' => '4,096 SPP'],
+                    ['label' => 'Malla 3D', 'value' => 'Sub-D Hard Surface']
                 ]),
                 'display_order' => 1,
                 'createdAt' => date('c'),
                 'updatedAt' => date('c')
             ],
             [
-                'id' => 'kinetic-touch-hands',
-                'title' => 'Kinetic Touch & Fluid Synergy',
-                'category' => 'DIGITAL ART',
-                'year' => '2024',
-                'client' => 'Studio Kinetic Labs',
-                'shortDesc' => 'Composición de arte digital conceptual integrando interacción táctil y fluidos cian luminosos.',
-                'fullDesc' => 'Pieza conceptual de arte digital que explora el punto de contacto entre la materia física y los fluidos energéticos.',
-                'image' => '/images/hero-hands.jpg',
-                'galleryImages' => json_encode(['/images/hero-hands.jpg']),
+                'id' => 'demo-branding',
+                'title' => 'Diana Brand Experience 3D [Demo Branding]',
+                'category' => 'BRANDING',
+                'year' => '2025',
+                'client' => 'Studio Kinetic Demo',
+                'shortDesc' => 'Proyecto muestra de Branding: identidad visual, diseño de packaging, tipografía y manual de identidad.',
+                'fullDesc' => 'Proyecto base de demostración para la disciplina de Branding & Sistemas de Identidad. Permite cargar logotipos, paletas cromáticas, imagen principal, slider para portada y galería de aplicaciones de marca.',
+                'image' => '/images/orbit-stand-diana.webp',
+                'galleryImages' => json_encode([
+                    '/images/orbit-stand-diana.webp',
+                    '/images/brands/holy-nation.webp',
+                    '/images/brands/cattleya.webp'
+                ]),
                 'videoUrl' => '',
                 'videoClip' => '',
                 'gifUrl' => '',
-                'tags' => json_encode(['Digital Art', 'Photoshop', 'Fluid Simulation', 'Concept']),
+                'tags' => json_encode(['Branding', 'Visual Identity', 'Packaging', 'Art Direction']),
                 'featured' => 1,
                 'metrics' => json_encode([
-                    ['label' => 'Resolución', 'value' => '8K UHD'],
-                    ['label' => 'Profundidad', 'value' => '32-bit Float']
+                    ['label' => 'Disciplina', 'value' => 'Brand Identity'],
+                    ['label' => 'Entregables', 'value' => 'Manual + Assets'],
+                    ['label' => 'Tipografía', 'value' => 'Custom Kinetic']
                 ]),
                 'display_order' => 2,
                 'createdAt' => date('c'),
                 'updatedAt' => date('c')
             ],
             [
-                'id' => 'corporate-identity-system',
-                'title' => 'Nexus Fintech Corporate Identity System',
-                'category' => 'BRANDING',
-                'year' => '2024',
-                'client' => 'Nexus Global Finance',
-                'shortDesc' => 'Diseño integral de identidad de marca, sistema tipográfico dinámico y manual de normas corporativas.',
-                'fullDesc' => 'Construcción completa de la identidad para una plataforma de servicios financieros de última generación.',
-                'image' => 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1400&q=85',
-                'galleryImages' => json_encode(['https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1400&q=85']),
-                'videoUrl' => '',
+                'id' => 'demo-edicion-video',
+                'title' => 'Reel Audiovisual & Motion Graphics [Demo Edición de Video]',
+                'category' => 'MOTION',
+                'year' => '2025',
+                'client' => 'Studio Kinetic Demo',
+                'shortDesc' => 'Proyecto muestra de Edición de Video: spot publicitario cinematográfico con montaje dinámico y motion graphics.',
+                'fullDesc' => 'Proyecto base de demostración para la disciplina de Edición de Video & Motion. En esta sección se utiliza de forma estricta un video principal (YouTube, Vimeo, Shorts o MP4 directo) acompañado de una única miniatura de portada representativa.',
+                'image' => '/images/diplomados/diplomado-after-effects-2023.webp',
+                'galleryImages' => json_encode([]),
+                'videoUrl' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'videoClip' => '',
                 'gifUrl' => '',
-                'tags' => json_encode(['Branding', 'Typography', 'Visual Identity', 'Illustrator']),
+                'tags' => json_encode(['Video Editing', 'Motion Graphics', 'After Effects', 'Premiere Pro', 'Color Grading']),
                 'featured' => 1,
                 'metrics' => json_encode([
-                    ['label' => 'Touchpoints', 'value' => '45+ Assets'],
-                    ['label' => 'Guía de Marca', 'value' => '80 Páginas']
+                    ['label' => 'Resolución', 'value' => '4K UHD / 60 FPS'],
+                    ['label' => 'Software', 'value' => 'After Effects & Premiere'],
+                    ['label' => 'Audio Design', 'value' => 'Mastering 5.1']
                 ]),
                 'display_order' => 3,
                 'createdAt' => date('c'),
                 'updatedAt' => date('c')
             ],
             [
-                'id' => 'orbit-stand-exhibition',
-                'title' => 'Kinetic 3D Stand Exhibition',
-                'category' => '3D MODELING',
-                'year' => '2024',
-                'client' => 'Orbit Brand Expo',
-                'shortDesc' => 'Diseño de stand comercial arquitectónico para ferias internacionales con iluminación LED integrada.',
-                'fullDesc' => 'Desarrollo de espacio de exhibición interactivo en 3D optimizado para flujo de asistentes y presentación de productos.',
-                'image' => '/images/orbit-stand.webp',
-                'galleryImages' => json_encode(['/images/orbit-stand.webp', '/images/orbit-stand-diana.webp']),
+                'id' => 'demo-social-media',
+                'title' => 'Campaña Digital High-Engagement [Demo Social Media]',
+                'category' => 'DIGITAL ART',
+                'year' => '2025',
+                'client' => 'Studio Kinetic Demo',
+                'shortDesc' => 'Proyecto muestra de Social Media: carruseles de alto engagement, reels publicitarios y dirección de arte digital.',
+                'fullDesc' => 'Proyecto base de demostración para la disciplina de Social Media Designer. Soporta creatividades publicitarias, imágenes de post, carruseles educativos y piezas optimizadas para Instagram, TikTok y LinkedIn.',
+                'image' => '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
+                'galleryImages' => json_encode([
+                    '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
+                    '/images/orbit-tablet.webp',
+                    '/images/hero-hands.jpg'
+                ]),
                 'videoUrl' => '',
                 'videoClip' => '',
                 'gifUrl' => '',
-                'tags' => json_encode(['3D Modeling', 'Architecture', 'Exhibition Stand', 'Lighting']),
+                'tags' => json_encode(['Social Media', 'Content Creation', 'Digital Art', 'Ad Creatives']),
                 'featured' => 1,
                 'metrics' => json_encode([
-                    ['label' => 'Área Stand', 'value' => '72 m²'],
-                    ['label' => 'Iluminación', 'value' => 'Fotometría IES']
+                    ['label' => 'Engagement', 'value' => '+340% Conversión'],
+                    ['label' => 'Formato', 'value' => 'Multi-plataforma 9:16 / 1:1'],
+                    ['label' => 'Estrategia', 'value' => 'Storytelling Visual']
                 ]),
                 'display_order' => 4,
-                'createdAt' => date('c'),
-                'updatedAt' => date('c')
-            ],
-            [
-                'id' => 'diana-brand-experience',
-                'title' => 'Diana Interactive Brand Stand',
-                'category' => 'BRANDING',
-                'year' => '2024',
-                'client' => 'Diana Consumer Brands',
-                'shortDesc' => 'Experiencia de marca física y digital con stands temáticos y visual merchandising.',
-                'fullDesc' => 'Ecosistema de marca en 3D para activación de producto en puntos de venta y convenciones de retail.',
-                'image' => '/images/orbit-stand-diana.webp',
-                'galleryImages' => json_encode(['/images/orbit-stand-diana.webp']),
-                'videoUrl' => '',
-                'videoClip' => '',
-                'gifUrl' => '',
-                'tags' => json_encode(['Branding', 'Point of Sale', '3D Stand', 'Merchandising']),
-                'featured' => 1,
-                'metrics' => json_encode([
-                    ['label' => 'Impacto', 'value' => '15K Visitantes'],
-                    ['label' => 'Materiales', 'value' => 'PBR Shaders']
-                ]),
-                'display_order' => 5,
-                'createdAt' => date('c'),
-                'updatedAt' => date('c')
-            ],
-            [
-                'id' => 'lumina-beverage-packaging',
-                'title' => 'Lumina Craft Botanical Beverage 3D',
-                'category' => '3D MODELING',
-                'year' => '2023',
-                'client' => 'Lumina Botanical Co.',
-                'shortDesc' => 'Modelado de botellas de vidrio, condensación procedural y simulación de líquidos.',
-                'fullDesc' => 'Renderizado fotorrealista para campaña de lanzamiento de bebidas botánicas artesanales con etiquetas metálicas.',
-                'image' => 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=85',
-                'galleryImages' => json_encode(['https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=85']),
-                'videoUrl' => '',
-                'videoClip' => '',
-                'gifUrl' => '',
-                'tags' => json_encode(['3D Modeling', 'Packaging', 'Liquid Simulation', 'Octane']),
-                'featured' => 1,
-                'metrics' => json_encode([
-                    ['label' => 'Gotas de Agua', 'value' => 'Partículas Geo'],
-                    ['label' => 'Vidrio Caustics', 'value' => 'Spectral Path']
-                ]),
-                'display_order' => 6,
-                'createdAt' => date('c'),
-                'updatedAt' => date('c')
-            ],
-            [
-                'id' => 'digital-product-ui-3d',
-                'title' => 'Next-Gen Digital Tablet & UI 3D',
-                'category' => 'DIGITAL ART',
-                'year' => '2024',
-                'client' => 'Orbit Interactive',
-                'shortDesc' => 'Visualización de dispositivo tablet interactivo con interfaz de usuario holográfica en tiempo real.',
-                'fullDesc' => 'Diseño y renderizado 3D de hardware futurista mostrando visualización de datos y panel de control de audio.',
-                'image' => '/images/orbit-tablet.webp',
-                'galleryImages' => json_encode(['/images/orbit-tablet.webp']),
-                'videoUrl' => '',
-                'videoClip' => '',
-                'gifUrl' => '',
-                'tags' => json_encode(['Digital Art', 'UI Design', 'Hard Surface', 'Cyber']),
-                'featured' => 0,
-                'metrics' => json_encode([
-                    ['label' => 'Pantalla OLED', 'value' => 'Emissive 4K'],
-                    ['label' => 'Texturas', 'value' => 'Substance 3D']
-                ]),
-                'display_order' => 7,
-                'createdAt' => date('c'),
-                'updatedAt' => date('c')
-            ],
-            [
-                'id' => 'orbit-carrito-render',
-                'title' => '3D Stand & Carrito Retail Visual',
-                'category' => '3D MODELING',
-                'year' => '2024',
-                'client' => 'Street Craft Gourmet',
-                'shortDesc' => 'Carrito móvil comercial para plazas y eventos con detalles en madera y metal mate.',
-                'fullDesc' => 'Render de alta definición para previsualización de fabricación de mueble comercial móvil.',
-                'image' => '/images/orbit-carrito.png',
-                'galleryImages' => json_encode(['/images/orbit-carrito.png']),
-                'videoUrl' => '',
-                'videoClip' => '',
-                'gifUrl' => '',
-                'tags' => json_encode(['3D Modeling', 'Retail Design', 'Commercial Unit']),
-                'featured' => 0,
-                'metrics' => json_encode([
-                    ['label' => 'Dimensiones', 'value' => '2.40 × 1.10 m'],
-                    ['label' => 'Render Engine', 'value' => 'Cycles GPU']
-                ]),
-                'display_order' => 8,
-                'createdAt' => date('c'),
-                'updatedAt' => date('c')
-            ],
-            [
-                'id' => 'cyber-kinetic-intro',
-                'title' => 'Aura Kinetic Motion Typography',
-                'category' => 'MOTION',
-                'year' => '2024',
-                'client' => 'Kinetic Motion Festival',
-                'shortDesc' => 'Animación tipográfica experimental con distorsión cromática y ritmo sonoro de alta energía.',
-                'fullDesc' => 'Secuencia de apertura de festival audiovisual combinando After Effects, tracking 3D y diseño de sonido.',
-                'image' => 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=85',
-                'galleryImages' => json_encode(['https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=85']),
-                'videoUrl' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                'videoClip' => '',
-                'gifUrl' => '',
-                'tags' => json_encode(['Motion Graphics', 'After Effects', 'Kinetic Type', 'Sound Design']),
-                'featured' => 1,
-                'metrics' => json_encode([
-                    ['label' => 'Framerate', 'value' => '60 FPS'],
-                    ['label' => 'Compositing', 'value' => '32 Layers']
-                ]),
-                'display_order' => 9,
                 'createdAt' => date('c'),
                 'updatedAt' => date('c')
             ]
@@ -405,7 +306,8 @@ try {
                     ['id' => 's3d-2', 'image' => '/images/retro-mini.jpg', 'title' => 'Retro Mini Classic', 'visible' => true],
                     ['id' => 's3d-3', 'image' => '/images/orbit-carrito.png', 'title' => 'Street Craft Gourmet 3D', 'visible' => true]
                 ]),
-                'targetProjectId' => 'orbit-stand-exhibition',
+                'projectIds' => json_encode(['demo-modelado-3d']),
+                'targetProjectId' => 'demo-modelado-3d',
                 'visible' => 1,
                 'display_order' => 1,
                 'updatedAt' => date('c')
@@ -427,7 +329,8 @@ try {
                     ['id' => 'sbr-2', 'image' => '/images/brands/holy-nation.webp', 'title' => 'Holy Nation Identity', 'visible' => true],
                     ['id' => 'sbr-3', 'image' => '/images/brands/cattleya.webp', 'title' => 'Cattleya Floral Studio', 'visible' => true]
                 ]),
-                'targetProjectId' => 'diana-brand-experience',
+                'projectIds' => json_encode(['demo-branding']),
+                'targetProjectId' => 'demo-branding',
                 'visible' => 1,
                 'display_order' => 2,
                 'updatedAt' => date('c')
@@ -448,7 +351,8 @@ try {
                     ['id' => 'svid-1', 'image' => '/images/diplomados/diplomado-after-effects-2023.webp', 'title' => 'After Effects Master Suite', 'visible' => true],
                     ['id' => 'svid-2', 'image' => '/images/hero-hands.jpg', 'title' => 'Kinetic Motion Typography', 'visible' => true]
                 ]),
-                'targetProjectId' => 'cyber-kinetic-intro',
+                'projectIds' => json_encode(['demo-edicion-video']),
+                'targetProjectId' => 'demo-edicion-video',
                 'visible' => 1,
                 'display_order' => 3,
                 'updatedAt' => date('c')
@@ -469,7 +373,8 @@ try {
                     ['id' => 'ssm-1', 'image' => '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp', 'title' => 'Content Creation Masterclass 2025', 'visible' => true],
                     ['id' => 'ssm-2', 'image' => '/images/orbit-tablet.webp', 'title' => 'Interactive Tablet & Digital Feed', 'visible' => true]
                 ]),
-                'targetProjectId' => 'digital-product-ui-3d',
+                'projectIds' => json_encode(['demo-social-media']),
+                'targetProjectId' => 'demo-social-media',
                 'visible' => 1,
                 'display_order' => 4,
                 'updatedAt' => date('c')
@@ -479,11 +384,11 @@ try {
         $insertDiscSql = "INSERT INTO `disciplines` (
             `id`, `number`, `verticalTextEs`, `verticalTextEn`, `titleEs`, `titleEn`,
             `subtitleEs`, `subtitleEn`, `descEs`, `descEn`, `image`, `slides`,
-            `targetProjectId`, `visible`, `display_order`, `updatedAt`
+            `projectIds`, `targetProjectId`, `visible`, `display_order`, `updatedAt`
         ) VALUES (
             :id, :number, :verticalTextEs, :verticalTextEn, :titleEs, :titleEn,
             :subtitleEs, :subtitleEn, :descEs, :descEn, :image, :slides,
-            :targetProjectId, :visible, :display_order, :updatedAt
+            :projectIds, :targetProjectId, :visible, :display_order, :updatedAt
         )";
 
         $stmtInsertDisc = $pdo->prepare($insertDiscSql);

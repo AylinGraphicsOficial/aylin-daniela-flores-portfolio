@@ -871,7 +871,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   // Filtered projects
   const filteredProjects = projects.filter((p) => {
     const matchesCat =
-      categoryFilter === 'ALL' || p.category === categoryFilter;
+      categoryFilter === 'ALL' ||
+      p.category === categoryFilter ||
+      p.disciplineId === categoryFilter;
     const matchesSearch =
       searchQuery === '' ||
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -2056,106 +2058,129 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
-                {['ALL', '3D MODELING', 'BRANDING', 'DIGITAL ART', 'MOTION'].map((cat) => (
+                {[
+                  { key: 'ALL', label: 'TODOS' },
+                  { key: '3D MODELING', label: '01 MODELADO 3D' },
+                  { key: 'BRANDING', label: '02 BRANDING' },
+                  { key: 'MOTION', label: '03 EDICIÓN DE VIDEO 🎬' },
+                  { key: 'DIGITAL ART', label: '04 SOCIAL MEDIA' },
+                ].map((item) => (
                   <button
-                    key={cat}
+                    key={item.key}
                     type="button"
-                    onClick={() => setCategoryFilter(cat)}
+                    onClick={() => setCategoryFilter(item.key)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
-                      categoryFilter === cat
+                      categoryFilter === item.key
                         ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-slate-800/80 hover:bg-slate-800 text-slate-400'
                     }`}
                   >
-                    {cat}
+                    {item.label}
                   </button>
                 ))}
               </div>
 
               {/* Projects Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {filteredProjects.map((proj) => (
-                  <div
-                    key={proj.id}
-                    className={`rounded-2xl border ${bgCard} overflow-hidden p-4 flex flex-col justify-between hover:border-slate-600 transition-all`}
-                  >
-                    <div>
-                      {/* Image Preview */}
-                      <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3">
-                        <img
-                          src={proj.image}
-                          alt={proj.title}
-                          className="w-full h-full object-contain p-2"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = '/images/retro-mini.jpg';
-                          }}
-                        />
+                {filteredProjects.map((proj) => {
+                  const isVideoProj =
+                    proj.disciplineId === 'edicion-video' ||
+                    proj.category === 'MOTION';
+
+                  return (
+                    <div
+                      key={proj.id}
+                      className={`rounded-2xl border ${bgCard} overflow-hidden p-4 flex flex-col justify-between hover:border-slate-600 transition-all`}
+                    >
+                      <div>
+                        {/* Image Preview */}
+                        <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3">
+                          <img
+                            src={proj.image}
+                            alt={proj.title}
+                            className="w-full h-full object-contain p-2"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = '/images/retro-mini.jpg';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFeatured(proj.id)}
+                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md text-amber-400 cursor-pointer"
+                            title={proj.featured ? 'Destacado' : 'Marcar como destacado'}
+                          >
+                            <Star
+                              className={`w-3.5 h-3.5 ${proj.featured ? 'fill-amber-400' : ''}`}
+                            />
+                          </button>
+                        </div>
+
+                        <span className="text-[10px] font-mono text-emerald-400 font-semibold uppercase block mb-1">
+                          {proj.category} • {proj.year}
+                        </span>
+                        <h4 className="text-sm font-bold tracking-tight line-clamp-1 mb-1">
+                          {proj.title}
+                        </h4>
+                        <span className="text-xs text-slate-400 block line-clamp-1 font-mono mb-2">
+                          {proj.client}
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                          <span
+                            className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
+                              proj.visibleInCatalog !== false
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            }`}
+                          >
+                            {proj.visibleInCatalog !== false ? '👁️ Catálogo' : '🚫 Oculto'}
+                          </span>
+
+                          {proj.featured && (
+                            <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                              ⭐ Slider #{proj.sliderOrder ?? 1}
+                            </span>
+                          )}
+
+                          {proj.disciplineId && (
+                            <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 truncate max-w-[120px]">
+                              {proj.disciplineId}
+                            </span>
+                          )}
+
+                          {isVideoProj ? (
+                            <span
+                              className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
+                                proj.videoUrl || proj.clipUrl
+                                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              }`}
+                            >
+                              🎬 {proj.videoUrl || proj.clipUrl ? 'Video + Miniatura ✓' : 'Solo Miniatura (Sin Video)'}
+                            </span>
+                          ) : (
+                            <span
+                              className={`text-[9px] font-mono px-2 py-0.5 rounded ${
+                                (proj.galleryImages || []).length >= 6
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                  : 'bg-slate-800 text-slate-300'
+                              }`}
+                            >
+                              {(proj.galleryImages || []).length}/6 vistas
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
                         <button
                           type="button"
-                          onClick={() => handleToggleFeatured(proj.id)}
-                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-900/80 backdrop-blur-md text-amber-400 cursor-pointer"
-                          title={proj.featured ? 'Destacado' : 'Marcar como destacado'}
+                          onClick={() => handleEditProject(proj)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium transition-colors cursor-pointer"
                         >
-                          <Star
-                            className={`w-3.5 h-3.5 ${proj.featured ? 'fill-amber-400' : ''}`}
-                          />
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>{isVideoProj ? 'Editar Video & Miniatura' : 'Editar Proyecto & Galería'}</span>
                         </button>
-                      </div>
-
-                      <span className="text-[10px] font-mono text-emerald-400 font-semibold uppercase block mb-1">
-                        {proj.category} • {proj.year}
-                      </span>
-                      <h4 className="text-sm font-bold tracking-tight line-clamp-1 mb-1">
-                        {proj.title}
-                      </h4>
-                      <span className="text-xs text-slate-400 block line-clamp-1 font-mono mb-2">
-                        {proj.client}
-                      </span>
-                      <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                        <span
-                          className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
-                            proj.visibleInCatalog !== false
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                          }`}
-                        >
-                          {proj.visibleInCatalog !== false ? '👁️ Catálogo' : '🚫 Oculto'}
-                        </span>
-
-                        {proj.featured && (
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
-                            ⭐ Slider #{proj.sliderOrder ?? 1}
-                          </span>
-                        )}
-
-                        {proj.disciplineId && (
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 truncate max-w-[120px]">
-                            {proj.disciplineId}
-                          </span>
-                        )}
-
-                        <span
-                          className={`text-[9px] font-mono px-2 py-0.5 rounded ${
-                            (proj.galleryImages || []).length >= 6
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                              : 'bg-slate-800 text-slate-300'
-                          }`}
-                        >
-                          {(proj.galleryImages || []).length}/6 vistas
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-                      <button
-                        type="button"
-                        onClick={() => handleEditProject(proj)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium transition-colors cursor-pointer"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        <span>Editar Proyecto & Galería</span>
-                      </button>
 
                       <button
                         type="button"
@@ -2167,7 +2192,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

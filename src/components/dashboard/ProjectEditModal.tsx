@@ -351,28 +351,27 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
+    const finalGallery = isVideo ? [] : (formData.galleryImages || []).slice(0, MAX_GALLERY_IMAGES);
+
     const finalProject: Project = {
       id: formData.id || `proj-${Date.now()}`,
       title: formData.title || 'Nuevo Proyecto',
-      category: (formData.category as any) || '3D MODELING',
-      disciplineId: formData.disciplineId || (
-        formData.category === '3D MODELING' ? 'modelado-3d' :
-        formData.category === 'BRANDING' ? 'branding' :
-        formData.category === 'MOTION' ? 'edicion-video' : 'social-media'
-      ),
+      category: (formData.category as any) || (isVideo ? 'MOTION' : '3D MODELING'),
+      disciplineId: formData.disciplineId || (isVideo ? 'edicion-video' : 'modelado-3d'),
       externalLink: formData.externalLink || '',
       externalLinkText: formData.externalLinkText || 'VER MÁS DEL TRABAJO',
       year: formData.year || '2026',
       client: formData.client || 'Cliente',
       shortDesc: formData.shortDesc || '',
       fullDesc: formData.fullDesc || '',
-      image: formData.image || '/images/orbit-stand.webp',
-      galleryImages: (formData.galleryImages || []).slice(0, MAX_GALLERY_IMAGES),
+      image: formData.image || (isVideo ? '/images/diplomados/diplomado-after-effects-2023.webp' : '/images/orbit-stand.webp'),
+      galleryImages: finalGallery,
       logo: formData.logo || '',
       videoUrl: formData.videoUrl || '',
       videoClip: formData.videoClip || '',
       gifUrl: formData.gifUrl || '',
-      tags: tagsArray.length > 0 ? tagsArray : ['Design', '3D'],
+      tags: tagsArray.length > 0 ? tagsArray : (isVideo ? ['Edición de Video', 'Motion Graphics'] : ['Design', '3D']),
       featured: formData.featured || false,
       metrics: formData.metrics || [],
       updatedAt: new Date().toISOString(),
@@ -463,14 +462,14 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 onChange={(e) => {
                   const cat = e.target.value as any;
                   const defaultDisc = cat === '3D MODELING' ? 'modelado-3d' : cat === 'BRANDING' ? 'branding' : cat === 'MOTION' ? 'edicion-video' : 'social-media';
-                  setFormData({ ...formData, category: cat, disciplineId: formData.disciplineId || defaultDisc });
+                  setFormData({ ...formData, category: cat, disciplineId: defaultDisc });
                 }}
                 className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-sm font-bold`}
               >
                 <option value="3D MODELING">3D MODELING</option>
                 <option value="BRANDING">BRANDING</option>
                 <option value="DIGITAL ART">DIGITAL ART</option>
-                <option value="MOTION">MOTION / VIDEO</option>
+                <option value="MOTION">MOTION / EDICIÓN DE VIDEO</option>
               </select>
             </div>
 
@@ -480,16 +479,63 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
               </label>
               <select
                 value={formData.disciplineId || 'modelado-3d'}
-                onChange={(e) => setFormData({ ...formData, disciplineId: e.target.value })}
+                onChange={(e) => {
+                  const disc = e.target.value;
+                  const cat = disc === 'modelado-3d' ? '3D MODELING' : disc === 'branding' ? 'BRANDING' : disc === 'edicion-video' ? 'MOTION' : 'DIGITAL ART';
+                  setFormData({ ...formData, disciplineId: disc, category: cat as any });
+                }}
                 className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} outline-none text-sm font-bold text-emerald-400`}
               >
                 <option value="modelado-3d">01 • MODELADO 3D</option>
                 <option value="branding">02 • BRANDING</option>
-                <option value="edicion-video">03 • EDICIÓN DE VIDEO</option>
+                <option value="edicion-video">03 • EDICIÓN DE VIDEO (Full Video)</option>
                 <option value="social-media">04 • SOCIAL MEDIA DESIGNER</option>
               </select>
             </div>
           </div>
+
+          {/* Section Cataloging Mode Notice */}
+          {(() => {
+            const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
+            if (isVideo) {
+              return (
+                <div className="p-4 rounded-xl border border-cyan-500/40 bg-cyan-950/25 flex items-start gap-3 animate-fade-in">
+                  <Film className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-cyan-300 uppercase tracking-wide">
+                        🎬 MODO AUDIOVISUAL EXCLUSIVO: EDICIÓN DE VIDEO
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                        Solo Video + Miniatura
+                      </span>
+                    </div>
+                    <p className={textMuted}>
+                      Esta sección está catalogada exclusivamente para producciones de video. Solo se requiere ingresar o subir el <strong>Video (enlace YouTube/Vimeo o clip MP4/WebM)</strong> y una <strong>miniatura representativa</strong> (carátula / poster). La subida masiva de imágenes y la sub-galería de renders están bloqueadas para esta categoría.
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-start gap-3 animate-fade-in">
+                <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-300 uppercase tracking-wide">
+                      🎨 MODO MULTIMEDIA COMPLETO: {formData.disciplineId === 'modelado-3d' ? 'MODELADO 3D' : formData.disciplineId === 'branding' ? 'BRANDING' : 'SOCIAL MEDIA'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      Renders + Galería (máx 6) + Videos
+                    </span>
+                  </div>
+                  <p className={textMuted}>
+                    Sección habilitada para imágenes de alta definición, logotipo, banner para slider, galería de detalle (hasta 6 renders con zoom interactivo), videos y GIFs animados.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Row: Configuración del Botón "Ver Más del Trabajo" (Enlace Externo) */}
           <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 space-y-3">
@@ -532,8 +578,8 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Client, Year, Catalog Visibility & Discipline Assignment */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Row 2: Client, Year & Catalog Visibility */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-slate-300 block mb-1.5">
                 Cliente / Estudio *
@@ -591,23 +637,6 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                   </>
                 )}
               </button>
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                Especialidad / Sección
-              </label>
-              <select
-                value={formData.disciplineId || ''}
-                onChange={(e) => setFormData({ ...formData, disciplineId: e.target.value })}
-                className={`w-full px-3 py-2.5 rounded-xl border ${bgInput} outline-none text-xs font-semibold`}
-              >
-                <option value="">Automática (por categoría)</option>
-                <option value="modelado-3d">01 MODELADO 3D</option>
-                <option value="branding">02 BRANDING</option>
-                <option value="edicion-video">03 EDICIÓN DE VIDEO</option>
-                <option value="social-media">04 SOCIAL MEDIA</option>
-              </select>
             </div>
           </div>
 
@@ -839,401 +868,469 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             </div>
           </div>
 
-          {/* Row 4: Hero Image & Upload */}
-          <div className="p-4 rounded-xl border border-slate-700/60 bg-slate-900/40 space-y-4">
-            <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-emerald-400" />
-                <span>Imagen Principal / Render Hero *</span>
-              </span>
-              {isUploadingImage && (
-                <span className="text-emerald-400 text-xs flex items-center gap-1">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Subiendo a Hostinger...</span>
-                </span>
-              )}
-            </label>
+          {/* Row 4: Hero Image & Upload / Video Thumbnail */}
+          {(() => {
+            const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
+            return (
+              <div className={`p-4 rounded-xl border ${isVideo ? 'border-cyan-500/40 bg-cyan-950/20' : 'border-slate-700/60 bg-slate-900/40'} space-y-4`}>
+                <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <ImageIcon className={`w-4 h-4 ${isVideo ? 'text-cyan-400' : 'text-emerald-400'}`} />
+                    <span>
+                      {isVideo
+                        ? 'Miniatura Representativa del Video (Poster / Carátula) *'
+                        : 'Imagen Principal / Render Hero *'}
+                    </span>
+                  </span>
+                  {isUploadingImage && (
+                    <span className={`${isVideo ? 'text-cyan-400' : 'text-emerald-400'} text-xs flex items-center gap-1`}>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Subiendo a Hostinger...</span>
+                    </span>
+                  )}
+                </label>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="w-28 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center flex-shrink-0">
-                {formData.image ? (
-                  <img
-                    src={formData.image}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/retro-mini.jpg';
-                    }}
-                  />
-                ) : (
-                  <ImageIcon className="w-6 h-6 text-slate-500" />
+                {isVideo && (
+                  <p className="text-[11px] text-slate-400">
+                    Esta imagen se mostrará como carátula del video en el catálogo de proyectos y antes de iniciar la reproducción en el visor interactivo.
+                  </p>
                 )}
-              </div>
 
-              <div className="flex-1 w-full space-y-2">
-                <input
-                  type="text"
-                  value={formData.image || ''}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="Ruta (/uploads/... o /images/...) o URL https://..."
-                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
-                />
-                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 text-white transition-colors cursor-pointer text-xs font-semibold border border-emerald-500/40">
-                  {isUploadingImage ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Upload className="w-3.5 h-3.5" />
-                  )}
-                  <span>{isUploadingImage ? 'Subiendo...' : 'Subir Imagen Principal a Hostinger'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={isUploadingImage}
-                    onChange={handleImageFileUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 4.5: VISTAS DE DETALLE & RENDER (Sub-Galería de Proyecto - Límite 6) */}
-          <div className="p-4 rounded-xl border border-emerald-500/30 bg-slate-900/50 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <label className="text-xs font-bold text-emerald-400 flex items-center gap-2">
-                  <Layers className="w-4 h-4" />
-                  <span>Vistas de Detalle & Renders (Sub-Galería del Proyecto)</span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
-                      (formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    }`}
-                  >
-                    {(formData.galleryImages || []).length} / {MAX_GALLERY_IMAGES} renders
-                  </span>
-                </label>
-                <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-                  {(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
-                    ? 'Límite de 6 renders alcanzado. Elimina uno si deseas reemplazarlo.'
-                    : `Disponibles: ${MAX_GALLERY_IMAGES - (formData.galleryImages || []).length} slot(s) para visualización con zoom en el portafolio.`}
-                </p>
-              </div>
-
-              {/* Upload Button: + Subir Renders de Detalle a Hostinger (Límite 6) */}
-              {(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES ? (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 text-xs font-semibold cursor-not-allowed border border-slate-700 shadow-sm">
-                  <Lock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Límite Alcanzado (6/6 Renders)</span>
-                </div>
-              ) : (
-                <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer transition-all shadow-md hover:shadow-emerald-600/30">
-                  {isUploadingGallery ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Upload className="w-3.5 h-3.5" />
-                  )}
-                  <span>
-                    {isUploadingGallery
-                      ? galleryUploadStatus || 'Subiendo Renders...'
-                      : `+ Subir Renders de Detalle a Hostinger (${(formData.galleryImages || []).length}/6)`}
-                  </span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    disabled={isUploadingGallery}
-                    onChange={handleGalleryUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-
-            {/* Add by URL input */}
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newGalleryUrl}
-                onChange={(e) => setNewGalleryUrl(e.target.value)}
-                disabled={(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES}
-                placeholder={
-                  (formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
-                    ? 'Límite de 6 imágenes alcanzado. Elimina una para añadir nueva URL.'
-                    : 'O añade URL directa de imagen (/uploads/... o https://...)'
-                }
-                className={`flex-1 px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono disabled:opacity-50`}
-              />
-              <button
-                type="button"
-                onClick={handleAddGalleryUrl}
-                disabled={(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES || !newGalleryUrl.trim()}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap border border-slate-700 transition-colors"
-              >
-                Añadir URL
-              </button>
-            </div>
-
-            {/* 6-Slots Visual Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2">
-              {/* Existing Uploaded Images */}
-              {(formData.galleryImages || []).map((imgUrl, gIdx) => (
-                <div
-                  key={gIdx}
-                  className="relative rounded-xl overflow-hidden bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 group flex flex-col justify-between transition-all shadow-md"
-                >
-                  <div className="aspect-[4/3] w-full overflow-hidden bg-black/60 flex items-center justify-center relative">
-                    <img
-                      src={imgUrl}
-                      alt={`Detalle ${gIdx + 1}`}
-                      className="w-full h-full object-contain p-1"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/images/retro-mini.jpg';
-                      }}
-                    />
-
-                    {/* Hover Zoom preview trigger */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenZoomPreview(gIdx)}
-                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[#76FF03] font-mono text-[10px] font-bold transition-opacity cursor-pointer gap-1"
-                      title="Previsualizar con zoom"
-                    >
-                      <ZoomIn className="w-3.5 h-3.5" />
-                      <span>Zoom</span>
-                    </button>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="w-28 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center flex-shrink-0">
+                    {formData.image ? (
+                      <img
+                        src={formData.image}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = isVideo ? '/images/diplomados/diplomado-after-effects-2023.webp' : '/images/retro-mini.jpg';
+                        }}
+                      />
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-slate-500" />
+                    )}
                   </div>
 
-                  <div className="p-1.5 bg-slate-900 flex items-center justify-between border-t border-slate-800">
-                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
-                      #{gIdx + 1}/6
-                    </span>
-
-                    <div className="flex items-center space-x-1">
-                      {/* Move left */}
-                      {gIdx > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => handleMoveGalleryImage(gIdx, 'left')}
-                          className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
-                          title="Mover a la izquierda"
-                        >
-                          <ArrowLeft className="w-3 h-3" />
-                        </button>
-                      )}
-
-                      {/* Move right */}
-                      {gIdx < (formData.galleryImages || []).length - 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleMoveGalleryImage(gIdx, 'right')}
-                          className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
-                          title="Mover a la derecha"
-                        >
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
-                      )}
-
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveGalleryImage(gIdx)}
-                        className="p-1 text-rose-400 hover:bg-rose-500/20 rounded cursor-pointer transition-colors"
-                        title="Eliminar render de detalle"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Empty Available Slots (up to MAX_GALLERY_IMAGES = 6) */}
-              {Array.from({ length: MAX_GALLERY_IMAGES - (formData.galleryImages || []).length }).map((_, emptyIdx) => {
-                const slotNumber = (formData.galleryImages || []).length + emptyIdx + 1;
-                return (
-                  <label
-                    key={`empty-${slotNumber}`}
-                    className="aspect-[4/3] rounded-xl border-2 border-dashed border-slate-700/80 hover:border-emerald-500/60 bg-slate-950/40 hover:bg-emerald-950/20 flex flex-col items-center justify-center p-2 text-center cursor-pointer group transition-all"
-                    title={`Slot #${slotNumber} disponible - Clic para subir render`}
-                  >
-                    <Plus className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:scale-110 transition-all mb-1" />
-                    <span className="text-[10px] font-mono text-slate-400 group-hover:text-emerald-300 font-medium">
-                      Slot #{slotNumber}
-                    </span>
-                    <span className="text-[8px] font-mono text-slate-600 group-hover:text-slate-400">
-                      Disponible
-                    </span>
+                  <div className="flex-1 w-full space-y-2">
                     <input
-                      type="file"
-                      accept="image/*"
-                      disabled={isUploadingGallery}
-                      onChange={handleGalleryUpload}
-                      className="hidden"
+                      type="text"
+                      value={formData.image || ''}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      placeholder={isVideo ? "Ruta miniatura (/uploads/... o /images/...) o URL https://..." : "Ruta (/uploads/... o /images/...) o URL https://..."}
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                     />
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+                    <label className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${isVideo ? 'bg-cyan-700 hover:bg-cyan-600 border border-cyan-500/40' : 'bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-500/40'} text-white transition-colors cursor-pointer text-xs font-semibold`}>
+                      {isUploadingImage ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        {isUploadingImage
+                          ? 'Subiendo...'
+                          : isVideo
+                          ? 'Subir Miniatura de Video a Hostinger'
+                          : 'Subir Imagen Principal a Hostinger'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingImage}
+                        onChange={handleImageFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Row 4.5: VISTAS DE DETALLE & RENDER (Solo habilitado para Modelado 3D, Branding y Social Media) */}
+          {(() => {
+            const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
+            if (isVideo) {
+              return (
+                <div className="p-4 sm:p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/15 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-cyan-300">
+                          Sub-Galería Deshabilitada • Sección Exclusiva de Video
+                        </h4>
+                        <p className="text-[11px] text-slate-300 mt-0.5 max-w-xl leading-relaxed">
+                          En la sección de <strong>Edición de Video</strong> no se permite la subida masiva de imágenes. Esta sección está catalogada exclusivamente para reproducir el video con su miniatura representativa.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 rounded-lg text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 whitespace-nowrap">
+                      Solo Video + Miniatura
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div className="p-4 rounded-xl border border-emerald-500/30 bg-slate-900/50 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-emerald-400 flex items-center gap-2">
+                      <Layers className="w-4 h-4" />
+                      <span>Vistas de Detalle & Renders (Sub-Galería del Proyecto)</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
+                          (formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        }`}
+                      >
+                        {(formData.galleryImages || []).length} / {MAX_GALLERY_IMAGES} renders
+                      </span>
+                    </label>
+                    <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                      {(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
+                        ? 'Límite de 6 renders alcanzado. Elimina uno si deseas reemplazarlo.'
+                        : `Disponibles: ${MAX_GALLERY_IMAGES - (formData.galleryImages || []).length} slot(s) para visualización con zoom en el portafolio.`}
+                    </p>
+                  </div>
+
+                  {/* Upload Button: + Subir Renders de Detalle a Hostinger (Límite 6) */}
+                  {(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES ? (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 text-xs font-semibold cursor-not-allowed border border-slate-700 shadow-sm">
+                      <Lock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Límite Alcanzado (6/6 Renders)</span>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer transition-all shadow-md hover:shadow-emerald-600/30">
+                      {isUploadingGallery ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        {isUploadingGallery
+                          ? galleryUploadStatus || 'Subiendo Renders...'
+                          : `+ Subir Renders de Detalle a Hostinger (${(formData.galleryImages || []).length}/6)`}
+                      </span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        disabled={isUploadingGallery}
+                        onChange={handleGalleryUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Add by URL input */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newGalleryUrl}
+                    onChange={(e) => setNewGalleryUrl(e.target.value)}
+                    disabled={(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES}
+                    placeholder={
+                      (formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
+                        ? 'Límite de 6 imágenes alcanzado. Elimina una para añadir nueva URL.'
+                        : 'O añade URL directa de imagen (/uploads/... o https://...)'
+                    }
+                    className={`flex-1 px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono disabled:opacity-50`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddGalleryUrl}
+                    disabled={(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES || !newGalleryUrl.trim()}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap border border-slate-700 transition-colors"
+                  >
+                    Añadir URL
+                  </button>
+                </div>
+
+                {/* 6-Slots Visual Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2">
+                  {(formData.galleryImages || []).map((imgUrl, gIdx) => (
+                    <div
+                      key={gIdx}
+                      className="relative rounded-xl overflow-hidden bg-slate-950 border border-emerald-500/40 hover:border-emerald-400 group flex flex-col justify-between transition-all shadow-md"
+                    >
+                      <div className="aspect-[4/3] w-full overflow-hidden bg-black/60 flex items-center justify-center relative">
+                        <img
+                          src={imgUrl}
+                          alt={`Detalle ${gIdx + 1}`}
+                          className="w-full h-full object-contain p-1"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = '/images/retro-mini.jpg';
+                          }}
+                        />
+
+                        {/* Hover Zoom preview trigger */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenZoomPreview(gIdx)}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[#76FF03] font-mono text-[10px] font-bold transition-opacity cursor-pointer gap-1"
+                          title="Previsualizar con zoom"
+                        >
+                          <ZoomIn className="w-3.5 h-3.5" />
+                          <span>Zoom</span>
+                        </button>
+                      </div>
+
+                      <div className="p-1.5 bg-slate-900 flex items-center justify-between border-t border-slate-800">
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                          #{gIdx + 1}/6
+                        </span>
+
+                        <div className="flex items-center space-x-1">
+                          {gIdx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleMoveGalleryImage(gIdx, 'left')}
+                              className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
+                              title="Mover a la izquierda"
+                            >
+                              <ArrowLeft className="w-3 h-3" />
+                            </button>
+                          )}
+
+                          {gIdx < (formData.galleryImages || []).length - 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleMoveGalleryImage(gIdx, 'right')}
+                              className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
+                              title="Mover a la derecha"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveGalleryImage(gIdx)}
+                            className="p-1 text-rose-400 hover:bg-rose-500/20 rounded cursor-pointer transition-colors"
+                            title="Eliminar render de detalle"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Empty Available Slots (up to MAX_GALLERY_IMAGES = 6) */}
+                  {Array.from({ length: MAX_GALLERY_IMAGES - (formData.galleryImages || []).length }).map((_, emptyIdx) => {
+                    const slotNumber = (formData.galleryImages || []).length + emptyIdx + 1;
+                    return (
+                      <label
+                        key={`empty-${slotNumber}`}
+                        className="aspect-[4/3] rounded-xl border-2 border-dashed border-slate-700/80 hover:border-emerald-500/60 bg-slate-950/40 hover:bg-emerald-950/20 flex flex-col items-center justify-center p-2 text-center cursor-pointer group transition-all"
+                        title={`Slot #${slotNumber} disponible - Clic para subir render`}
+                      >
+                        <Plus className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:scale-110 transition-all mb-1" />
+                        <span className="text-[10px] font-mono text-slate-400 group-hover:text-emerald-300 font-medium">
+                          Slot #{slotNumber}
+                        </span>
+                        <span className="text-[8px] font-mono text-slate-600 group-hover:text-slate-400">
+                          Disponible
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={isUploadingGallery}
+                          onChange={handleGalleryUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Row 5: Videos & GIFs with Direct Hostinger Uploaders & Live Previews */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* YouTube/Vimeo Link */}
-            <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
-              <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-                <Film className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Enlace Video (YouTube/Vimeo)</span>
-              </label>
-              <input
-                type="text"
-                value={formData.videoUrl || ''}
-                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                placeholder="https://youtube.com/... o /shorts/..."
-                className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs`}
-              />
+          {(() => {
+            const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
+            return (
+              <div className={`p-4 sm:p-5 rounded-2xl ${isVideo ? 'border-2 border-cyan-500/50 bg-cyan-950/20 shadow-lg shadow-cyan-950/40' : 'border border-slate-700/60 bg-slate-900/40'} space-y-4`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-700/50">
+                  <div className="flex items-center gap-2">
+                    <Film className={`w-4 h-4 ${isVideo ? 'text-cyan-400' : 'text-emerald-400'}`} />
+                    <span className={`text-xs font-mono font-bold uppercase tracking-wider ${isVideo ? 'text-cyan-300' : 'text-slate-200'}`}>
+                      {isVideo ? '🎥 Contenido de Video (Medio Principal de esta Sección) *' : '🎥 Videos & Clips Complementarios (Opcional)'}
+                    </span>
+                  </div>
+                  {isVideo && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 self-start sm:self-auto">
+                      Ingresa enlace o sube MP4/WebM
+                    </span>
+                  )}
+                </div>
 
-              {/* YouTube / Vimeo Live Interactive Preview */}
-              {(() => {
-                if (!formData.videoUrl?.trim()) return null;
-                const detected = detectMedia(formData.videoUrl);
-                if (detected.isValid && (detected.type === 'youtube' || detected.type === 'vimeo')) {
-                  return (
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center justify-between text-[11px] font-mono text-emerald-400">
-                        <span className="flex items-center gap-1 font-bold">
-                          <Play className="w-3 h-3 fill-emerald-400" />
-                          Preview {detected.type.toUpperCase()}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* YouTube/Vimeo Link */}
+                  <div className={`p-3 rounded-xl border ${isVideo ? 'border-cyan-500/30 bg-slate-950/60' : 'border-slate-800 bg-slate-900/50'} space-y-2`}>
+                    <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                      <Film className={`w-3.5 h-3.5 ${isVideo ? 'text-cyan-400' : 'text-emerald-400'}`} />
+                      <span>Enlace Video (YouTube/Vimeo)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.videoUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                      placeholder="https://youtube.com/... o /shorts/..."
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs`}
+                    />
+
+                    {/* YouTube / Vimeo Live Interactive Preview */}
+                    {(() => {
+                      if (!formData.videoUrl?.trim()) return null;
+                      const detected = detectMedia(formData.videoUrl);
+                      if (detected.isValid && (detected.type === 'youtube' || detected.type === 'vimeo')) {
+                        return (
+                          <div className="mt-2 space-y-1">
+                            <div className="flex items-center justify-between text-[11px] font-mono text-emerald-400">
+                              <span className="flex items-center gap-1 font-bold">
+                                <Play className="w-3 h-3 fill-emerald-400" />
+                                Preview {detected.type.toUpperCase()}
+                              </span>
+                              {detected.videoId && (
+                                <span className="text-[10px] text-slate-400 font-mono">ID: {detected.videoId}</span>
+                              )}
+                            </div>
+                            <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-emerald-500/40 bg-black shadow-lg">
+                              <iframe
+                                src={detected.embedUrl}
+                                title="Preview Video"
+                                className="w-full h-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (detected.isValid && detected.type === 'video') {
+                        return (
+                          <div className="mt-2 space-y-1">
+                            <span className="text-[11px] font-mono text-emerald-400 font-bold block">
+                              Preview Video URL:
+                            </span>
+                            <video
+                              src={detected.originalUrl}
+                              controls
+                              className="w-full rounded-xl max-h-44 bg-black border border-emerald-500/40 object-contain"
+                            />
+                          </div>
+                        );
+                      }
+                      return (
+                        <p className="text-[10px] text-amber-400/80 font-mono mt-1">
+                          ⚠ Formato no reconocido. Pega un enlace de YouTube, YouTube Shorts o Vimeo.
+                        </p>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Video Clip MP4/WebM */}
+                  <div className={`p-3 rounded-xl border ${isVideo ? 'border-cyan-500/30 bg-slate-950/60' : 'border-slate-800 bg-slate-900/50'} space-y-2`}>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                        <Video className={`w-3.5 h-3.5 ${isVideo ? 'text-cyan-400' : 'text-emerald-400'}`} />
+                        <span>Clip Directo (MP4/WebM)</span>
+                      </label>
+                      {isUploadingClip && <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />}
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.videoClip || ''}
+                      onChange={(e) => setFormData({ ...formData, videoClip: e.target.value })}
+                      placeholder="/uploads/clip.mp4 o URL"
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
+                    />
+                    <label className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${isVideo ? 'bg-cyan-900/70 hover:bg-cyan-800 text-cyan-200 border-cyan-500/40' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'} hover:text-white transition-colors cursor-pointer text-[11px] border`}>
+                      <Upload className="w-3 h-3" />
+                      <span>{isUploadingClip ? 'Subiendo Clip...' : 'Subir MP4/WebM'}</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime"
+                        disabled={isUploadingClip}
+                        onChange={handleVideoClipUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {/* Clip Video Preview */}
+                    {formData.videoClip?.trim() && (
+                      <div className="mt-2 space-y-1">
+                        <span className="text-[11px] font-mono text-emerald-400 font-bold block">
+                          Preview Clip:
                         </span>
-                        {detected.videoId && (
-                          <span className="text-[10px] text-slate-400 font-mono">ID: {detected.videoId}</span>
-                        )}
-                      </div>
-                      <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-emerald-500/40 bg-black shadow-lg">
-                        <iframe
-                          src={detected.embedUrl}
-                          title="Preview Video"
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
+                        <video
+                          src={formData.videoClip}
+                          controls
+                          className="w-full rounded-xl max-h-44 bg-black border border-emerald-500/40 object-contain"
                         />
                       </div>
+                    )}
+                  </div>
+
+                  {/* Animated GIF */}
+                  <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>GIF Animado</span>
+                      </label>
+                      {isUploadingGif && <Loader2 className="w-3 h-3 text-emerald-400 animate-spin" />}
                     </div>
-                  );
-                }
-                if (detected.isValid && detected.type === 'video') {
-                  return (
-                    <div className="mt-2 space-y-1">
-                      <span className="text-[11px] font-mono text-emerald-400 font-bold block">
-                        Preview Video URL:
-                      </span>
-                      <video
-                        src={detected.originalUrl}
-                        controls
-                        className="w-full rounded-xl max-h-44 bg-black border border-emerald-500/40 object-contain"
-                      />
-                    </div>
-                  );
-                }
-                return (
-                  <p className="text-[10px] text-amber-400/80 font-mono mt-1">
-                    ⚠ Formato no reconocido. Pega un enlace de YouTube, YouTube Shorts o Vimeo.
-                  </p>
-                );
-              })()}
-            </div>
-
-            {/* Video Clip MP4/WebM */}
-            <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-                  <Video className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Clip (MP4/WebM)</span>
-                </label>
-                {isUploadingClip && <Loader2 className="w-3 h-3 text-emerald-400 animate-spin" />}
-              </div>
-              <input
-                type="text"
-                value={formData.videoClip || ''}
-                onChange={(e) => setFormData({ ...formData, videoClip: e.target.value })}
-                placeholder="/uploads/clip.mp4 o URL"
-                className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
-              />
-              <label className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] border border-slate-700">
-                <Upload className="w-3 h-3" />
-                <span>{isUploadingClip ? 'Subiendo Clip...' : 'Subir MP4/WebM'}</span>
-                <input
-                  type="file"
-                  accept="video/mp4,video/webm,video/quicktime"
-                  disabled={isUploadingClip}
-                  onChange={handleVideoClipUpload}
-                  className="hidden"
-                />
-              </label>
-
-              {/* Clip Video Preview */}
-              {formData.videoClip?.trim() && (
-                <div className="mt-2 space-y-1">
-                  <span className="text-[11px] font-mono text-emerald-400 font-bold block">
-                    Preview Clip:
-                  </span>
-                  <video
-                    src={formData.videoClip}
-                    controls
-                    className="w-full rounded-xl max-h-44 bg-black border border-emerald-500/40 object-contain"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Animated GIF */}
-            <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>GIF Animado</span>
-                </label>
-                {isUploadingGif && <Loader2 className="w-3 h-3 text-emerald-400 animate-spin" />}
-              </div>
-              <input
-                type="text"
-                value={formData.gifUrl || ''}
-                onChange={(e) => setFormData({ ...formData, gifUrl: e.target.value })}
-                placeholder="/uploads/anim.gif o URL"
-                className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
-              />
-              <label className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] border border-slate-700">
-                <Upload className="w-3 h-3" />
-                <span>{isUploadingGif ? 'Subiendo GIF...' : 'Subir GIF'}</span>
-                <input
-                  type="file"
-                  accept="image/gif"
-                  disabled={isUploadingGif}
-                  onChange={handleGifUpload}
-                  className="hidden"
-                />
-              </label>
-
-              {/* GIF Preview */}
-              {formData.gifUrl?.trim() && (
-                <div className="mt-2 space-y-1">
-                  <span className="text-[11px] font-mono text-emerald-400 font-bold block">
-                    Preview GIF:
-                  </span>
-                  <div className="w-full rounded-xl overflow-hidden border border-emerald-500/40 bg-black flex justify-center p-1.5">
-                    <img
-                      src={formData.gifUrl}
-                      alt="GIF Preview"
-                      className="max-h-44 object-contain rounded-lg"
+                    <input
+                      type="text"
+                      value={formData.gifUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, gifUrl: e.target.value })}
+                      placeholder="/uploads/anim.gif o URL"
+                      className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                     />
+                    <label className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] border border-slate-700">
+                      <Upload className="w-3 h-3" />
+                      <span>{isUploadingGif ? 'Subiendo GIF...' : 'Subir GIF'}</span>
+                      <input
+                        type="file"
+                        accept="image/gif"
+                        disabled={isUploadingGif}
+                        onChange={handleGifUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {/* GIF Preview */}
+                    {formData.gifUrl?.trim() && (
+                      <div className="mt-2 space-y-1">
+                        <span className="text-[11px] font-mono text-emerald-400 font-bold block">
+                          Preview GIF:
+                        </span>
+                        <div className="w-full rounded-xl overflow-hidden border border-emerald-500/40 bg-black flex justify-center p-1.5">
+                          <img
+                            src={formData.gifUrl}
+                            alt="GIF Preview"
+                            className="max-h-44 object-contain rounded-lg"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            );
+          })()}
 
           {/* Row 6: Tags */}
           <div>

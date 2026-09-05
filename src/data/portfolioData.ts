@@ -2,222 +2,108 @@ import { Project, ExperienceItem, SkillCategory, StatItem, Testimonial } from '.
 
 export const projectsData: Project[] = [
   {
-    id: 'retro-mini-render',
+    id: 'demo-modelado-3d',
     title: 'Retro Mini Classic 3D Render',
     category: '3D MODELING',
-    year: '2023',
-    client: 'Apex Auto Studio',
-    shortDesc: 'Hard-surface 3D modeling, UV unwrapping, and photorealistic octane rendering of a classic British mini cooper.',
-    fullDesc: 'An intensive vehicle hard-surface modeling study exploring precise curvature topology, realistic dielectric materials, custom decals, and high-dynamic-range studio lighting setups. Rendered in multiple cinematic angles with custom camera depths of field.',
+    disciplineId: 'modelado-3d',
+    year: '2026',
+    client: 'Studio Kinetic Demo',
+    shortDesc: 'Modelado hard-surface de alta fidelidad, shaders procedurales de pintura automotriz e iluminación fotográfica en estudio.',
+    fullDesc: 'Proyecto de prueba representativo para la sección de Modelado 3D. Explora curvatura topológica, materiales dieléctricos, iluminación HDR y renderizado cinematográfico en Blender y Octane.',
     image: '/images/retro-mini.jpg',
     galleryImages: [
       '/images/retro-mini.jpg',
-      'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80'
+      '/images/orbit-stand.webp'
     ],
     tags: ['3D Modeling', 'Blender', 'Octane', 'Substance 3D', 'Automotive'],
     modelType: 'car',
     featured: true,
-    bentoSpan: 'md:col-span-8 md:row-span-2',
+    visibleInCatalog: true,
+    bentoSpan: 'md:col-span-6 md:row-span-1',
     deliverables: ['High-poly 3D Asset', 'PBR 4K Texture Maps', '360 Turntable Video', 'Print Resolution 8K Renders'],
     metrics: [
-      { label: 'Polygon Count', value: '280K Tris' },
-      { label: 'Render Samples', value: '4,096 SPP' },
-      { label: 'PBR Shaders', value: '18 Custom Materials' }
+      { label: 'Muestras de Render', value: '4,096 SPP' },
+      { label: 'Polígonos Sub-D', value: '280K Tris' },
+      { label: 'Shaders PBR', value: '18 Materiales' }
     ],
     colorPalette: ['#050B05', '#76FF03', '#1A301A', '#A3E635']
   },
   {
-    id: 'kinetic-touch-hands',
-    title: 'Kinetic Touch & Fluid Synergy',
-    category: 'DIGITAL ART',
-    year: '2024',
-    client: 'Cyberpunk Digital Biennial',
-    shortDesc: 'Surreal 3D human anatomy visual exploring the intersection between human tactile touch and technological fluidity.',
-    fullDesc: 'Conceptual 3D visualization representing human connection through ethereal cybernetic textures and ambient light refraction. Modeled using ZBrush sculpting, textured in Substance Painter with iridescent subsurface scattering, and composited in After Effects.',
-    image: '/images/hero-hands.jpg',
+    id: 'demo-branding',
+    title: 'Identidad Visual & Sistema de Marca',
+    category: 'BRANDING',
+    disciplineId: 'branding',
+    year: '2026',
+    client: 'Studio Kinetic Demo',
+    shortDesc: 'Diseño integral de identidad corporativa, logotipo responsivo, manual de marca, tipografía y piezas comerciales.',
+    fullDesc: 'Proyecto de prueba representativo para la sección de Branding. Demuestra la creación de universos de marca coherentes, arquitectura visual, paletas cromáticas y aplicaciones gráficas tanto digitales como para impresión.',
+    image: '/images/orbit-stand-diana.webp',
     galleryImages: [
-      '/images/hero-hands.jpg',
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80'
+      '/images/orbit-stand-diana.webp',
+      '/images/brands/holy-nation.webp'
     ],
-    tags: ['Digital Art', 'ZBrush', 'Cinema 4D', 'Redshift', 'Iridescence'],
-    modelType: 'hand',
+    logo: '/images/brands/holy-nation.webp',
+    tags: ['Branding', 'Identidad Visual', 'Logotipos', 'Tipografía', 'Manual de Marca'],
+    modelType: 'poly',
     featured: true,
-    bentoSpan: 'md:col-span-4 md:row-span-1',
-    deliverables: ['Hero Key Visuals', 'NFT Series Pack', 'Motion Loop Video', 'Wall Art Edition'],
+    visibleInCatalog: true,
+    bentoSpan: 'md:col-span-6 md:row-span-1',
+    deliverables: ['Manual de Identidad', 'Kit Vectorial SVG/AI', 'Tipografía de Marca', 'Artes Pre-Prensa'],
     metrics: [
-      { label: 'Exhibition Views', value: '45,000+' },
-      { label: 'Sculpt Details', value: '12M Polys (ZBrush)' }
+      { label: 'Fidelidad Cromática', value: '100% Pantones' },
+      { label: 'Módulos de Marca', value: '30+ Activos' }
     ],
     colorPalette: ['#050B05', '#38B000', '#76FF03', '#FFFFFF']
   },
   {
-    id: 'corporate-identity-system',
-    title: 'Nexus Fintech Corporate Identity System',
-    category: 'BRANDING',
-    year: '2024',
-    client: 'Nexus Global Financial',
-    shortDesc: 'Comprehensive brand overhaul including logo design, typography systems, 3D brand tokens, and digital guidelines.',
-    fullDesc: 'A complete multi-disciplinary identity system for an international financial technology provider. We developed a robust visual grammar based on kinetic vectors, strict typographic contrast, modern responsive logo marks, custom 3D isometric icons, and full design system tokens.',
-    image: 'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1200&q=80',
-    galleryImages: [
-      'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1200&q=80'
-    ],
-    tags: ['Branding', 'Identity System', 'Typography', 'Figma', 'Illustrator'],
-    modelType: 'poly',
-    featured: true,
-    bentoSpan: 'md:col-span-12 md:row-span-1',
-    deliverables: ['Brand Style Guide (90 pages)', 'Vector Master Kit', '3D Asset Library', 'UI Components & Design System'],
-    metrics: [
-      { label: 'Brand Recognition', value: '+74% Increase' },
-      { label: 'Deploy Time', value: '3 Months' },
-      { label: 'Asset Modules', value: '140+ Brand Assets' }
-    ],
-    colorPalette: ['#050B05', '#38B000', '#76FF03', '#A3E635', '#FFFFFF']
-  },
-  {
-    id: 'lumina-beverage-packaging',
-    title: 'Lumina Craft Botanical Beverage 3D',
-    category: '3D MODELING',
-    year: '2023',
-    client: 'Lumina Botanical Brews',
-    shortDesc: '3D packaging visualizer, glass condensation shaders, and luxury label foil stamping visualization.',
-    fullDesc: 'Photorealistic product mockups and advertising key visuals for a premium sparkling beverage line. Custom fluid droplet simulation and chromatic glass dispersion shaders created to highlight crisp freshness.',
-    image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1200&q=80',
-    galleryImages: [
-      'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=1200&q=80'
-    ],
-    tags: ['3D Modeling', 'Product Visualization', 'Fluid Dynamics', 'Cinema 4D'],
-    modelType: 'cube',
-    featured: false,
-    bentoSpan: 'md:col-span-6 md:row-span-1',
-    deliverables: ['3D Bottle Models', 'Condensation Sim', 'E-commerce 4K Renders', 'Social Media 3D Motion Teasers'],
-    metrics: [
-      { label: 'Conversion Lift', value: '+38%' },
-      { label: 'Formats', value: 'Instagram / Billboard / Web' }
-    ],
-    colorPalette: ['#76FF03', '#050B05', '#50E310', '#FFFFFF']
-  },
-  {
-    id: 'cyber-kinetic-intro',
-    title: 'Aura Kinetic Motion Typography & Title sequence',
+    id: 'demo-edicion-video',
+    title: 'Kinetic Motion Typography & Reel Audiovisual',
     category: 'MOTION',
-    year: '2024',
-    client: 'Aura Media Studio',
-    shortDesc: 'High-octane animated kinetic typography title sequence for audio-visual streaming events.',
-    fullDesc: 'Dynamic animation combining 3D particle systems, glitch effects, rhythmic audio synchronization, and bold Montserrat & display type treatments.',
-    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
-    galleryImages: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'
-    ],
-    tags: ['Motion Graphics', 'After Effects', 'Sound Sync', 'Kinetic Type'],
+    disciplineId: 'edicion-video',
+    year: '2026',
+    client: 'Studio Kinetic Demo',
+    shortDesc: 'Edición audiovisual dinámica, animación tipográfica con distorsión cromática, ritmo sonoro y postproducción de video.',
+    fullDesc: 'Proyecto de prueba representativo para la sección de Edición de Video. Catalogada exclusivamente para video y su miniatura representativa, integrando After Effects, Premiere Pro, ritmo visual y corrección de color profesional.',
+    image: '/images/diplomados/diplomado-after-effects-2023.webp',
+    galleryImages: [], // Regla estricta: NO galería de imágenes en Edición de Video
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    tags: ['Edición de Video', 'After Effects', 'Motion Graphics', 'Sound Sync', 'Color Grading'],
     modelType: 'poly',
     featured: false,
+    visibleInCatalog: true,
     bentoSpan: 'md:col-span-6 md:row-span-1',
-    deliverables: ['4K 60fps Broadcast Sequence', 'Social Cutdowns', 'Lottie Web Assets'],
+    deliverables: ['Video Master 4K 60FPS', 'Formatos para Redes 9:16', 'Diseño de Sonido'],
     metrics: [
-      { label: 'Video Streams', value: '1.2M+' },
-      { label: 'Framerate', value: '60 FPS Uncompressed' }
+      { label: 'Framerate', value: '60 FPS' },
+      { label: 'Capas de Composición', value: '32 Layers' }
     ],
     colorPalette: ['#38B000', '#76FF03', '#050B05', '#FFFFFF']
   },
   {
-    id: 'orbit-stand-exhibition',
-    title: 'Kinetic 3D Stand Exhibition & Architectural Space',
-    category: '3D MODELING',
-    year: '2024',
-    client: 'Orbit Expo & Retail',
-    shortDesc: '3D architectural stand design, commercial lighting simulation, and exhibition space modeling.',
-    fullDesc: 'A full-scale commercial exhibition stand designed for retail and trade show spaces. Incorporates modern kinetic lighting, modular structural display counters, and photorealistic spatial rendering.',
-    image: '/images/orbit-stand.webp',
-    galleryImages: [
-      '/images/orbit-stand.webp',
-      '/images/orbit-stand-diana.webp'
-    ],
-    tags: ['3D Architecture', 'Blender', 'Exhibition Stand', 'Lighting', 'Commercial'],
-    modelType: 'poly',
-    featured: true,
-    bentoSpan: 'md:col-span-6 md:row-span-1',
-    deliverables: ['Spatial 3D Model', 'Rendered Walkthrough Views', 'Construction Floorplan Specifications', 'Branded Graphic Panels'],
-    metrics: [
-      { label: 'Space Footprint', value: '36 m²' },
-      { label: 'Resolution', value: '8K Render Pipeline' }
-    ],
-    colorPalette: ['#050B05', '#76FF03', '#38B000', '#FFFFFF']
-  },
-  {
-    id: 'diana-brand-experience',
-    title: 'Diana Interactive Brand Stand & POP Display',
-    category: 'BRANDING',
-    year: '2024',
-    client: 'Diana Corporativo',
-    shortDesc: 'Interactive point of purchase retail stand, corporate color matching, and 3D architectural mockup.',
-    fullDesc: 'Commercial branding activation stand designed for maximum customer engagement. Features custom 3D typography, branded product showcases, and high-impact visual communication.',
-    image: '/images/orbit-stand-diana.webp',
-    galleryImages: [
-      '/images/orbit-stand-diana.webp',
-      '/images/orbit-stand.webp'
-    ],
-    tags: ['Branding', 'Retail Design', '3D Modeling', 'POP Display', 'Illustrator'],
-    modelType: 'poly',
-    featured: false,
-    bentoSpan: 'md:col-span-6 md:row-span-1',
-    deliverables: ['3D Retail Rendering', 'Vector Graphic Application Kit', 'Manufacturing Ready Specs'],
-    metrics: [
-      { label: 'Foot Traffic Impact', value: '+45%' },
-      { label: 'Color Match Fidelity', value: '100% Pantones' }
-    ],
-    colorPalette: ['#38B000', '#76FF03', '#050B05', '#FFFFFF']
-  },
-  {
-    id: 'orbit-tablet-visual',
-    title: 'Next-Gen Digital Tablet & UI 3D Showcase',
+    id: 'demo-social-media',
+    title: 'Estrategia de Contenido & Feed Visual Digital',
     category: 'DIGITAL ART',
-    year: '2024',
-    client: 'Nova Interactive Labs',
-    shortDesc: 'Digital device modeling, holographic UI projection, and futuristic interface rendering.',
-    fullDesc: 'Conceptual 3D product showcase demonstrating modern touch UI screens, reflective glass optics, and dynamic digital dashboards for high-tech applications.',
-    image: '/images/orbit-tablet.webp',
+    disciplineId: 'social-media',
+    year: '2026',
+    client: 'Studio Kinetic Demo',
+    shortDesc: 'Diseño de contenido estratégico para redes sociales, carruseles de alto valor, creatividades promocionales y feed estético.',
+    fullDesc: 'Proyecto de prueba representativo para la sección de Social Media Designer. Creación de piezas gráficas optimizadas para retención y engagement en plataformas digitales con dirección de arte distintiva.',
+    image: '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
     galleryImages: [
+      '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
       '/images/orbit-tablet.webp'
     ],
-    tags: ['Digital Art', 'Product Design', 'UI 3D', 'Blender', 'Sci-Fi'],
+    tags: ['Social Media', 'Contenido Digital', 'Creatividades', 'Engagement', 'Instagram'],
     modelType: 'poly',
     featured: false,
+    visibleInCatalog: true,
     bentoSpan: 'md:col-span-6 md:row-span-1',
-    deliverables: ['3D Device Asset', 'Holographic UI Elements', 'Interactive Screen Overlays'],
+    deliverables: ['Carruseles de Alto Valor', 'Plantillas Editables', 'Feed Cohesivo', 'Stories Dinámicas'],
     metrics: [
-      { label: 'Viewport Latency', value: '< 16ms' },
-      { label: 'Shader Passes', value: '6 Compositing Passes' }
+      { label: 'Formato Adaptado', value: '4:5 / 9:16 / 1:1' },
+      { label: 'Estrategia', value: 'Alto Engagement' }
     ],
     colorPalette: ['#76FF03', '#050B05', '#38B000', '#FFFFFF']
-  },
-  {
-    id: 'orbit-carrito-render',
-    title: '3D Stand & Carrito Retail Visual Experience',
-    category: '3D MODELING',
-    year: '2024',
-    client: 'Street Craft Gourmet',
-    shortDesc: 'Custom vintage mobile retail cart 3D modeling, weathered textures, and studio product lighting.',
-    fullDesc: 'Detailed hard-surface vehicle and mobile cart visualization with weathered metal shaders, decals, and realistic physical materials for brand activations.',
-    image: '/images/orbit-carrito.png',
-    galleryImages: [
-      '/images/orbit-carrito.png'
-    ],
-    tags: ['3D Modeling', 'Retail', 'Substance 3D', 'Blender', 'Texturing'],
-    modelType: 'car',
-    featured: false,
-    bentoSpan: 'md:col-span-6 md:row-span-1',
-    deliverables: ['3D Asset File', '4K PBR Textures', 'Commercial Renders'],
-    metrics: [
-      { label: 'Texture Resolution', value: '4K Multi-UDIM' },
-      { label: 'Realism Rating', value: 'Photorealistic' }
-    ],
-    colorPalette: ['#050B05', '#76FF03', '#1A301A', '#FFFFFF']
   }
 ];
 

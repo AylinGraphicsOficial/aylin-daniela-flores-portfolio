@@ -1,8 +1,8 @@
 import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink, ContactMessage, CommentItem } from '../types';
 import { projectsData, experienceData } from '../data/portfolioData';
 
-const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v2';
-const DISCIPLINES_STORAGE_KEY = 'aylin_portfolio_disciplines_v2';
+const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v3';
+const DISCIPLINES_STORAGE_KEY = 'aylin_portfolio_disciplines_v3';
 const SECTIONS_STORAGE_KEY = 'aylin_portfolio_sections_v2';
 const MESSAGES_STORAGE_KEY = 'aylin_portfolio_messages_v1';
 const COMMENTS_STORAGE_KEY = 'aylin_portfolio_comments_v1';
@@ -54,7 +54,8 @@ export const initialDisciplinesData: Discipline[] = [
         visible: true,
       },
     ],
-    targetProjectId: 'orbit-stand-exhibition',
+    targetProjectId: 'demo-modelado-3d',
+    projectIds: ['demo-modelado-3d'],
     visible: true,
     order: 1,
   },
@@ -92,7 +93,8 @@ export const initialDisciplinesData: Discipline[] = [
         visible: true,
       },
     ],
-    targetProjectId: 'diana-brand-experience',
+    targetProjectId: 'demo-branding',
+    projectIds: ['demo-branding'],
     visible: true,
     order: 2,
   },
@@ -124,7 +126,8 @@ export const initialDisciplinesData: Discipline[] = [
         visible: true,
       },
     ],
-    targetProjectId: 'cyber-kinetic-intro',
+    targetProjectId: 'demo-edicion-video',
+    projectIds: ['demo-edicion-video'],
     visible: true,
     order: 3,
   },
@@ -156,7 +159,8 @@ export const initialDisciplinesData: Discipline[] = [
         visible: true,
       },
     ],
-    targetProjectId: 'digital-product-ui-3d',
+    targetProjectId: 'demo-social-media',
+    projectIds: ['demo-social-media'],
     visible: true,
     order: 4,
   },
@@ -382,23 +386,8 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
     if (projRes.ok) {
       const remoteProjects = await projRes.json();
       if (Array.isArray(remoteProjects) && remoteProjects.length > 0) {
-        // Smart merge: retain local projects not yet present in remote DB
-        const localProjects = getStoredProjects();
-        const remoteIds = new Set(remoteProjects.map((p: Project) => p.id));
-        const unsyncedLocals = localProjects.filter((lp) => !remoteIds.has(lp.id));
-
-        const mergedProjects = [...remoteProjects, ...unsyncedLocals];
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mergedProjects));
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(remoteProjects));
         changed = true;
-
-        // Auto-push unsynced local projects to Hostinger in background
-        if (unsyncedLocals.length > 0) {
-          fetch(PROJECTS_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ projects: unsyncedLocals }),
-          }).catch(() => {});
-        }
       }
     }
 
