@@ -97,7 +97,7 @@ export const ProjectContactPage: React.FC<ProjectContactPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#050B05] text-white flex flex-col relative overflow-hidden font-sans selection:bg-[#76FF03] selection:text-black">
+    <div className="min-h-screen bg-[#050B05] text-white flex flex-col relative overflow-hidden font-sans selection:bg-[#76FF03] selection:text-black pt-28 sm:pt-32 pb-24">
       {/* Background Ambience Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-[#76FF03]/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#38B000]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -109,57 +109,29 @@ export const ProjectContactPage: React.FC<ProjectContactPageProps> = ({
         style={{ backgroundImage: 'radial-gradient(circle, #76FF03 1px, transparent 1px)', backgroundSize: '32px 32px' }} 
       />
 
-      {/* Top Header Bar */}
-      <header className="relative z-20 border-b border-white/10 bg-[#050B05]/80 backdrop-blur-md px-4 md:px-8 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <SpecularButton
-            onClick={() => {
-              playClickSound();
-              onNavigateHome();
-            }}
-            variant="glass"
-            size="sm"
-            radius={10}
-            className="flex items-center gap-2 text-xs font-mono text-gray-300 hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#76FF03]" />
-            <span>{lang === 'es' ? 'VOLVER AL PORTAFOLIO' : 'BACK TO PORTFOLIO'}</span>
-          </SpecularButton>
-
-          <div className="flex items-center gap-3">
-            {/* Audio Toggle */}
-            <SpecularButton
-              onClick={handleSoundToggle}
-              variant="glass"
-              size="icon"
-              radius={10}
-              className={`h-[36px] w-[36px] p-0 flex items-center justify-center ${soundOn ? 'border-[#76FF03] text-[#76FF03]' : 'text-gray-400'}`}
-              title="Toggle tactile sound"
-            >
-              {soundOn ? <Volume2 className="w-4 h-4 text-[#76FF03]" /> : <VolumeX className="w-4 h-4" />}
-            </SpecularButton>
-
-            {/* Language Switcher */}
-            <SpecularButton
+      {/* Main Form Content Area */}
+      <main className="flex-1 flex flex-col justify-center items-center px-4 relative z-10">
+        <div className="w-full max-w-2xl mx-auto space-y-8">
+          
+          {/* Top Breadcrumb & Return to Portfolio Button */}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
               onClick={() => {
                 playClickSound();
-                onLanguageToggle();
+                onNavigateHome();
               }}
-              variant="glass"
-              size="sm"
-              radius={10}
-              className="h-[36px] px-3 flex items-center gap-1.5 text-xs font-mono text-gray-200"
+              className="group inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 hover:bg-[#76FF03] border border-white/10 hover:border-[#76FF03] text-gray-300 hover:text-[#050B05] transition-all duration-300 text-xs font-mono font-bold tracking-wider uppercase cursor-pointer backdrop-blur-md shadow-lg"
             >
-              <Globe className="w-3.5 h-3.5 text-[#76FF03]" />
-              <span className="font-bold">{lang.toUpperCase()}</span>
-            </SpecularButton>
-          </div>
-        </div>
-      </header>
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-[#76FF03] group-hover:text-[#050B05]" />
+              <span>{lang === 'es' ? 'Volver al Portafolio' : 'Back to Portfolio'}</span>
+            </button>
 
-      {/* Main Form Content Area */}
-      <main className="flex-1 flex flex-col justify-center items-center px-4 py-12 md:py-16 relative z-10">
-        <div className="w-full max-w-2xl mx-auto space-y-8">
+            <span className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-[#76FF03] tracking-wider uppercase bg-[#76FF03]/10 border border-[#76FF03]/30 px-3 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#76FF03] animate-ping" />
+              <span>{lang === 'es' ? 'Formulario Oficial' : 'Official Form'}</span>
+            </span>
+          </div>
           
           {/* Centered Logo & Branding Header */}
           <div className="text-center space-y-4">

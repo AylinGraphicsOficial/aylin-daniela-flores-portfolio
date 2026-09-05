@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Globe, Menu, X, Sparkles, Mail } from 'lucide-react';
+import { Volume2, VolumeX, Globe, Menu, X, Sparkles, Mail, ArrowLeft } from 'lucide-react';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { playClickSound, toggleAudio, play8BitArcadeSound } from '../utils/audio';
@@ -124,40 +124,76 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             <span className="font-bold">{lang.toUpperCase()}</span>
           </SpecularButton>
 
-          {/* Direct Contact Button */}
-          <SpecularButton
-            onClick={() => {
-              playClickSound();
-              onOpenProjectPlanner();
-            }}
-            variant="glass"
-            size="sm"
-            radius={10}
-            className="h-[38px] min-h-[38px] max-h-[38px] px-3.5 flex items-center space-x-1.5 text-xs font-mono font-bold text-gray-200 border-white/10 hover:border-[#76FF03]/40"
-            title="Página de contacto"
-          >
-            <Mail className="w-3.5 h-3.5 text-[#76FF03]" />
-            <span>{lang === 'es' ? 'CONTACTAR' : 'CONTACT'}</span>
-          </SpecularButton>
+          {currentView === 'contact' ? (
+            /* Return to Portfolio button when already on contact page */
+            <SpecularButton
+              onClick={() => {
+                playClickSound();
+                if (onNavigateHome) onNavigateHome();
+                else window.location.hash = '';
+              }}
+              variant="solid-lime"
+              size="sm"
+              radius={10}
+              className="h-[38px] min-h-[38px] max-h-[38px] px-4 flex items-center space-x-1.5 text-xs font-bold tracking-wider whitespace-nowrap shadow-[0_0_15px_rgba(118,255,3,0.3)]"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{lang === 'es' ? 'VOLVER AL PORTAFOLIO' : 'BACK TO PORTFOLIO'}</span>
+            </SpecularButton>
+          ) : (
+            <>
+              {/* Direct Contact Button */}
+              <SpecularButton
+                onClick={() => {
+                  playClickSound();
+                  onOpenProjectPlanner();
+                }}
+                variant="glass"
+                size="sm"
+                radius={10}
+                className="h-[38px] min-h-[38px] max-h-[38px] px-3.5 flex items-center space-x-1.5 text-xs font-mono font-bold text-gray-200 border-white/10 hover:border-[#76FF03]/40"
+                title="Página de contacto"
+              >
+                <Mail className="w-3.5 h-3.5 text-[#76FF03]" />
+                <span>{lang === 'es' ? 'CONTACTAR' : 'CONTACT'}</span>
+              </SpecularButton>
 
-          {/* Main CTA */}
-          <SpecularButton
-            onClick={() => {
-              playClickSound();
-              onOpenProjectPlanner();
-            }}
-            variant="solid-lime"
-            size="sm"
-            radius={10}
-            className="h-[38px] min-h-[38px] max-h-[38px] px-4 flex items-center space-x-1.5 text-xs font-bold tracking-wider whitespace-nowrap shadow-[0_0_15px_rgba(118,255,3,0.3)]"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{t.nav.startProject}</span>
-          </SpecularButton>
+              {/* Main CTA */}
+              <SpecularButton
+                onClick={() => {
+                  playClickSound();
+                  onOpenProjectPlanner();
+                }}
+                variant="solid-lime"
+                size="sm"
+                radius={10}
+                className="h-[38px] min-h-[38px] max-h-[38px] px-4 flex items-center space-x-1.5 text-xs font-bold tracking-wider whitespace-nowrap shadow-[0_0_15px_rgba(118,255,3,0.3)]"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{t.nav.startProject}</span>
+              </SpecularButton>
+            </>
+          )}
         </div>
 
         {/* Mobile Buttons */}
         <div className="flex sm:hidden items-center space-x-2">
+          {currentView === 'contact' && (
+            <SpecularButton
+              onClick={() => {
+                playClickSound();
+                if (onNavigateHome) onNavigateHome();
+                else window.location.hash = '';
+              }}
+              variant="glass"
+              size="sm"
+              radius={10}
+              className="text-xs font-mono text-[#76FF03] flex items-center gap-1 px-2.5 py-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="text-[10px] uppercase font-bold">{lang === 'es' ? 'Inicio' : 'Home'}</span>
+            </SpecularButton>
+          )}
           {/* Mobile Sound Toggle on secondary pages */}
           {currentView !== 'home' && (
             <SpecularButton

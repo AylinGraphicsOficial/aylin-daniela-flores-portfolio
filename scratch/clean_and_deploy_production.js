@@ -48,20 +48,24 @@ async function cleanAndDeploy() {
       }
     }
 
-    // 1. UPLOAD ROOT FILES FIRST (index.html, favicons, etc.)
+    // 1. UPLOAD ROOT FILES FIRST (index.html, production.html, favicons, etc.)
     console.log("\n--- UPLOADING ROOT ASSETS & HTML ---");
     await client.cd(rootDir);
     const rootFiles = [
-      "index.html", ".htaccess", "favicon.ico", "favicon.png",
+      "index.html", "production.html", ".htaccess", "favicon.ico", "favicon.png",
       "favicon-16x16.png", "favicon-32x32.png", "favicon-48x48.png",
       "favicon-512x512.png", "apple-touch-icon.png"
     ];
 
     for (const file of rootFiles) {
-      const localPath = `dist/${file}`;
-      if (fs.existsSync(localPath)) {
+      const localPath = fs.existsSync(`dist/${file}`) ? `dist/${file}` : (fs.existsSync(file) ? file : null);
+      if (localPath) {
         await uploadSafely(localPath, file);
       }
+    }
+    // Also copy to production.html explicitly if needed
+    if (fs.existsSync("dist/index.html")) {
+      await uploadSafely("dist/index.html", "production.html");
     }
     console.log("Root files uploaded successfully!");
 
