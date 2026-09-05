@@ -2529,13 +2529,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             </span>
                           ) : (
                             <span
-                              className={`text-[9px] font-mono px-2 py-0.5 rounded ${
-                                (proj.galleryImages || []).length >= 6
+                              className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
+                                (proj.galleryImages || []).length > 0
                                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  : 'bg-slate-800 text-slate-300'
+                                  : 'bg-slate-800 text-slate-400'
                               }`}
                             >
-                              {(proj.galleryImages || []).length}/6 vistas
+                              {(proj.galleryImages || []).length}{' '}
+                              {(proj.galleryImages || []).length === 1 ? 'render' : 'renders'}
                             </span>
                           )}
                         </div>

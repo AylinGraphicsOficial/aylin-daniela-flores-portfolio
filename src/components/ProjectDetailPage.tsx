@@ -402,8 +402,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 </h2>
                 <p className="text-xs sm:text-sm font-mono text-gray-400 mt-1">
                   {lang === 'es'
-                    ? `Galería de renders de producción (${project.galleryImages.length} de máx 6) • Clic en cualquier imagen para hacer zoom detallado`
-                    : `Production renders gallery (${project.galleryImages.length} of max 6) • Click any image for deep detail zoom`}
+                    ? `Galería de renders de producción (${project.galleryImages.length} ${project.galleryImages.length === 1 ? 'render' : 'renders'}) • Clic en cualquier imagen para hacer zoom detallado`
+                    : `Production renders gallery (${project.galleryImages.length} ${project.galleryImages.length === 1 ? 'render' : 'renders'}) • Click any image for deep detail zoom`}
                 </p>
               </div>
 
@@ -413,14 +413,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   {project.galleryImages.length}{' '}
                   {lang === 'es'
                     ? project.galleryImages.length === 1
-                      ? 'Render'
-                      : 'Renders'
+                    ? 'Render'
+                    : 'Renders'
                     : 'Renders'}
                 </span>
               </span>
             </div>
 
-            {/* 2-Column Grid of Project Renders (Up to 6 images) */}
+            {/* Grid of Project Renders */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
               {project.galleryImages.map((imgSrc, idx) => (
                 <div

@@ -66,7 +66,6 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     metrics: [{ label: 'Render Samples', value: '4,096 SPP' }],
   });
 
-  const MAX_GALLERY_IMAGES = 6;
   const [tagInput, setTagInput] = useState('');
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -171,35 +170,19 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     }
   };
 
-  // Subir múltiples imágenes para la galería "Vistas de Detalle & Renders" (Límite 6)
+  // Subir múltiples imágenes para la galería "Vistas de Detalle & Renders" (Ilimitado)
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const currentCount = (formData.galleryImages || []).length;
-    const availableSlots = Math.max(0, MAX_GALLERY_IMAGES - currentCount);
-
-    if (availableSlots <= 0) {
-      setUploadError('Límite máximo de 6 renders de detalle alcanzado para este proyecto. Elimina una imagen para poder subir otra.');
-      e.target.value = '';
-      return;
-    }
-
     const filesArray: File[] = Array.from(files) as File[];
-    const filesToUpload: File[] = filesArray.slice(0, availableSlots);
-
-    if (filesArray.length > availableSlots) {
-      setUploadError(`Solo se subirán las primeras ${availableSlots} imagen(es) para respetar el límite de 6 imágenes del proyecto.`);
-    } else {
-      setUploadError(null);
-    }
-
+    setUploadError(null);
     setIsUploadingGallery(true);
     const uploadedUrls: string[] = [];
 
-    for (let i = 0; i < filesToUpload.length; i++) {
-      const file = filesToUpload[i];
-      setGalleryUploadStatus(`Subiendo render ${i + 1} de ${filesToUpload.length} a Hostinger...`);
+    for (let i = 0; i < filesArray.length; i++) {
+      const file = filesArray[i];
+      setGalleryUploadStatus(`Subiendo render ${i + 1} de ${filesArray.length} a Hostinger...`);
       const res = await uploadMediaFile(file);
       if (res.success && res.url) {
         uploadedUrls.push(res.url);
@@ -213,26 +196,18 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     e.target.value = '';
 
     if (uploadedUrls.length > 0) {
-      setFormData((prev) => {
-        const combined = [...(prev.galleryImages || []), ...uploadedUrls];
-        return {
-          ...prev,
-          galleryImages: combined.slice(0, MAX_GALLERY_IMAGES),
-        };
-      });
+      setFormData((prev) => ({
+        ...prev,
+        galleryImages: [...(prev.galleryImages || []), ...uploadedUrls],
+      }));
     }
   };
 
   const handleAddGalleryUrl = () => {
     if (!newGalleryUrl.trim()) return;
-    const currentCount = (formData.galleryImages || []).length;
-    if (currentCount >= MAX_GALLERY_IMAGES) {
-      setUploadError('Límite de 6 imágenes alcanzado. No se pueden agregar más renders a este proyecto.');
-      return;
-    }
     setFormData((prev) => ({
       ...prev,
-      galleryImages: [...(prev.galleryImages || []), newGalleryUrl.trim()].slice(0, MAX_GALLERY_IMAGES),
+      galleryImages: [...(prev.galleryImages || []), newGalleryUrl.trim()],
     }));
     setNewGalleryUrl('');
     setUploadError(null);
@@ -352,7 +327,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       .filter(Boolean);
 
     const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
-    const finalGallery = isVideo ? [] : (formData.galleryImages || []).slice(0, MAX_GALLERY_IMAGES);
+    const finalGallery = isVideo ? [] : (formData.galleryImages || []);
 
     const finalProject: Project = {
       id: formData.id || `proj-${Date.now()}`,
@@ -983,6 +958,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
               );
             }
 
+            const galleryCount = (formData.galleryImages || []).length;
             return (
               <div className="p-4 rounded-xl border border-emerald-500/30 bg-slate-900/50 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -990,51 +966,36 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                     <label className="text-xs font-bold text-emerald-400 flex items-center gap-2">
                       <Layers className="w-4 h-4" />
                       <span>Vistas de Detalle & Renders (Sub-Galería del Proyecto)</span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
-                          (formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        }`}
-                      >
-                        {(formData.galleryImages || []).length} / {MAX_GALLERY_IMAGES} renders
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {galleryCount} {galleryCount === 1 ? 'render' : 'renders'}
                       </span>
                     </label>
                     <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-                      {(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
-                        ? 'Límite de 6 renders alcanzado. Elimina uno si deseas reemplazarlo.'
-                        : `Disponibles: ${MAX_GALLERY_IMAGES - (formData.galleryImages || []).length} slot(s) para visualización con zoom en el portafolio.`}
+                      Sube renders adicionales de detalle sin límites para visualización con zoom en el portafolio.
                     </p>
                   </div>
 
-                  {/* Upload Button: + Subir Renders de Detalle a Hostinger (Límite 6) */}
-                  {(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES ? (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 text-xs font-semibold cursor-not-allowed border border-slate-700 shadow-sm">
-                      <Lock className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Límite Alcanzado (6/6 Renders)</span>
-                    </div>
-                  ) : (
-                    <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer transition-all shadow-md hover:shadow-emerald-600/30">
-                      {isUploadingGallery ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Upload className="w-3.5 h-3.5" />
-                      )}
-                      <span>
-                        {isUploadingGallery
-                          ? galleryUploadStatus || 'Subiendo Renders...'
-                          : `+ Subir Renders de Detalle a Hostinger (${(formData.galleryImages || []).length}/6)`}
-                      </span>
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        disabled={isUploadingGallery}
-                        onChange={handleGalleryUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
+                  {/* Upload Button: + Subir Renders de Detalle a Hostinger (Ilimitado) */}
+                  <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer transition-all shadow-md hover:shadow-emerald-600/30">
+                    {isUploadingGallery ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    <span>
+                      {isUploadingGallery
+                        ? galleryUploadStatus || 'Subiendo Renders...'
+                        : `+ Subir Renders a Hostinger (${galleryCount})`}
+                    </span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={isUploadingGallery}
+                      onChange={handleGalleryUpload}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
 
                 {/* Add by URL input */}
@@ -1043,26 +1004,21 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                     type="text"
                     value={newGalleryUrl}
                     onChange={(e) => setNewGalleryUrl(e.target.value)}
-                    disabled={(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES}
-                    placeholder={
-                      (formData.galleryImages || []).length >= MAX_GALLERY_IMAGES
-                        ? 'Límite de 6 imágenes alcanzado. Elimina una para añadir nueva URL.'
-                        : 'O añade URL directa de imagen (/uploads/... o https://...)'
-                    }
-                    className={`flex-1 px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono disabled:opacity-50`}
+                    placeholder="O añade URL directa de imagen (/uploads/... o https://...)"
+                    className={`flex-1 px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                   />
                   <button
                     type="button"
                     onClick={handleAddGalleryUrl}
-                    disabled={(formData.galleryImages || []).length >= MAX_GALLERY_IMAGES || !newGalleryUrl.trim()}
+                    disabled={!newGalleryUrl.trim()}
                     className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap border border-slate-700 transition-colors"
                   >
                     Añadir URL
                   </button>
                 </div>
 
-                {/* 6-Slots Visual Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2">
+                {/* Unlimited Responsive Visual Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-2">
                   {(formData.galleryImages || []).map((imgUrl, gIdx) => (
                     <div
                       key={gIdx}
@@ -1096,7 +1052,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
                       <div className="p-1.5 bg-slate-900 flex items-center justify-between border-t border-slate-800">
                         <span className="text-[10px] font-mono text-emerald-400 font-bold">
-                          #{gIdx + 1}/6
+                          #{gIdx + 1}
                         </span>
 
                         <div className="flex items-center space-x-1">
@@ -1135,32 +1091,27 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                     </div>
                   ))}
 
-                  {/* Empty Available Slots (up to MAX_GALLERY_IMAGES = 6) */}
-                  {Array.from({ length: MAX_GALLERY_IMAGES - (formData.galleryImages || []).length }).map((_, emptyIdx) => {
-                    const slotNumber = (formData.galleryImages || []).length + emptyIdx + 1;
-                    return (
-                      <label
-                        key={`empty-${slotNumber}`}
-                        className="aspect-[4/3] rounded-xl border-2 border-dashed border-slate-700/80 hover:border-emerald-500/60 bg-slate-950/40 hover:bg-emerald-950/20 flex flex-col items-center justify-center p-2 text-center cursor-pointer group transition-all"
-                        title={`Slot #${slotNumber} disponible - Clic para subir render`}
-                      >
-                        <Plus className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:scale-110 transition-all mb-1" />
-                        <span className="text-[10px] font-mono text-slate-400 group-hover:text-emerald-300 font-medium">
-                          Slot #{slotNumber}
-                        </span>
-                        <span className="text-[8px] font-mono text-slate-600 group-hover:text-slate-400">
-                          Disponible
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          disabled={isUploadingGallery}
-                          onChange={handleGalleryUpload}
-                          className="hidden"
-                        />
-                      </label>
-                    );
-                  })}
+                  {/* Add More Slot (Always available for quick upload) */}
+                  <label
+                    className="aspect-[4/3] rounded-xl border-2 border-dashed border-slate-700/80 hover:border-emerald-500/60 bg-slate-950/40 hover:bg-emerald-950/20 flex flex-col items-center justify-center p-2 text-center cursor-pointer group transition-all"
+                    title="Clic para subir más imágenes de detalle a Hostinger"
+                  >
+                    <Plus className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:scale-110 transition-all mb-1" />
+                    <span className="text-[10px] font-mono text-slate-400 group-hover:text-emerald-300 font-medium">
+                      + Añadir Render
+                    </span>
+                    <span className="text-[8px] font-mono text-slate-600 group-hover:text-slate-400">
+                      Ilimitado
+                    </span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={isUploadingGallery}
+                      onChange={handleGalleryUpload}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               </div>
             );

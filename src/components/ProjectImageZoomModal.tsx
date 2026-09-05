@@ -236,7 +236,7 @@ export const ProjectImageZoomModal: React.FC<ProjectImageZoomModalProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col bg-[#050B05]/95 backdrop-blur-2xl text-white select-none animate-fade-in"
+      className="fixed inset-0 z-[99999] flex flex-col bg-[#050B05]/95 backdrop-blur-2xl text-white select-none animate-fade-in"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onTouchMove={handleTouchMove}
@@ -357,10 +357,10 @@ export const ProjectImageZoomModal: React.FC<ProjectImageZoomModalProps> = ({
               onClose();
             }}
             onMouseEnter={playHoverSound}
-            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/30 transition-all duration-300 cursor-pointer flex items-center space-x-1.5 shadow-md"
-            title="Cerrar visor (Esc)"
+            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 transition-all duration-300 cursor-pointer flex items-center space-x-1.5 shadow-md group"
+            title={lang === 'es' ? 'Cerrar visor (Esc o clic)' : 'Close viewer (Esc or click)'}
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
             <span className="hidden sm:inline text-xs font-mono font-bold uppercase">
               {lang === 'es' ? 'Cerrar' : 'Close'}
             </span>
@@ -378,6 +378,26 @@ export const ProjectImageZoomModal: React.FC<ProjectImageZoomModalProps> = ({
         onTouchStart={handleTouchStart}
         onDoubleClick={handleDoubleClick}
       >
+        {/* Floating Graphic Close Button (X) for visual users (idéntica salida a Esc) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            playClickSound();
+            onClose();
+          }}
+          onMouseEnter={playHoverSound}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/85 hover:bg-rose-600 border-2 border-white/25 hover:border-rose-400 text-white flex items-center justify-center backdrop-blur-xl shadow-[0_0_25px_rgba(0,0,0,0.85)] hover:shadow-[0_0_30px_rgba(244,63,94,0.7)] transition-all duration-300 cursor-pointer group active:scale-95"
+          title={lang === 'es' ? 'Cerrar visor (Esc o clic aquí)' : 'Close viewer (Esc or click here)'}
+          aria-label={lang === 'es' ? 'Cerrar visor' : 'Close viewer'}
+        >
+          <X className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5] text-white group-hover:rotate-90 transition-transform duration-300" />
+          
+          {/* Visual Tooltip Badge on Hover */}
+          <span className="absolute right-full mr-3 px-3 py-1 rounded-lg bg-black/95 border border-white/20 text-[11px] font-mono font-bold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl">
+            {lang === 'es' ? 'Cerrar visor (Esc)' : 'Close viewer (Esc)'}
+          </span>
+        </button>
         {/* Floating Pan Hint when zoomed in */}
         {scale > 1 && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex items-center space-x-2 bg-black/80 backdrop-blur-md border border-[#76FF03]/40 px-3.5 py-1.5 rounded-full text-xs font-mono text-[#76FF03] shadow-lg animate-fade-in">
