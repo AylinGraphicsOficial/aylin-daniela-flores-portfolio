@@ -80,7 +80,7 @@ async function cleanAndDeploy() {
 
     // 3. UPLOAD PHP API FILES
     console.log("\n--- UPLOADING API PHP FILES ---");
-    await client.cd(`${rootDir}/api`);
+    await client.ensureDir(`${rootDir}/api`);
     const apiFiles = ["projects.php", "init_db.php", "disciplines.php", "settings.php", "upload.php", "config.php", "messages.php", "comments.php"];
     for (const f of apiFiles) {
       if (fs.existsSync(`dist/api/${f}`)) {
