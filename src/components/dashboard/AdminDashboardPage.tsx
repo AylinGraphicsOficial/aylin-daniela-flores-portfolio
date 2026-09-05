@@ -171,6 +171,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   // New Experience Form State & Drag-and-Drop
   const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
   const [isExpModalOpen, setIsExpModalOpen] = useState(false);
+  const [expToolsInput, setExpToolsInput] = useState('');
+  const [expResponsibilitiesInput, setExpResponsibilitiesInput] = useState('');
   const [draggedExpIndex, setDraggedExpIndex] = useState<number | null>(null);
   const [dragOverExpIndex, setDragOverExpIndex] = useState<number | null>(null);
 
@@ -502,17 +504,35 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const handleSaveSingleExperience = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingExp) return;
-    const index = experiences.findIndex((x) => x.id === editingExp.id);
+
+    const parsedTools = expToolsInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    const parsedResponsibilities = expResponsibilitiesInput
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    const finalizedExp: ExperienceItem = {
+      ...editingExp,
+      toolsUsed: parsedTools,
+      responsibilities: parsedResponsibilities.length > 0 ? parsedResponsibilities : editingExp.responsibilities,
+    };
+
+    const index = experiences.findIndex((x) => x.id === finalizedExp.id);
     let updated: ExperienceItem[];
     if (index >= 0) {
       updated = [...experiences];
-      updated[index] = editingExp;
+      updated[index] = finalizedExp;
     } else {
-      updated = [{ ...editingExp, id: editingExp.id || `exp-${Date.now()}` }, ...experiences];
+      updated = [{ ...finalizedExp, id: finalizedExp.id || `exp-${Date.now()}` }, ...experiences];
     }
     handleSaveExperienceList(updated);
     setIsExpModalOpen(false);
     setEditingExp(null);
+    setExpToolsInput('');
+    setExpResponsibilitiesInput('');
   };
 
   // Experience Drag & Drop Handlers
@@ -2341,6 +2361,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       responsibilities: [],
                       toolsUsed: [],
                     });
+                    setExpToolsInput('');
+                    setExpResponsibilitiesInput('');
                     setIsExpModalOpen(true);
                   }}
                   className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm"
@@ -2460,6 +2482,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         type="button"
                         onClick={() => {
                           setEditingExp(item);
+                          setExpToolsInput((item.toolsUsed || []).join(', '));
+                          setExpResponsibilitiesInput((item.responsibilities || []).join('\n'));
                           setIsExpModalOpen(true);
                         }}
                         className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5"
@@ -3838,7 +3862,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               </h3>
               <button
                 type="button"
-                onClick={() => setIsExpModalOpen(false)}
+                onClick={() => {
+                  setIsExpModalOpen(false);
+                  setEditingExp(null);
+                  setExpToolsInput('');
+                  setExpResponsibilitiesInput('');
+                }}
                 className="p-1 text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
@@ -3938,16 +3967,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </label>
                 <textarea
                   rows={4}
-                  value={(editingExp.responsibilities || []).join('\n')}
-                  onChange={(e) =>
-                    setEditingExp({
-                      ...editingExp,
-                      responsibilities: e.target.value
-                        .split('\n')
-                        .map((s) => s.trim())
-                        .filter((s) => s.length > 0),
-                    })
-                  }
+                  value={expResponsibilitiesInput}
+                  onChange={(e) => setExpResponsibilitiesInput(e.target.value)}
                   placeholder="• Dirección, gestión y ejecución integral del área gráfica&#10;• Planificación de metodologías de aprendizaje y contenido&#10;• Supervisión de procesos de preprensa técnica y branding"
                   className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed font-sans`}
                 />
@@ -3959,16 +3980,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={(editingExp.toolsUsed || []).join(', ')}
-                  onChange={(e) =>
-                    setEditingExp({
-                      ...editingExp,
-                      toolsUsed: e.target.value
-                        .split(',')
-                        .map((s) => s.trim())
-                        .filter((s) => s.length > 0),
-                    })
-                  }
+                  value={expToolsInput}
+                  onChange={(e) => setExpToolsInput(e.target.value)}
                   placeholder="Adobe Illustrator, Adobe Photoshop, Blender, ZBrush, After Effects..."
                   className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
                 />
@@ -3977,7 +3990,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/50">
                 <button
                   type="button"
-                  onClick={() => setIsExpModalOpen(false)}
+                  onClick={() => {
+                    setIsExpModalOpen(false);
+                    setEditingExp(null);
+                    setExpToolsInput('');
+                    setExpResponsibilitiesInput('');
+                  }}
                   className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold hover:bg-slate-800 transition-colors"
                 >
                   Cancelar

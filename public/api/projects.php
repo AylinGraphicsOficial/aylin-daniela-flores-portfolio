@@ -24,7 +24,10 @@ $migrations = [
     "ALTER TABLE `projects` ADD COLUMN `sliderOrder` INT DEFAULT 0 AFTER `sliderTitle`",
     "ALTER TABLE `projects` ADD COLUMN `externalLink` VARCHAR(1000) DEFAULT '' AFTER `sliderOrder`",
     "ALTER TABLE `projects` ADD COLUMN `externalLinkText` VARCHAR(255) DEFAULT '' AFTER `externalLink`",
-    "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`"
+    "ALTER TABLE `projects` ADD COLUMN `disciplineId` VARCHAR(100) DEFAULT '' AFTER `externalLinkText`",
+    "ALTER TABLE `projects` ADD COLUMN `videoUrl` VARCHAR(1000) DEFAULT '' AFTER `disciplineId`",
+    "ALTER TABLE `projects` ADD COLUMN `videoClip` VARCHAR(1000) DEFAULT '' AFTER `videoUrl`",
+    "ALTER TABLE `projects` ADD COLUMN `gifUrl` VARCHAR(1000) DEFAULT '' AFTER `videoClip`"
 ];
 foreach ($migrations as $migrationSql) {
     try {

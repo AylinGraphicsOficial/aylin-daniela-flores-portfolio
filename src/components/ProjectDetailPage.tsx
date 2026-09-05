@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers, ExternalLink, Play, Film } from 'lucide-react';
 import { Project, Language } from '../types';
 import { projectsData } from '../data/portfolioData';
 import { playClickSound, playHoverSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 import { ProjectImageZoomModal } from './ProjectImageZoomModal';
+import { getProjectPrimaryMedia } from '../utils/mediaDetector';
 
 interface ProjectDetailPageProps {
   project: Project;
@@ -44,6 +45,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 }) => {
   const [isZoomOpen, setIsZoomOpen] = useState<boolean>(false);
   const [zoomInitialIndex, setZoomInitialIndex] = useState<number>(0);
+
+  const primaryMedia = useMemo(() => getProjectPrimaryMedia(project), [project]);
+  const [activeMediaTab, setActiveMediaTab] = useState<'video' | 'render'>('video');
+
+  useEffect(() => {
+    setActiveMediaTab(primaryMedia.hasVideo ? 'video' : 'render');
+  }, [project.id, primaryMedia.hasVideo]);
 
   const currentIndex = projectsData.findIndex((p) => p.id === project.id);
   const prevProject =
@@ -238,30 +246,128 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
       </div>
 
-      {/* Main Full-Bleed Artwork Showcase (Matching Wix Game Designer Gallery) */}
+      {/* Main Full-Bleed Media Showcase (Video Player / Hero Artwork) */}
       <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16 mt-16">
-        {/* Main Hero Artwork with Interactive Zoom Overlay */}
-        <div
-          onClick={() => handleOpenZoom(project.image)}
-          onMouseEnter={playHoverSound}
-          className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative group cursor-pointer transition-all duration-500"
-          title={lang === 'es' ? 'Clic para ampliar y hacer zoom en alta resolución' : 'Click to expand and zoom in high-res'}
-        >
-          <img
-            src={project.image}
-            alt={project.title}
-            onError={(e) => handleImgError(e, project.image)}
-            className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
-          />
+        {/* Switcher Tab if project has both Video and Render Image */}
+        {primaryMedia.hasVideo && project.image && (
+          <div className="flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveMediaTab('video');
+              }}
+              className={`px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
+                activeMediaTab === 'video'
+                  ? 'bg-[#76FF03] text-black shadow-[0_0_25px_rgba(118,255,3,0.45)]'
+                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white/20'
+              }`}
+            >
+              <Play className={`w-3.5 h-3.5 ${activeMediaTab === 'video' ? 'fill-black' : 'fill-current'}`} />
+              <span>{lang === 'es' ? 'VER VIDEO / REPRODUCCIÓN' : 'PLAY VIDEO'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveMediaTab('render');
+              }}
+              className={`px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
+                activeMediaTab === 'render'
+                  ? 'bg-[#76FF03] text-black shadow-[0_0_25px_rgba(118,255,3,0.45)]'
+                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white/20'
+              }`}
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+              <span>{lang === 'es' ? 'RENDER HERO (ZOOM HD)' : 'HERO RENDER (ZOOM HD)'}</span>
+            </button>
+          </div>
+        )}
 
-          {/* Floating Zoom Badge / Button */}
-          <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10 flex items-center space-x-2">
-            <div className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/20 group-hover:border-[#76FF03] text-gray-200 group-hover:text-white transition-all shadow-xl font-mono text-xs font-bold">
-              <ZoomIn className="w-4 h-4 text-[#76FF03] group-hover:scale-110 transition-transform" />
-              <span>{lang === 'es' ? 'Hacer Zoom / Ver Detalle' : 'Zoom In / View Details'}</span>
+        {/* Video Player Display */}
+        {primaryMedia.hasVideo && activeMediaTab === 'video' ? (
+          <div className="w-full rounded-3xl overflow-hidden bg-black border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative transition-all duration-500">
+            {primaryMedia.type === 'youtube' || primaryMedia.type === 'vimeo' ? (
+              <div className="relative w-full aspect-video">
+                <iframe
+                  src={primaryMedia.embedUrl}
+                  title={project.title}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="w-full flex items-center justify-center p-2 sm:p-4">
+                <video
+                  src={primaryMedia.videoSrc}
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-auto max-h-[85vh] object-contain mx-auto rounded-2xl"
+                />
+              </div>
+            )}
+            {/* Header Badge */}
+            <div className="absolute top-4 left-4 z-10 flex items-center space-x-2 pointer-events-none">
+              <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/50 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
+                <Play className="w-3 h-3 fill-[#76FF03]" />
+                <span>
+                  {primaryMedia.type === 'youtube'
+                    ? 'YOUTUBE PLAYER'
+                    : primaryMedia.type === 'vimeo'
+                    ? 'VIMEO PLAYER'
+                    : 'VIDEO MP4/WEBM'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        ) : primaryMedia.type === 'gif' ? (
+          /* Animated GIF Showcase */
+          <div
+            onClick={() => handleOpenZoom(primaryMedia.gifSrc || project.image)}
+            onMouseEnter={playHoverSound}
+            className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative group cursor-pointer transition-all duration-500"
+            title={lang === 'es' ? 'Clic para ampliar GIF' : 'Click to expand GIF'}
+          >
+            <img
+              src={primaryMedia.gifSrc || project.image}
+              alt={project.title}
+              className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
+            />
+            <div className="absolute top-4 left-4 z-10 flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/50 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>GIF ANIMADO</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Main Hero Artwork with Interactive Zoom Overlay */
+          <div
+            onClick={() => handleOpenZoom(project.image)}
+            onMouseEnter={playHoverSound}
+            className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative group cursor-pointer transition-all duration-500"
+            title={lang === 'es' ? 'Clic para ampliar y hacer zoom en alta resolución' : 'Click to expand and zoom in high-res'}
+          >
+            <img
+              src={project.image}
+              alt={project.title}
+              onError={(e) => handleImgError(e, project.image)}
+              className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
+            />
+
+            {/* Floating Zoom Badge / Button */}
+            <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10 flex items-center space-x-2">
+              <div className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/20 group-hover:border-[#76FF03] text-gray-200 group-hover:text-white transition-all shadow-xl font-mono text-xs font-bold">
+                <ZoomIn className="w-4 h-4 text-[#76FF03] group-hover:scale-110 transition-transform" />
+                <span>{lang === 'es' ? 'Hacer Zoom / Ver Detalle' : 'Zoom In / View Details'}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sub-Gallery Section Header */}
         {project.galleryImages && project.galleryImages.length > 0 && (

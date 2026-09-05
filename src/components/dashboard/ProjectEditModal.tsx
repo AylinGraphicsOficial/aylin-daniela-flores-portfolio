@@ -20,11 +20,13 @@ import {
   ZoomIn,
   ExternalLink,
   Link as LinkIcon,
+  Play,
 } from 'lucide-react';
 import { Project } from '../../types';
 import { playClickSound } from '../../utils/audio';
 import { uploadMediaFile } from '../../utils/portfolioStorage';
 import { ProjectImageZoomModal } from '../ProjectImageZoomModal';
+import { detectMedia } from '../../utils/mediaDetector';
 
 interface ProjectEditModalProps {
   isOpen: boolean;
@@ -915,7 +917,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             </div>
           </div>
 
-          {/* Row 5: Videos & GIFs with Direct Hostinger Uploaders */}
+          {/* Row 5: Videos & GIFs with Direct Hostinger Uploaders & Live Previews */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* YouTube/Vimeo Link */}
             <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/50 space-y-2">
@@ -927,9 +929,58 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 type="text"
                 value={formData.videoUrl || ''}
                 onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                placeholder="https://youtube.com/..."
+                placeholder="https://youtube.com/... o /shorts/..."
                 className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs`}
               />
+
+              {/* YouTube / Vimeo Live Interactive Preview */}
+              {(() => {
+                if (!formData.videoUrl?.trim()) return null;
+                const detected = detectMedia(formData.videoUrl);
+                if (detected.isValid && (detected.type === 'youtube' || detected.type === 'vimeo')) {
+                  return (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-emerald-400">
+                        <span className="flex items-center gap-1 font-bold">
+                          <Play className="w-3 h-3 fill-emerald-400" />
+                          Preview {detected.type.toUpperCase()}
+                        </span>
+                        {detected.videoId && (
+                          <span className="text-[10px] text-slate-400 font-mono">ID: {detected.videoId}</span>
+                        )}
+                      </div>
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-emerald-500/40 bg-black shadow-lg">
+                        <iframe
+                          src={detected.embedUrl}
+                          title="Preview Video"
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                if (detected.isValid && detected.type === 'video') {
+                  return (
+                    <div className="mt-2 space-y-1">
+                      <span className="text-[11px] font-mono text-emerald-400 font-bold block">
+                        Preview Video URL:
+                      </span>
+                      <video
+                        src={detected.originalUrl}
+                        controls
+                        className="w-full rounded-xl max-h-44 bg-black border border-emerald-500/40 object-contain"
+                      />
+                    </div>
+                  );
+                }
+                return (
+                  <p className="text-[10px] text-amber-400/80 font-mono mt-1">
+                    ⚠ Formato no reconocido. Pega un enlace de YouTube, YouTube Shorts o Vimeo.
+                  </p>
+                );
+              })()}
             </div>
 
             {/* Video Clip MP4/WebM */}
@@ -959,6 +1010,20 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                   className="hidden"
                 />
               </label>
+
+              {/* Clip Video Preview */}
+              {formData.videoClip?.trim() && (
+                <div className="mt-2 space-y-1">
+                  <span className="text-[11px] font-mono text-emerald-400 font-bold block">
+                    Preview Clip:
+                  </span>
+                  <video
+                    src={formData.videoClip}
+                    controls
+                    className="w-full rounded-xl max-h-44 bg-black border border-emerald-500/40 object-contain"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Animated GIF */}
@@ -988,6 +1053,22 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                   className="hidden"
                 />
               </label>
+
+              {/* GIF Preview */}
+              {formData.gifUrl?.trim() && (
+                <div className="mt-2 space-y-1">
+                  <span className="text-[11px] font-mono text-emerald-400 font-bold block">
+                    Preview GIF:
+                  </span>
+                  <div className="w-full rounded-xl overflow-hidden border border-emerald-500/40 bg-black flex justify-center p-1.5">
+                    <img
+                      src={formData.gifUrl}
+                      alt="GIF Preview"
+                      className="max-h-44 object-contain rounded-lg"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

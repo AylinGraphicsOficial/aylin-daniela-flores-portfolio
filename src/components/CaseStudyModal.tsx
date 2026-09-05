@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2, ZoomIn } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2, ZoomIn, Play, Sparkles } from 'lucide-react';
 import { Project, Language } from '../types';
 import { playClickSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 import { ProjectImageZoomModal } from './ProjectImageZoomModal';
+import { getProjectPrimaryMedia } from '../utils/mediaDetector';
 
 interface CaseStudyModalProps {
   project: Project | null;
@@ -23,6 +24,8 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
 
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [isZoomOpen, setIsZoomOpen] = useState<boolean>(false);
+  const primaryMedia = getProjectPrimaryMedia(project);
+  const [activeMediaTab, setActiveMediaTab] = useState<'video' | 'gallery'>('video');
   const gallery = project.galleryImages && project.galleryImages.length > 0
     ? project.galleryImages
     : [project.image];
@@ -89,67 +92,123 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
             )}
           </div>
 
-          {/* Interactive Image Gallery Carousel with Zoom overlay */}
-          <div
-            onClick={() => setIsZoomOpen(true)}
-            className="relative rounded-2xl overflow-hidden bg-[#050B05] border border-white/10 hover:border-[#76FF03]/50 min-h-[300px] md:min-h-[460px] flex items-center justify-center cursor-pointer group transition-all"
-            title="Clic para ampliar y hacer zoom"
-          >
-            <img
-              src={gallery[activeImageIndex]}
-              alt={project.title}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full max-h-[500px] object-contain transition-all duration-500 group-hover:scale-[1.01]"
-            />
-
-            {/* Floating Zoom Button */}
-            <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/40 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
-                <ZoomIn className="w-3.5 h-3.5" />
-                <span>Hacer Zoom</span>
-              </div>
+          {/* Media Switcher Tab when Project has Video */}
+          {primaryMedia.hasVideo && (
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveMediaTab('video')}
+                className={`px-4 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
+                  activeMediaTab === 'video'
+                    ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.4)]'
+                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                <Play className={`w-3 h-3 ${activeMediaTab === 'video' ? 'fill-black' : 'fill-current'}`} />
+                <span>{lang === 'es' ? 'VER VIDEO' : 'PLAY VIDEO'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveMediaTab('gallery')}
+                className={`px-4 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
+                  activeMediaTab === 'gallery'
+                    ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.4)]'
+                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                <Layers className="w-3 h-3" />
+                <span>{lang === 'es' ? 'GALERÍA DE RENDERS' : 'RENDERS GALLERY'}</span>
+              </button>
             </div>
+          )}
 
-            {gallery.length > 1 && (
-              <>
-                <SpecularButton
-                  onClick={handlePrevImage}
-                  variant="glass"
-                  size="icon"
-                  radius={999}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </SpecularButton>
-                <SpecularButton
-                  onClick={handleNextImage}
-                  variant="glass"
-                  size="icon"
-                  radius={999}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </SpecularButton>
-
-                {/* Thumbnails Indicator */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                  {gallery.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playClickSound();
-                        setActiveImageIndex(idx);
-                      }}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        activeImageIndex === idx ? 'bg-[#76FF03] w-6' : 'bg-white/40 hover:bg-white'
-                      }`}
-                    />
-                  ))}
+          {primaryMedia.hasVideo && activeMediaTab === 'video' ? (
+            <div className="relative rounded-2xl overflow-hidden bg-black border border-white/15 hover:border-[#76FF03]/50 min-h-[300px] md:min-h-[460px] flex items-center justify-center shadow-2xl">
+              {primaryMedia.type === 'youtube' || primaryMedia.type === 'vimeo' ? (
+                <div className="relative w-full aspect-video">
+                  <iframe
+                    src={primaryMedia.embedUrl}
+                    title={project.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
                 </div>
-              </>
-            )}
-          </div>
+              ) : (
+                <video
+                  src={primaryMedia.videoSrc}
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full max-h-[500px] object-contain"
+                />
+              )}
+            </div>
+          ) : (
+            /* Interactive Image Gallery Carousel with Zoom overlay */
+            <div
+              onClick={() => setIsZoomOpen(true)}
+              className="relative rounded-2xl overflow-hidden bg-[#050B05] border border-white/10 hover:border-[#76FF03]/50 min-h-[300px] md:min-h-[460px] flex items-center justify-center cursor-pointer group transition-all"
+              title="Clic para ampliar y hacer zoom"
+            >
+              <img
+                src={gallery[activeImageIndex]}
+                alt={project.title}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full max-h-[500px] object-contain transition-all duration-500 group-hover:scale-[1.01]"
+              />
+
+              {/* Floating Zoom Button */}
+              <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/40 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
+                  <ZoomIn className="w-3.5 h-3.5" />
+                  <span>Hacer Zoom</span>
+                </div>
+              </div>
+
+              {gallery.length > 1 && (
+                <>
+                  <SpecularButton
+                    onClick={handlePrevImage}
+                    variant="glass"
+                    size="icon"
+                    radius={999}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </SpecularButton>
+                  <SpecularButton
+                    onClick={handleNextImage}
+                    variant="glass"
+                    size="icon"
+                    radius={999}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </SpecularButton>
+
+                  {/* Thumbnails Indicator */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                    {gallery.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          playClickSound();
+                          setActiveImageIndex(idx);
+                        }}
+                        className={`w-2.5 h-2.5 rounded-full transition-all ${
+                          activeImageIndex === idx ? 'bg-[#76FF03] w-6' : 'bg-white/40 hover:bg-white'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Key Metrics / Highlights Grid */}
           {project.metrics && project.metrics.length > 0 && (
