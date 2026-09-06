@@ -56,7 +56,7 @@ export const ProjectContactPage: React.FC<ProjectContactPageProps> = ({
 
   const handleCopyEmail = () => {
     playClickSound();
-    navigator.clipboard.writeText('Floresaylin2@gmail.com');
+    navigator.clipboard.writeText('aylin.graphicsdesign@gmail.com');
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 3000);
   };
@@ -302,10 +302,10 @@ export const ProjectContactPage: React.FC<ProjectContactPageProps> = ({
           </div>
 
           {/* Direct Contact Bar below Form */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-xs font-mono">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg bg-white/[0.03] border border-white/10 text-xs font-mono">
             <div className="flex items-center gap-2 text-gray-300">
               <Mail className="w-4 h-4 text-[#76FF03]" />
-              <span>Floresaylin2@gmail.com</span>
+              <span>aylin.graphicsdesign@gmail.com</span>
               <button
                 type="button"
                 onClick={handleCopyEmail}

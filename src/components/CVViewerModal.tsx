@@ -91,7 +91,7 @@ export const CVViewerModal: React.FC<CVViewerModalProps> = ({
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-3.5 h-3.5 text-[#76FF03]" />
-                <span>Floresaylin2@gmail.com</span>
+                <span>aylin.graphicsdesign@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Globe className="w-3.5 h-3.5 text-[#76FF03]" />

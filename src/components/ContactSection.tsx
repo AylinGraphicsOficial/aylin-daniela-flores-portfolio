@@ -97,7 +97,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
   const handleCopyEmail = () => {
     playClickSound();
-    navigator.clipboard.writeText('Floresaylin2@gmail.com');
+    navigator.clipboard.writeText('aylin.graphicsdesign@gmail.com');
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 3000);
   };
@@ -691,7 +691,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         </div>
 
         {/* Quick Copy Email Card (Centered) */}
-        <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-3 text-left">
+        <div className="glass-panel p-6 rounded-lg border border-white/10 space-y-3 text-left">
           <div className="flex justify-between items-center">
             <span className="text-xs font-mono text-[#76FF03] uppercase font-bold">
               {t.contact.directEmail}
@@ -700,7 +700,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               onClick={handleCopyEmail}
               variant="glass"
               size="sm"
-              radius={8}
+              radius={6}
               className="text-xs font-mono text-gray-200"
             >
               {isCopied ? (
@@ -716,13 +716,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               )}
             </SpecularButton>
           </div>
-          <p className="text-xl md:text-2xl font-bold font-mono text-white select-all">
-            Floresaylin2@gmail.com
+          <p className="text-xl md:text-2xl font-bold font-mono text-white select-all break-all sm:break-normal">
+            aylin.graphicsdesign@gmail.com
           </p>
         </div>
 
         {/* Live El Salvador Clock (Centered) */}
-        <div className="glass-panel p-6 rounded-2xl border border-white/10 flex items-center justify-between text-left">
+        <div className="glass-panel p-6 rounded-lg border border-white/10 flex items-center justify-between text-left">
           <div className="space-y-1">
             <span className="text-xs font-mono text-gray-400 block">
               {t.contact.localTime}
@@ -731,13 +731,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               {currentTime || '02:30:00 PM'}
             </span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[#38B000]/20 border border-[#76FF03]/50 flex items-center justify-center text-[#76FF03]">
+          <div className="w-12 h-12 rounded-md bg-[#38B000]/20 border border-[#76FF03]/50 flex items-center justify-center text-[#76FF03]">
             <Clock className="w-6 h-6 animate-pulse" />
           </div>
         </div>
 
         {/* Start Project Quote Banner (Centered) */}
-        <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-[#76FF03]/40 bg-gradient-to-br from-[#38B000]/20 to-[#050B05] flex flex-col sm:flex-row justify-between items-center gap-5 text-left shadow-[0_10px_30px_rgba(118,255,3,0.15)]">
+        <div className="glass-panel p-6 sm:p-8 rounded-lg border border-[#76FF03]/40 bg-gradient-to-br from-[#38B000]/20 to-[#050B05] flex flex-col sm:flex-row justify-between items-center gap-5 text-left shadow-[0_10px_30px_rgba(118,255,3,0.15)]">
           <div>
             <h4 className="text-base font-bold text-white mb-1">
               {lang === 'es' ? '¿Deseas iniciar o cotizar un nuevo proyecto?' : 'Looking for a tailored quote?'}
@@ -755,7 +755,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             }}
             variant="solid-lime"
             size="md"
-            radius={12}
+            radius={8}
             className="text-xs md:text-sm font-black whitespace-nowrap shadow-[0_0_20px_rgba(118,255,3,0.4)]"
           >
             {lang === 'es' ? 'INICIAR PROYECTO' : 'LAUNCH ESTIMATOR'}

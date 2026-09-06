@@ -293,7 +293,7 @@ export const translations = {
     contact: {
       title: "LET'S CREATE TOGETHER",
       subtitle: 'Have a project in mind or want to collaborate on brand identity, advertising design, 3D visualization, or video editing? Send a message or use the interactive project estimator.',
-      directEmail: 'Floresaylin2@gmail.com',
+      directEmail: 'aylin.graphicsdesign@gmail.com',
       localTime: 'Local Time (Sonsonate, El Salvador - UTC-6)',
       namePlaceholder: 'Your Full Name',
       emailPlaceholder: 'your.email@company.com',
@@ -370,7 +370,7 @@ export const translations = {
     contact: {
       title: 'CREEMOS JUNTOS',
       subtitle: '¿Tienes un proyecto en mente o deseas colaborar en identidad visual, diseño publicitario, modelado 3D o edición de video? Envíame un mensaje o utiliza el estimador de proyectos.',
-      directEmail: 'Floresaylin2@gmail.com',
+      directEmail: 'aylin.graphicsdesign@gmail.com',
       localTime: 'Hora Local (Sonsonate, El Salvador - UTC-6)',
       namePlaceholder: 'Tu Nombre Completo',
       emailPlaceholder: 'tu.correo@empresa.com',

@@ -169,7 +169,7 @@ ${projectDescription || 'No description provided yet.'}
                 </SpecularButton>
 
                 <a
-                  href={`mailto:aylin.flores.design@gmail.com?subject=New%20Project%20Inquiry%20from%20${encodeURIComponent(clientName || 'Client')}&body=${encodeURIComponent(generateBriefText())}`}
+                  href={`mailto:aylin.graphicsdesign@gmail.com?subject=New%20Project%20Inquiry%20from%20${encodeURIComponent(clientName || 'Client')}&body=${encodeURIComponent(generateBriefText())}`}
                   className="px-6 py-3 bg-[#76FF03] text-[#050B05] font-black text-xs rounded-xl flex items-center space-x-2 shadow-[0_0_20px_rgba(118,255,3,0.4)] transition-all"
                 >
                   <Send className="w-4 h-4" />
