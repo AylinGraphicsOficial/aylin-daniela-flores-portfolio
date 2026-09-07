@@ -111,16 +111,10 @@ export const initialDisciplinesData: Discipline[] = [
       'Edición audiovisual dinámica, corrección de color profesional, animación tipográfica y motion graphics con After Effects y Premiere Pro para spots publicitarios y campañas de alto impacto.',
     descEn:
       'Dynamic audiovisual editing, professional color grading, kinetic typography, and motion graphics with After Effects and Premiere Pro for commercials and high-converting campaigns.',
-    image: '/images/diplomados/diplomado-after-effects-2023.webp',
+    image: '/images/hero-hands.jpg',
     slides: [
       {
         id: 'svid-1',
-        image: '/images/diplomados/diplomado-after-effects-2023.webp',
-        title: 'After Effects Master Suite',
-        visible: true,
-      },
-      {
-        id: 'svid-2',
         image: '/images/hero-hands.jpg',
         title: 'Kinetic Motion Typography',
         visible: true,
@@ -144,16 +138,10 @@ export const initialDisciplinesData: Discipline[] = [
       'Diseño estratégico de piezas gráficas para redes sociales, carruseles de alto valor, creatividades publicitarias y feeds optimizados para maximizar la retención, interacción y conversiones.',
     descEn:
       'Strategic social media graphic design, high-value educational carousels, ad creatives, and optimized feeds designed to maximize audience retention, engagement, and conversion.',
-    image: '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
+    image: '/images/orbit-tablet.webp',
     slides: [
       {
         id: 'ssm-1',
-        image: '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
-        title: 'Content Creation Masterclass 2025',
-        visible: true,
-      },
-      {
-        id: 'ssm-2',
         image: '/images/orbit-tablet.webp',
         title: 'Interactive Tablet & Digital Feed',
         visible: true,
@@ -453,13 +441,13 @@ export const getCategoryFallbackImage = (category?: string): string => {
     case '3D MODELING':
       return '/images/orbit-stand.webp';
     case 'BRANDING':
-      return '/images/orbit-stand-diana.webp';
+      return '/images/brands/holy-nation.webp';
     case 'MOTION':
-      return '/images/diplomados/diplomado-after-effects-2023.webp';
+      return '/images/hero-hands.jpg';
     case 'DIGITAL ART':
-      return '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp';
+      return '/images/orbit-tablet.webp';
     default:
-      return '/images/orbit-stand-diana.webp';
+      return '/images/orbit-stand.webp';
   }
 };
 

@@ -64,7 +64,7 @@ export const projectsData: Project[] = [
     client: 'Studio Kinetic Demo',
     shortDesc: 'Edición audiovisual dinámica, animación tipográfica con distorsión cromática, ritmo sonoro y postproducción de video.',
     fullDesc: 'Proyecto de prueba representativo para la sección de Edición de Video. Catalogada exclusivamente para video y su miniatura representativa, integrando After Effects, Premiere Pro, ritmo visual y corrección de color profesional.',
-    image: '/images/diplomados/diplomado-after-effects-2023.webp',
+    image: '/images/hero-hands.jpg',
     galleryImages: [], // Regla estricta: NO galería de imágenes en Edición de Video
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     tags: ['Edición de Video', 'After Effects', 'Motion Graphics', 'Sound Sync', 'Color Grading'],
@@ -88,9 +88,8 @@ export const projectsData: Project[] = [
     client: 'Studio Kinetic Demo',
     shortDesc: 'Diseño de contenido estratégico para redes sociales, carruseles de alto valor, creatividades promocionales y feed estético.',
     fullDesc: 'Proyecto de prueba representativo para la sección de Social Media Designer. Creación de piezas gráficas optimizadas para retención y engagement en plataformas digitales con dirección de arte distintiva.',
-    image: '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
+    image: '/images/orbit-tablet.webp',
     galleryImages: [
-      '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp',
       '/images/orbit-tablet.webp'
     ],
     tags: ['Social Media', 'Contenido Digital', 'Creatividades', 'Engagement', 'Instagram'],

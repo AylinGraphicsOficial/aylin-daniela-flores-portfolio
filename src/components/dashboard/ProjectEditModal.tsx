@@ -340,7 +340,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       client: formData.client || 'Cliente',
       shortDesc: formData.shortDesc || '',
       fullDesc: formData.fullDesc || '',
-      image: formData.image || (isVideo ? '/images/diplomados/diplomado-after-effects-2023.webp' : '/images/orbit-stand.webp'),
+      image: formData.image || (isVideo ? '/images/hero-hands.jpg' : '/images/orbit-stand.webp'),
       galleryImages: finalGallery,
       logo: formData.logo || '',
       videoUrl: formData.videoUrl || '',
@@ -881,11 +881,11 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                         onError={(e) => {
                           e.currentTarget.onerror = null;
                           const fallback = isVideo
-                            ? '/images/diplomados/diplomado-after-effects-2023.webp'
+                            ? '/images/hero-hands.jpg'
                             : formData.category === 'BRANDING'
-                            ? '/images/orbit-stand-diana.webp'
+                            ? '/images/brands/holy-nation.webp'
                             : formData.category === 'DIGITAL ART' || formData.disciplineId === 'social-media'
-                            ? '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp'
+                            ? '/images/orbit-tablet.webp'
                             : '/images/orbit-stand.webp';
                           e.currentTarget.src = fallback;
                         }}

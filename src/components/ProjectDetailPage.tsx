@@ -50,9 +50,9 @@ const handleImgError = (
   // 2. Intelligent category fallback
   let catFallback = '/images/orbit-stand-diana.webp';
   if (category === '3D MODELING') catFallback = '/images/orbit-stand.webp';
-  else if (category === 'BRANDING') catFallback = '/images/orbit-stand-diana.webp';
-  else if (category === 'MOTION') catFallback = '/images/diplomados/diplomado-after-effects-2023.webp';
-  else if (category === 'DIGITAL ART') catFallback = '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp';
+  else if (category === 'BRANDING') catFallback = '/images/brands/holy-nation.webp';
+  else if (category === 'MOTION') catFallback = '/images/hero-hands.jpg';
+  else if (category === 'DIGITAL ART') catFallback = '/images/orbit-tablet.webp';
 
   if (imgEl.src !== catFallback && !imgEl.src.endsWith(catFallback)) {
     imgEl.src = catFallback;

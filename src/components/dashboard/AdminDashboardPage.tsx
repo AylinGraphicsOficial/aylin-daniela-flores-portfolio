@@ -93,7 +93,9 @@ import {
   updateStoredComment,
   deleteStoredComment,
   syncCommentsFromRemote,
+  getCategoryFallbackImage,
 } from '../../utils/portfolioStorage';
+import { getProjectPrimaryMedia } from '../../utils/mediaDetector';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
 import { DisciplineSliderEditor } from './DisciplineSliderEditor';
@@ -2479,6 +2481,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   const isVideoProj =
                     proj.disciplineId === 'edicion-video' ||
                     proj.category === 'MOTION';
+                  const media = getProjectPrimaryMedia(proj);
+                  const cardThumbnail =
+                    media.hasVideo && media.thumbnailUrl
+                      ? media.thumbnailUrl
+                      : proj.image || getCategoryFallbackImage(proj.category);
 
                   return (
                     <div
@@ -2489,7 +2496,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         {/* Image Preview */}
                         <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3">
                           <img
-                            src={proj.image}
+                            src={cardThumbnail}
                             alt={proj.title}
                             className="w-full h-full object-contain p-2"
                             onError={(e) => {
