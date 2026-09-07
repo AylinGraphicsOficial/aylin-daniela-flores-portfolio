@@ -163,6 +163,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [isUploadingDip, setIsUploadingDip] = useState(false);
   const [editingDip, setEditingDip] = useState<DiplomadoItem | null>(null);
   const [isDipModalOpen, setIsDipModalOpen] = useState(false);
+  const [isUploadingDipEdit, setIsUploadingDipEdit] = useState(false);
 
   // 3D Model Form State
   const [newModelName, setNewModelName] = useState('');
@@ -522,14 +523,28 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     setIsUploadingPhoto(true);
     const res = await uploadMediaFile(file);
     setIsUploadingPhoto(false);
     if (res.success && res.url) {
-      setAboutData((prev) => ({ ...prev, photo: res.url }));
+      const updated = { ...aboutData, photo: res.url };
+      setAboutData(updated);
+      await saveStoredAbout(updated);
+      showNotification('¡Foto de perfil actualizada y sincronizada en Hostinger MySQL!');
     } else {
       alert(res.error || 'Error al subir la fotografía.');
+    }
+  };
+
+  const handleResetPhoto = async () => {
+    if (window.confirm('¿Deseas restablecer la foto de perfil a la imagen original por defecto?')) {
+      playClickSound();
+      const updated = { ...aboutData, photo: '/images/fotografia-aylin.png' };
+      setAboutData(updated);
+      await saveStoredAbout(updated);
+      showNotification('¡Foto restablecida a la original y sincronizada en Hostinger MySQL!');
     }
   };
 
@@ -643,7 +658,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       degree: newDipDegree.trim() || 'Certificado Oficial',
       institution: newDipInstitution.trim() || '',
       src: newDipSrc.trim(),
-      year: newDipYear.trim() || '2025',
+      year: newDipYear.trim() || new Date().getFullYear().toString(),
       visible: true,
     };
     const updated = [newDip, ...diplomados];
@@ -653,6 +668,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setNewDipDegree('');
     setNewDipInstitution('');
     setNewDipSrc('');
+    setNewDipYear(new Date().getFullYear().toString());
     showNotification('¡Diplomado añadido y guardado en Hostinger MySQL!');
   };
 
@@ -676,6 +692,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   const handleDiplomadoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     setIsUploadingDip(true);
     const res = await uploadMediaFile(file);
@@ -685,6 +702,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       if (!newDipTitle) {
         setNewDipTitle(file.name.replace(/\.[^/.]+$/, ''));
       }
+    } else {
+      alert(res.error || 'Error al subir imagen del diplomado.');
+    }
+  };
+
+  const handleDiplomadoEditUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !editingDip) return;
+    setIsUploadingDipEdit(true);
+    const res = await uploadMediaFile(file);
+    setIsUploadingDipEdit(false);
+    if (res.success && res.url) {
+      setEditingDip({ ...editingDip, src: res.url });
     } else {
       alert(res.error || 'Error al subir imagen del diplomado.');
     }
@@ -2604,11 +2635,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Photo Preview & Upload */}
                   <div className="flex flex-col items-center text-center space-y-3">
-                    <div className="w-36 h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 relative group flex items-center justify-center shadow-md">
+                    <div className="w-40 h-52 rounded-2xl overflow-hidden bg-slate-900 border-2 border-slate-700 relative group flex items-center justify-center shadow-lg p-1.5">
                       <img
                         src={aboutData.photo || '/images/fotografia-aylin.png'}
-                        alt="Foto de Perfil"
-                        className="w-full h-full object-contain"
+                        alt="Foto de Perfil Profesional"
+                        className="w-full h-full object-contain filter drop-shadow-md"
                         onError={(e) => {
                           const target = e.currentTarget;
                           if (!target.src.endsWith('/images/fotografia-aylin.png')) {
@@ -2616,26 +2647,65 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           }
                         }}
                       />
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[10px] font-mono text-emerald-300 backdrop-blur-md">
+                        En vivo
+                      </div>
                     </div>
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer shadow-sm transition-colors">
-                      {isUploadingPhoto ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Upload className="w-3.5 h-3.5" />
+
+                    {/* Action buttons */}
+                    <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                      <label className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer shadow-sm transition-colors">
+                        {isUploadingPhoto ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isUploadingPhoto ? 'Subiendo...' : 'Subir Nueva Foto'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={isUploadingPhoto}
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {aboutData.photo && aboutData.photo !== '/images/fotografia-aylin.png' && (
+                        <button
+                          type="button"
+                          onClick={handleResetPhoto}
+                          className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition-colors cursor-pointer"
+                          title="Restaurar a la foto original"
+                        >
+                          <RefreshCw className="w-3 h-3 text-slate-400" />
+                          <span>Restablecer Original</span>
+                        </button>
                       )}
-                      <span>{isUploadingPhoto ? 'Subiendo...' : 'Subir Nueva Foto'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={isUploadingPhoto}
-                        onChange={handlePhotoUpload}
-                        className="hidden"
-                      />
-                    </label>
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 max-w-[200px] leading-tight">
+                      Soporta PNG, JPG, WebP. Al subirla se guarda automáticamente en Hostinger MySQL.
+                    </p>
                   </div>
 
-                  {/* Name, Title, Location */}
+                  {/* Name, Title, Location & Photo URL */}
                   <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                        URL de la Fotografía de Perfil
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutData.photo || ''}
+                        onChange={(e) => setAboutData({ ...aboutData, photo: e.target.value })}
+                        placeholder="/uploads/... o /images/fotografia-aylin.png"
+                        className={`w-full px-3.5 py-2 rounded-xl border ${bgInput} text-xs font-mono text-emerald-400`}
+                      />
+                      <span className="text-[10px] text-slate-500 mt-1 block">
+                        Ruta directa del archivo alojado en Hostinger o imagen local.
+                      </span>
+                    </div>
+
                     <div>
                       <label className="text-xs font-medium text-slate-300 block mb-1.5">
                         Nombre Completo
@@ -2963,11 +3033,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
                   <div>
                     <label className="text-[11px] font-medium text-slate-300 block mb-1">
-                      Título que se Otorga *
+                      Título que se Otorga
                     </label>
                     <input
                       type="text"
-                      required
                       value={newDipDegree}
                       onChange={(e) => setNewDipDegree(e.target.value)}
                       placeholder="Ej. Especialista en Motion Graphics"
@@ -4510,17 +4579,48 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
               <div>
                 <label className="text-xs font-medium text-slate-300 block mb-1">
-                  URL de Imagen del Certificado *
+                  Imagen del Certificado *
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={editingDip.src}
-                  onChange={(e) => setEditingDip({ ...editingDip, src: e.target.value })}
-                  placeholder="/uploads/... o /images/..."
-                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={editingDip.src}
+                    onChange={(e) => setEditingDip({ ...editingDip, src: e.target.value })}
+                    placeholder="/uploads/... o /images/..."
+                    className={`flex-1 px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
+                  />
+                  <label className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700 transition-colors shrink-0">
+                    {isUploadingDipEdit ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    )}
+                    <span>{isUploadingDipEdit ? 'Subiendo...' : 'Subir Nueva Imagen'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isUploadingDipEdit}
+                      onChange={handleDiplomadoEditUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               </div>
+
+              {editingDip.src && (
+                <div className="h-28 w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center p-2">
+                  <img
+                    src={editingDip.src}
+                    alt={editingDip.title}
+                    className="h-full w-auto object-contain"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/diplomados/diplomado-after-effects-2023.webp';
+                    }}
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/50">
                 <button
