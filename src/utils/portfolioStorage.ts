@@ -1,13 +1,16 @@
 import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink, ContactMessage, CommentItem } from '../types';
 import { projectsData, experienceData } from '../data/portfolioData';
 
-const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v3';
-const DISCIPLINES_STORAGE_KEY = 'aylin_portfolio_disciplines_v3';
-const SECTIONS_STORAGE_KEY = 'aylin_portfolio_sections_v2';
+const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v4';
+const DISCIPLINES_STORAGE_KEY = 'aylin_portfolio_disciplines_v4';
+const SECTIONS_STORAGE_KEY = 'aylin_portfolio_sections_v3';
 const MESSAGES_STORAGE_KEY = 'aylin_portfolio_messages_v1';
 const COMMENTS_STORAGE_KEY = 'aylin_portfolio_comments_v1';
 const EVENT_NAME = 'aylin_portfolio_data_changed';
 const SYNC_STATUS_KEY = 'aylin_db_sync_status';
+const PENDING_QUEUE_KEY = 'aylin_portfolio_pending_writes_v1';
+const LOCAL_META_KEY = 'aylin_portfolio_local_meta_v1';
+const SYNC_LOCK_KEY = 'aylin_portfolio_sync_lock_v1';
 
 // API Endpoints
 const API_BASE = '/api';
@@ -18,6 +21,96 @@ const MESSAGES_API = `${API_BASE}/messages.php`;
 const COMMENTS_API = `${API_BASE}/comments.php`;
 const UPLOAD_API = `${API_BASE}/upload.php`;
 const INIT_DB_API = `${API_BASE}/init_db.php`;
+
+// ----- Pending writes queue (offline-first, eventually consistent) -----
+interface PendingWrite {
+  endpoint: string;
+  method: 'POST' | 'PUT' | 'DELETE';
+  url: string;
+  body?: string;
+  attempts: number;
+  queuedAt: number;
+  lastError?: string;
+}
+
+const readPendingQueue = (): PendingWrite[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(PENDING_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writePendingQueue = (q: PendingWrite[]): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PENDING_QUEUE_KEY, JSON.stringify(q));
+  } catch {}
+};
+
+const enqueueWrite = (w: Omit<PendingWrite, 'attempts' | 'queuedAt'>): void => {
+  const q = readPendingQueue();
+  q.push({ ...w, attempts: 0, queuedAt: Date.now() });
+  writePendingQueue(q);
+};
+
+const clearQueuedWrite = (matchUrl: string, method: string): void => {
+  const q = readPendingQueue().filter(
+    (w) => !(w.method === method && w.url === matchUrl)
+  );
+  writePendingQueue(q);
+};
+
+// ----- Local meta (per-item lastLocalWriteAt to prevent remote-overwrites-local) -----
+interface LocalMeta {
+  [itemId: string]: number; // ms timestamp of last local mutation
+}
+
+const readLocalMeta = (): LocalMeta => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(LOCAL_META_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeLocalMeta = (meta: LocalMeta): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LOCAL_META_KEY, JSON.stringify(meta));
+  } catch {}
+};
+
+const markLocalMutation = (itemId: string): void => {
+  const meta = readLocalMeta();
+  meta[itemId] = Date.now();
+  writeLocalMeta(meta);
+};
+
+const shouldAcceptRemote = (itemId: string, remoteUpdatedAt: string | undefined): boolean => {
+  if (!remoteUpdatedAt) return true;
+  const localTs = readLocalMeta()[itemId] || 0;
+  const remoteTs = new Date(remoteUpdatedAt).getTime();
+  if (!Number.isFinite(remoteTs)) return true;
+  // Accept remote only if it's strictly newer than last local mutation
+  return remoteTs > localTs;
+};
+
+// ----- Deduplicated event notification -----
+let notifyScheduled = false;
+const scheduleNotifyDataChanged = (): void => {
+  if (typeof window === 'undefined') return;
+  if (notifyScheduled) return;
+  notifyScheduled = true;
+  queueMicrotask(() => {
+    notifyScheduled = false;
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+  });
+};
 
 export const initialDisciplinesData: Discipline[] = [
   {
@@ -357,12 +450,8 @@ export const initialLab3DData: Lab3DData = {
   ],
 };
 
-// Helper to notify all subscribers that data has changed
-const notifyDataChanged = () => {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(EVENT_NAME));
-  }
-};
+// Helper to notify all subscribers that data has changed (deduplicated per tick)
+const notifyDataChanged = scheduleNotifyDataChanged;
 
 export const subscribeToPortfolioChanges = (callback: () => void) => {
   if (typeof window === 'undefined') return () => {};
@@ -374,14 +463,90 @@ export const subscribeToPortfolioChanges = (callback: () => void) => {
 
 let isSyncing = false;
 
+const safeParseArray = async (res: Response): Promise<any[] | null> => {
+  try {
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) ? data : null;
+  } catch {
+    return null;
+  }
+};
+
+const safeParseObject = async (res: Response): Promise<Record<string, any> | null> => {
+  try {
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
+  } catch {
+    return null;
+  }
+};
+
+const mergeByUpdatedAt = <T extends { id: string; updatedAt?: string }>(
+  local: T[],
+  remote: T[]
+): { merged: T[]; changed: boolean } => {
+  const localById = new Map(local.map((p) => [p.id, p]));
+  const merged: T[] = [];
+  let changed = false;
+  const seenIds = new Set<string>();
+
+  for (const r of remote) {
+    seenIds.add(r.id);
+    const l = localById.get(r.id);
+    if (!l) {
+      // Brand-new remote item → take it
+      merged.push(r);
+      changed = true;
+      continue;
+    }
+    if (shouldAcceptRemote(r.id, r.updatedAt)) {
+      merged.push(r);
+      if (JSON.stringify(l) !== JSON.stringify(r)) changed = true;
+    } else {
+      // Local is newer → keep local, but mark as pending so next sync re-pushes
+      merged.push(l);
+      enqueueWrite({
+        endpoint: PROJECTS_API,
+        method: 'POST',
+        url: PROJECTS_API,
+        body: JSON.stringify(l),
+      });
+    }
+  }
+
+  // Preserve local items that remote doesn't have (deletion from remote shouldn't wipe local)
+  for (const l of local) {
+    if (!seenIds.has(l.id)) {
+      // Don't resurrect: if remote never had it but local does, keep local
+      // but also re-enqueue the save so it propagates
+      merged.push(l);
+      enqueueWrite({
+        endpoint: PROJECTS_API,
+        method: 'POST',
+        url: PROJECTS_API,
+        body: JSON.stringify(l),
+      });
+      changed = true;
+    }
+  }
+
+  return { merged, changed };
+};
+
 /**
- * Fetch latest projects, disciplines and sections from Hostinger MySQL API
+ * Fetch latest projects, disciplines and sections from Hostinger MySQL API.
+ * Uses timestamp-based merge to avoid losing recent local edits.
  */
 export const syncFromRemoteServer = async (): Promise<boolean> => {
   if (typeof window === 'undefined' || isSyncing) return false;
   isSyncing = true;
 
   try {
+    // 1. Replay any queued writes first (so the server reflects our local state)
+    await replayPendingWrites();
+
     const [projRes, discRes, secRes, msgRes, cmtRes] = await Promise.all([
       fetch(PROJECTS_API, { cache: 'no-store' }),
       fetch(DISCIPLINES_API, { cache: 'no-store' }),
@@ -392,56 +557,66 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
 
     let changed = false;
 
-    if (projRes.ok) {
-      const remoteProjects = await projRes.json();
-      if (Array.isArray(remoteProjects) && remoteProjects.length > 0) {
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(remoteProjects));
+    const remoteProjects = await safeParseArray(projRes);
+    if (remoteProjects) {
+      const localProjects = readJson<any[]>(PROJECTS_STORAGE_KEY, []);
+      const { merged, changed: c } = mergeByUpdatedAt(localProjects, remoteProjects);
+      if (c || merged.length !== localProjects.length) {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(merged));
         changed = true;
       }
     }
 
-    if (discRes.ok) {
-      const remoteDisciplines = await discRes.json();
-      if (Array.isArray(remoteDisciplines) && remoteDisciplines.length > 0) {
-        localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(remoteDisciplines));
+    const remoteDisciplines = await safeParseArray(discRes);
+    if (remoteDisciplines) {
+      const localDisciplines = readJson<any[]>(DISCIPLINES_STORAGE_KEY, []);
+      const { merged, changed: c } = mergeByUpdatedAt(localDisciplines, remoteDisciplines);
+      if (c || merged.length !== localDisciplines.length) {
+        localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(merged));
         changed = true;
       }
     }
 
-    if (secRes.ok) {
-      const remoteSections = await secRes.json();
-      if (remoteSections && typeof remoteSections === 'object') {
-        if (remoteSections.about && !remoteSections.about.photo) {
-          remoteSections.about.photo = '/images/fotografia-aylin.png';
+    const remoteSections = await safeParseObject(secRes);
+    if (remoteSections) {
+      if (remoteSections.about && !remoteSections.about.photo) {
+        remoteSections.about.photo = '/images/fotografia-aylin.png';
+      }
+      const localSections = readJson<Record<string, any>>(SECTIONS_STORAGE_KEY, {});
+      const next = { ...localSections };
+      let sectionsChanged = false;
+      for (const [k, v] of Object.entries(remoteSections)) {
+        const localItem = next[k];
+        if (shouldAcceptRemote(k, (v as any)?.updatedAt)) {
+          if (JSON.stringify(localItem) !== JSON.stringify(v)) sectionsChanged = true;
+          next[k] = v;
+        } else if (!localItem) {
+          next[k] = v;
+          sectionsChanged = true;
         }
-        localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(remoteSections));
+      }
+      if (sectionsChanged) {
+        localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(next));
         changed = true;
       }
     }
 
-    if (msgRes && msgRes.ok) {
-      const remoteMsgs = await msgRes.json();
-      if (Array.isArray(remoteMsgs)) {
-        localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(remoteMsgs));
-        changed = true;
-      }
+    const remoteMsgs = msgRes ? await safeParseArray(msgRes) : null;
+    if (remoteMsgs) {
+      localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(remoteMsgs));
+      changed = true;
     }
 
-    if (cmtRes && cmtRes.ok) {
-      const remoteCmts = await cmtRes.json();
-      if (Array.isArray(remoteCmts) && remoteCmts.length > 0) {
-        localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(remoteCmts));
-        changed = true;
-      }
+    const remoteCmts = cmtRes ? await safeParseArray(cmtRes) : null;
+    if (remoteCmts && remoteCmts.length > 0) {
+      localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(remoteCmts));
+      changed = true;
     }
 
     if (changed) {
       localStorage.setItem(
         SYNC_STATUS_KEY,
-        JSON.stringify({
-          connected: true,
-          lastSync: new Date().toISOString(),
-        })
+        JSON.stringify({ connected: true, lastSync: new Date().toISOString() })
       );
       notifyDataChanged();
     }
@@ -452,6 +627,57 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
     return false;
   } finally {
     isSyncing = false;
+  }
+};
+
+/**
+ * Replay queued writes against the remote API. Called before sync.
+ */
+const replayPendingWrites = async (): Promise<void> => {
+  const queue = readPendingQueue();
+  if (queue.length === 0) return;
+  const remaining: PendingWrite[] = [];
+  for (const w of queue) {
+    if (w.attempts >= 5) {
+      // Give up after 5 attempts — keep in queue for manual inspection
+      remaining.push(w);
+      continue;
+    }
+    try {
+      const init: RequestInit = {
+        method: w.method,
+        headers: w.body ? { 'Content-Type': 'application/json' } : undefined,
+        body: w.body,
+      };
+      const res = await fetch(w.url, init);
+      if (res.ok) {
+        // success — drop from queue
+      } else {
+        remaining.push({ ...w, attempts: w.attempts + 1, lastError: `HTTP ${res.status}` });
+      }
+    } catch (err: any) {
+      remaining.push({ ...w, attempts: w.attempts + 1, lastError: String(err?.message || err) });
+    }
+  }
+  writePendingQueue(remaining);
+};
+
+const readJson = <T>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeJson = (key: string, value: any): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.warn(`Failed to write ${key}:`, err);
   }
 };
 
@@ -484,22 +710,26 @@ if (typeof window !== 'undefined') {
     syncFromRemoteServer();
   }, 100);
 
-  // 2. React immediately when the user focuses the window or switches tabs
-  window.addEventListener('focus', () => {
-    syncFromRemoteServer();
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
+  // 2. Debounced sync on focus / tab visibility — coalesces rapid events into one sync
+  let syncDebounceHandle: ReturnType<typeof setTimeout> | null = null;
+  const scheduleSync = () => {
+    if (syncDebounceHandle !== null) clearTimeout(syncDebounceHandle);
+    syncDebounceHandle = setTimeout(() => {
+      syncDebounceHandle = null;
       syncFromRemoteServer();
-    }
+    }, 1500);
+  };
+  window.addEventListener('focus', scheduleSync);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') scheduleSync();
   });
 
-  // 3. Autonomous periodic live polling every 20 seconds
+  // 3. Autonomous periodic live polling every 60 seconds (was 20s — reduced to avoid races)
   setInterval(() => {
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       syncFromRemoteServer();
     }
-  }, 20000);
+  }, 60000);
 }
 
 // ==================== SECTIONS DATA GETTERS & SETTERS ====================
@@ -520,24 +750,34 @@ export const saveStoredSection = async (
   sectionKey: string,
   data: any
 ): Promise<void> => {
-  let allSections: Record<string, any> = {};
-  try {
-    const raw = localStorage.getItem(SECTIONS_STORAGE_KEY);
-    if (raw) allSections = JSON.parse(raw);
-  } catch {}
-
+  const allSections = readJson<Record<string, any>>(SECTIONS_STORAGE_KEY, {});
   allSections[sectionKey] = data;
-  localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(allSections));
+  writeJson(SECTIONS_STORAGE_KEY, allSections);
+  markLocalMutation(sectionKey);
   notifyDataChanged();
 
   try {
-    await fetch(`${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`, {
+    const res = await fetch(`${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    if (!res.ok) {
+      enqueueWrite({
+        endpoint: SETTINGS_API,
+        method: 'POST',
+        url: `${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`,
+        body: JSON.stringify(data),
+      });
+    }
   } catch (err) {
     console.warn(`Could not sync section ${sectionKey} with remote API:`, err);
+    enqueueWrite({
+      endpoint: SETTINGS_API,
+      method: 'POST',
+      url: `${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`,
+      body: JSON.stringify(data),
+    });
   }
 };
 
@@ -967,22 +1207,30 @@ export const uploadMediaFile = async (file: File): Promise<UploadResult> => {
 
 // ==================== PROJECTS CRUD ====================
 
+/**
+ * Read projects from local cache. NEVER seeds defaults — empty cache returns []
+ * (remote sync will populate it). This is critical to prevent stale hard-coded
+ * projects from replacing real ones uploaded via the dashboard.
+ */
 export const getStoredProjects = (): Project[] => {
-  if (typeof window === 'undefined') return projectsData;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(PROJECTS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
-      return projectsData;
-    }
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : projectsData;
+    return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     console.error('Error reading stored projects:', err);
-    return projectsData;
+    return [];
   }
 };
 
+/**
+ * Resolve which projects belong to a discipline using ONLY explicit links:
+ *  1. project.disciplineId === disciplineId
+ *  2. discipline.projectIds includes project.id
+ * No category-based fallbacks — categories are decorative, never structural.
+ */
 export const getProjectsForDiscipline = (
   disciplineId: string,
   allProjects?: Project[],
@@ -993,18 +1241,10 @@ export const getProjectsForDiscipline = (
   const discipline = disciplines.find((d) => d.id === disciplineId);
 
   return projects.filter((p) => {
-    // 1. Explicit disciplineId match on project
+    // 1. Explicit disciplineId on project
     if (p.disciplineId && p.disciplineId === disciplineId) return true;
-
     // 2. Explicit projectIds list on discipline
-    if (discipline && discipline.projectIds && discipline.projectIds.includes(p.id)) return true;
-
-    // 3. Fallback matching based on category
-    if (disciplineId === 'modelado-3d' && p.category === '3D MODELING') return true;
-    if (disciplineId === 'branding' && p.category === 'BRANDING') return true;
-    if (disciplineId === 'edicion-video' && (p.category === 'MOTION' || p.category === 'DIGITAL ART')) return true;
-    if (disciplineId === 'social-media' && (p.category === 'BRANDING' || p.category === 'DIGITAL ART')) return true;
-
+    if (discipline && Array.isArray(discipline.projectIds) && discipline.projectIds.includes(p.id)) return true;
     return false;
   });
 };
@@ -1025,21 +1265,26 @@ export const toggleProjectInDiscipline = async (
   } else {
     nextIds = [...currentIds, projectId];
   }
-  const updatedDisc = { ...disc, projectIds: nextIds };
+  const updatedDisc: Discipline = { ...disc, projectIds: nextIds, updatedAt: new Date().toISOString() };
   await saveDiscipline(updatedDisc);
 };
 
+/**
+ * Save a project: idempotent local write + verified remote POST.
+ * On network failure, write is queued for replay on next sync.
+ */
 export const saveProject = async (project: Project): Promise<boolean> => {
   const current = getStoredProjects();
   const index = current.findIndex((p) => p.id === project.id);
-  let updated: Project[];
+  const now = new Date().toISOString();
   const finalProject: Project = {
     ...project,
     id: project.id || `proj-${Date.now()}`,
-    updatedAt: new Date().toISOString(),
-    createdAt: project.createdAt || new Date().toISOString(),
+    updatedAt: now,
+    createdAt: project.createdAt || now,
   };
 
+  let updated: Project[];
   if (index >= 0) {
     updated = [...current];
     updated[index] = finalProject;
@@ -1047,7 +1292,8 @@ export const saveProject = async (project: Project): Promise<boolean> => {
     updated = [finalProject, ...current];
   }
 
-  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updated));
+  writeJson(PROJECTS_STORAGE_KEY, updated);
+  markLocalMutation(finalProject.id);
   notifyDataChanged();
 
   try {
@@ -1058,11 +1304,13 @@ export const saveProject = async (project: Project): Promise<boolean> => {
     });
     if (!res.ok) {
       console.warn('Remote API returned non-OK status on saveProject:', res.status);
+      enqueueWrite({ endpoint: PROJECTS_API, method: 'POST', url: PROJECTS_API, body: JSON.stringify(finalProject) });
       return false;
     }
     return true;
   } catch (err) {
     console.warn('Could not sync project with remote API:', err);
+    enqueueWrite({ endpoint: PROJECTS_API, method: 'POST', url: PROJECTS_API, body: JSON.stringify(finalProject) });
     return false;
   }
 };
@@ -1070,16 +1318,29 @@ export const saveProject = async (project: Project): Promise<boolean> => {
 export const deleteProject = async (projectId: string): Promise<void> => {
   const current = getStoredProjects();
   const updated = current.filter((p) => p.id !== projectId);
-  
-  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updated));
+
+  writeJson(PROJECTS_STORAGE_KEY, updated);
+  markLocalMutation(projectId);
   notifyDataChanged();
 
   try {
-    await fetch(`${PROJECTS_API}?action=delete&id=${encodeURIComponent(projectId)}`, {
+    const res = await fetch(`${PROJECTS_API}?action=delete&id=${encodeURIComponent(projectId)}`, {
       method: 'POST',
     });
+    if (!res.ok) {
+      enqueueWrite({
+        endpoint: PROJECTS_API,
+        method: 'POST',
+        url: `${PROJECTS_API}?action=delete&id=${encodeURIComponent(projectId)}`,
+      });
+    }
   } catch (err) {
     console.warn('Could not sync delete with remote API:', err);
+    enqueueWrite({
+      endpoint: PROJECTS_API,
+      method: 'POST',
+      url: `${PROJECTS_API}?action=delete&id=${encodeURIComponent(projectId)}`,
+    });
   }
 };
 
@@ -1089,93 +1350,155 @@ export const toggleProjectFeatured = async (projectId: string): Promise<boolean>
   if (!project) return false;
 
   const nextFeatured = !project.featured;
-  project.featured = nextFeatured;
-  project.updatedAt = new Date().toISOString();
-
-  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(current));
+  const updated: Project = {
+    ...project,
+    featured: nextFeatured,
+    updatedAt: new Date().toISOString(),
+  };
+  const next = current.map((p) => (p.id === projectId ? updated : p));
+  writeJson(PROJECTS_STORAGE_KEY, next);
+  markLocalMutation(projectId);
   notifyDataChanged();
 
   try {
-    await fetch(`${PROJECTS_API}?action=toggle_featured&id=${encodeURIComponent(projectId)}`, {
+    const res = await fetch(`${PROJECTS_API}?action=toggle_featured&id=${encodeURIComponent(projectId)}`, {
       method: 'POST',
     });
+    if (!res.ok) {
+      enqueueWrite({
+        endpoint: PROJECTS_API,
+        method: 'POST',
+        url: `${PROJECTS_API}?action=toggle_featured&id=${encodeURIComponent(projectId)}`,
+        body: JSON.stringify(updated),
+      });
+    }
   } catch (err) {
     console.warn('Could not sync toggle featured with remote API:', err);
+    enqueueWrite({
+      endpoint: PROJECTS_API,
+      method: 'POST',
+      url: `${PROJECTS_API}?action=toggle_featured&id=${encodeURIComponent(projectId)}`,
+      body: JSON.stringify(updated),
+    });
   }
 
   return nextFeatured;
 };
 
-export const saveAllProjects = async (projects: Project[]): Promise<void> => {
-  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+/**
+ * Bulk save: merges incoming projects into existing list (upsert by id),
+ * preserving items not in the incoming list. Avoids wiping items from
+ * other devices.
+ */
+export const saveAllProjects = async (incoming: Project[]): Promise<void> => {
+  const current = getStoredProjects();
+  const byId = new Map<string, Project>(current.map((p) => [p.id, p]));
+  for (const p of incoming) {
+    byId.set(p.id, { ...p, updatedAt: p.updatedAt || new Date().toISOString() });
+  }
+  const merged = Array.from(byId.values());
+  writeJson(PROJECTS_STORAGE_KEY, merged);
+  incoming.forEach((p) => markLocalMutation(p.id));
   notifyDataChanged();
 
   try {
-    await fetch(PROJECTS_API, {
+    const res = await fetch(PROJECTS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projects }),
+      body: JSON.stringify({ projects: incoming }),
     });
+    if (!res.ok) {
+      enqueueWrite({
+        endpoint: PROJECTS_API,
+        method: 'POST',
+        url: PROJECTS_API,
+        body: JSON.stringify({ projects: incoming }),
+      });
+    }
   } catch (err) {
     console.warn('Could not sync all projects with remote API:', err);
+    enqueueWrite({
+      endpoint: PROJECTS_API,
+      method: 'POST',
+      url: PROJECTS_API,
+      body: JSON.stringify({ projects: incoming }),
+    });
   }
 };
 
 // ==================== DISCIPLINES CRUD ====================
 
+/**
+ * Read disciplines from local cache. NEVER seeds defaults — empty cache returns [].
+ */
 export const getStoredDisciplines = (): Discipline[] => {
-  if (typeof window === 'undefined') return initialDisciplinesData;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(DISCIPLINES_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(initialDisciplinesData));
-      return initialDisciplinesData;
-    }
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialDisciplinesData;
+    return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     console.error('Error reading stored disciplines:', err);
-    return initialDisciplinesData;
+    return [];
   }
 };
 
 export const saveDiscipline = async (discipline: Discipline): Promise<void> => {
   const current = getStoredDisciplines();
   const index = current.findIndex((d) => d.id === discipline.id);
+  const now = new Date().toISOString();
+  const final: Discipline = { ...discipline, updatedAt: discipline.updatedAt || now };
   let updated: Discipline[];
   if (index >= 0) {
     updated = [...current];
-    updated[index] = discipline;
+    updated[index] = final;
   } else {
-    updated = [...current, discipline];
+    updated = [...current, final];
   }
 
-  localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(updated));
+  writeJson(DISCIPLINES_STORAGE_KEY, updated);
+  markLocalMutation(final.id);
   notifyDataChanged();
 
   try {
-    await fetch(DISCIPLINES_API, {
+    const res = await fetch(DISCIPLINES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(discipline),
+      body: JSON.stringify(final),
     });
+    if (!res.ok) {
+      enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify(final) });
+    }
   } catch (err) {
     console.warn('Could not sync discipline with remote API:', err);
+    enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify(final) });
   }
 };
 
-export const saveAllDisciplines = async (disciplines: Discipline[]): Promise<void> => {
-  localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(disciplines));
+export const saveAllDisciplines = async (incoming: Discipline[]): Promise<void> => {
+  const current = getStoredDisciplines();
+  const byId = new Map<string, Discipline>(current.map((d) => [d.id, d]));
+  for (const d of incoming) {
+    byId.set(d.id, { ...d, updatedAt: d.updatedAt || new Date().toISOString() });
+  }
+  const merged = Array.from(byId.values());
+  writeJson(DISCIPLINES_STORAGE_KEY, merged);
+  incoming.forEach((d) => markLocalMutation(d.id));
   notifyDataChanged();
 
   try {
-    await fetch(DISCIPLINES_API, {
+    const res = await fetch(DISCIPLINES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ disciplines }),
+      body: JSON.stringify({ disciplines: incoming }),
     });
+    if (!res.ok) {
+      enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify({ disciplines: incoming }) });
+    }
   } catch (err) {
     console.warn('Could not sync disciplines with remote API:', err);
+    enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify({ disciplines: incoming }) });
   }
 };
 
@@ -1312,8 +1635,8 @@ export const importPortfolioJSON = async (jsonString: string): Promise<boolean> 
 };
 
 export const resetPortfolioToDefaults = async (): Promise<void> => {
-  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
-  localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(initialDisciplinesData));
+  writeJson(PROJECTS_STORAGE_KEY, projectsData);
+  writeJson(DISCIPLINES_STORAGE_KEY, initialDisciplinesData);
   saveStoredAbout(initialAboutData);
   saveStoredExperience(experienceData);
   saveStoredDiplomados(initialDiplomadosData);

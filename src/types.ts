@@ -56,6 +56,7 @@ export interface Discipline {
   slides: DisciplineSlide[];
   targetProjectId: string;
   projectIds?: string[]; // Lista de IDs de proyectos asignados a esta disciplina
+  updatedAt?: string;
   visible: boolean;
   order: number;
 }
