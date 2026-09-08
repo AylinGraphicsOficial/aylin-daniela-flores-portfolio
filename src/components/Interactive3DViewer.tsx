@@ -21,6 +21,7 @@ import { playClickSound, playHoverSound } from '../utils/audio';
 import { Language } from '../types';
 import { translations } from '../data/portfolioData';
 import { SpecularButton } from './SpecularButton';
+import { getLabModelIcon } from '../utils/labIcons';
 import {
   getStoredLab3D,
   subscribeToPortfolioChanges,
@@ -568,8 +569,10 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
               '#38BDF8', // Sky Blue
               '#F97316', // Flame Orange
             ];
-            const color = modelColors[index % modelColors.length];
+            const color = item.iconColor || modelColors[index % modelColors.length];
             const numStr = index < 9 ? `0${index + 1}` : `${index + 1}`;
+            const ModelIcon = getLabModelIcon(item.icon);
+            const badgeText = item.badge || (item.type === 'glb' ? 'GLB' : '');
 
             return (
               <SpecularButton
@@ -585,10 +588,11 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                 title={`${numStr}. ${item.name} (${item.type.toUpperCase()})`}
                 aria-label={`Modelo ${numStr}: ${item.name}`}
               >
-                <Box
+                <ModelIcon
                   className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${
-                    isSelected ? 'text-black' : 'text-[#76FF03]'
+                    isSelected ? 'text-black' : ''
                   }`}
+                  style={isSelected ? undefined : { color }}
                 />
 
                 {/* Circular color badge with number */}
@@ -613,13 +617,13 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                   {item.name}
                 </span>
 
-                {item.type === 'glb' && (
+                {badgeText && (
                   <span
                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold ${
                       isSelected ? 'bg-black/25 text-black' : 'bg-white/10 text-gray-300'
                     }`}
                   >
-                    GLB
+                    {badgeText}
                   </span>
                 )}
               </SpecularButton>

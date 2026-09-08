@@ -187,6 +187,9 @@ export interface Lab3DModelItem {
   proceduralKey?: string;
   stats?: string;
   visible?: boolean;
+  icon?: string;
+  iconColor?: string;
+  badge?: string;
 }
 
 export interface Lab3DData {
@@ -292,14 +295,20 @@ export const initialLab3DData: Lab3DData = {
       type: 'glb',
       stats: 'Modelado GLB • Geometría & Texturas PBR',
       visible: true,
+      icon: 'castle',
+      iconColor: '#76FF03',
+      badge: 'GLB',
     },
     {
       id: 'm3d-1787986860201',
-      name: 'CIPITIO ENCASTRE VERSION pagina web2',
+      name: 'Cipitio Encastre 3D',
       url: '/models/cipitio-encastre.glb',
       type: 'glb',
       stats: 'Modelado 3D GLB • Geometría & Shaders PBR',
       visible: true,
+      icon: 'ghost',
+      iconColor: '#00E5FF',
+      badge: 'GLB',
     },
     {
       id: 'm3d-1787986928956',
@@ -308,22 +317,31 @@ export const initialLab3DData: Lab3DData = {
       type: 'glb',
       stats: 'Modelado 3D GLB • Geometría & Shaders PBR',
       visible: true,
+      icon: 'bike',
+      iconColor: '#FF007F',
+      badge: 'GLB',
     },
     {
       id: 'm3d-1787990325278',
-      name: 'gatito animado pagina web',
+      name: 'Gatito Animado 3D',
       url: '/models/gatito-animado.glb',
       type: 'glb',
       stats: 'Modelado 3D GLB • Geometría & Shaders PBR',
       visible: true,
+      icon: 'cat',
+      iconColor: '#FFB700',
+      badge: 'GLB',
     },
     {
       id: 'm3d-1787991602970',
-      name: 'dianuraurio para pepakura',
+      name: 'Dinosaurio Pepakura',
       url: '/models/dinosaurio-pepakura.glb',
       type: 'glb',
       stats: 'Modelado 3D GLB • Geometría & Shaders PBR',
       visible: true,
+      icon: 'turtle',
+      iconColor: '#A855F7',
+      badge: 'GLB',
     },
     {
       id: 'm3d-1788387556598',
@@ -332,6 +350,9 @@ export const initialLab3DData: Lab3DData = {
       type: 'glb',
       stats: 'Modelado 3D GLB • Geometría & Shaders PBR',
       visible: true,
+      icon: 'bot',
+      iconColor: '#38B000',
+      badge: 'GLB',
     },
   ],
 };

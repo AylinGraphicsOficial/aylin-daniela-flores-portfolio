@@ -98,6 +98,7 @@ import {
 import { getProjectPrimaryMedia } from '../../utils/mediaDetector';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
+import { LAB_MODEL_ICONS, getLabModelIcon } from '../../utils/labIcons';
 import { DisciplineSliderEditor } from './DisciplineSliderEditor';
 import { SocialIcon } from '../SocialIcon';
 
@@ -171,7 +172,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [newModelName, setNewModelName] = useState('');
   const [newModelUrl, setNewModelUrl] = useState('');
   const [newModelStats, setNewModelStats] = useState('');
+  const [newModelIcon, setNewModelIcon] = useState('box');
+  const [newModelColor, setNewModelColor] = useState('#76FF03');
   const [isUploadingModel, setIsUploadingModel] = useState(false);
+  const [editingModelId, setEditingModelId] = useState<string | null>(null);
 
   // New Experience Form State & Drag-and-Drop
   const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
@@ -769,6 +773,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       type: 'glb',
       stats: newModelStats.trim() || 'Modelado 3D GLB • Geometría & Shaders PBR',
       visible: true,
+      icon: newModelIcon,
+      iconColor: newModelColor,
+      badge: 'GLB',
     };
     const updatedModels = [...(lab3dData.models || []), newModel];
     const updatedLabData: Lab3DData = { ...lab3dData, models: updatedModels };
@@ -777,7 +784,28 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setNewModelName('');
     setNewModelUrl('');
     setNewModelStats('');
+    setNewModelIcon('box');
+    setNewModelColor('#76FF03');
     showNotification('¡Modelo 3D añadido y guardado en Hostinger MySQL!');
+  };
+
+  const handleStartEditModel = (model: Lab3DModelItem) => {
+    setEditingModelId(model.id);
+  };
+
+  const handleCancelEditModel = () => {
+    setEditingModelId(null);
+  };
+
+  const handleSaveEditModel = async (model: Lab3DModelItem, patch: Partial<Lab3DModelItem>) => {
+    const updatedModels = (lab3dData.models || []).map((m) =>
+      m.id === model.id ? { ...m, ...patch } : m
+    );
+    const updatedLabData: Lab3DData = { ...lab3dData, models: updatedModels };
+    setLab3dData(updatedLabData);
+    await saveStoredLab3D(updatedLabData);
+    setEditingModelId(null);
+    showNotification('¡Modelo 3D actualizado y guardado en Hostinger MySQL!');
   };
 
   const handleDeleteModel = async (id: string) => {
@@ -3286,6 +3314,38 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     />
                   </div>
 
+                  <div className="w-full sm:w-48 self-end">
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Icono de Identificación
+                    </label>
+                    <select
+                      value={newModelIcon}
+                      onChange={(e) => setNewModelIcon(e.target.value)}
+                      className={`w-full px-3 py-2.5 rounded-xl border ${bgInput} text-xs cursor-pointer`}
+                    >
+                      {LAB_MODEL_ICONS.map((opt) => (
+                        <option key={opt.key} value={opt.key}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="w-full sm:w-36 self-end">
+                    <label className="text-xs font-medium text-slate-300 block mb-1">
+                      Color del Badge
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={newModelColor}
+                        onChange={(e) => setNewModelColor(e.target.value)}
+                        className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border border-slate-700"
+                      />
+                      <span className="text-xs font-mono text-slate-400">{newModelColor}</span>
+                    </div>
+                  </div>
+
                   <div className="self-end">
                     <button
                       type="submit"
@@ -3313,6 +3373,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   {(lab3dData.models || []).map((model) => {
                     const isDefault = lab3dData.defaultModelId === model.id;
                     const isGlb = model.type === 'glb';
+                    const isEditing = editingModelId === model.id;
+                    const ModelIcon = getLabModelIcon(model.icon);
+                    const modelColor = model.iconColor || '#76FF03';
 
                     return (
                       <div
@@ -3333,40 +3396,151 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             )}
                           </div>
 
-                          <h4 className="text-sm font-bold text-white tracking-tight">
-                            {model.name}
-                          </h4>
+                          {isEditing ? (
+                            <div className="space-y-2.5">
+                              <div>
+                                <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                                  Nombre visible en el visor
+                                </label>
+                                <input
+                                  type="text"
+                                  defaultValue={model.name}
+                                  onChange={(e) => (model.name = e.target.value)}
+                                  className={`w-full px-3 py-2 rounded-lg border ${bgInput} text-xs font-semibold`}
+                                />
+                              </div>
 
-                          <p className="text-[11px] text-slate-400 font-mono truncate">
-                            {model.url ? model.url : 'Geometría generativa WebGL'}
-                          </p>
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
+                                <div>
+                                  <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                                    Icono
+                                  </label>
+                                  <select
+                                    defaultValue={model.icon || 'box'}
+                                    onChange={(e) => (model.icon = e.target.value)}
+                                    className={`w-full px-2 py-2 rounded-lg border ${bgInput} text-xs cursor-pointer`}
+                                  >
+                                    {LAB_MODEL_ICONS.map((opt) => (
+                                      <option key={opt.key} value={opt.key}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                                    Color
+                                  </label>
+                                  <input
+                                    type="color"
+                                    defaultValue={model.iconColor || '#76FF03'}
+                                    onChange={(e) => (model.iconColor = e.target.value)}
+                                    className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border border-slate-700"
+                                  />
+                                </div>
+                              </div>
 
-                          <p className="text-[11px] text-slate-300">
-                            {model.stats || 'Geometría tridimensional interactiva'}
-                          </p>
+                              <div>
+                                <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                                  Texto del Badge (ej. GLB)
+                                </label>
+                                <input
+                                  type="text"
+                                  defaultValue={model.badge || (isGlb ? 'GLB' : '')}
+                                  onChange={(e) => (model.badge = e.target.value)}
+                                  className={`w-full px-3 py-2 rounded-lg border ${bgInput} text-xs font-mono uppercase`}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border"
+                                  style={{
+                                    backgroundColor: `${modelColor}18`,
+                                    borderColor: `${modelColor}55`,
+                                  }}
+                                >
+                                  <ModelIcon className="w-5 h-5" style={{ color: modelColor }} />
+                                </span>
+                                <h4 className="text-sm font-bold text-white tracking-tight leading-snug">
+                                  {model.name}
+                                </h4>
+                              </div>
+
+                              {model.badge && (
+                                <span className="inline-block text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-gray-300 uppercase">
+                                  {model.badge}
+                                </span>
+                              )}
+
+                              <p className="text-[11px] text-slate-400 font-mono truncate">
+                                {model.url ? model.url : 'Geometría generativa WebGL'}
+                              </p>
+
+                              <p className="text-[11px] text-slate-300">
+                                {model.stats || 'Geometría tridimensional interactiva'}
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-                          <button
-                            type="button"
-                            onClick={() => handleSetDefaultModel(model.id)}
-                            className={`text-xs font-semibold cursor-pointer ${
-                              isDefault
-                                ? 'text-emerald-400 font-bold'
-                                : 'text-slate-400 hover:text-white'
-                            }`}
-                          >
-                            {isDefault ? '✓ Por Defecto' : 'Fijar por Defecto'}
-                          </button>
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEditModel(model, {
+                                  name: model.name,
+                                  icon: model.icon,
+                                  iconColor: model.iconColor,
+                                  badge: model.badge,
+                                })}
+                                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCancelEditModel}
+                                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 cursor-pointer"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetDefaultModel(model.id)}
+                              className={`text-xs font-semibold cursor-pointer ${
+                                isDefault
+                                  ? 'text-emerald-400 font-bold'
+                                  : 'text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              {isDefault ? '✓ Por Defecto' : 'Fijar por Defecto'}
+                            </button>
+                          )}
 
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteModel(model.id)}
-                            className="p-1 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer"
-                            title="Eliminar Modelo"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditModel(model)}
+                              className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded cursor-pointer transition-colors"
+                              title="Editar Texto e Icono"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteModel(model.id)}
+                              className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                              title="Eliminar Modelo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
