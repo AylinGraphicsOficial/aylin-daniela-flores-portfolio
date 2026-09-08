@@ -246,7 +246,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
           </div>
 
           {/* 7 Software Arcade Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-3.5 max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-3.5 max-w-7xl mx-auto">
             {softwaresData.map((software) => {
               const isHovered = hoveredSoftwareId === software.id;
               return (
@@ -258,7 +258,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                   }}
                   onMouseLeave={() => setHoveredSoftwareId(null)}
                   onClick={playClickSound}
-                  className={`arcade-card group relative p-3.5 md:p-4 rounded-2xl flex flex-col items-center justify-between text-center transition-all duration-300 cursor-pointer select-none ${
+                  className={`arcade-card group relative p-3.5 md:p-4 rounded-lg flex flex-col items-center justify-between text-center transition-all duration-300 cursor-pointer select-none min-h-[132px] ${
                     isHovered
                       ? 'border-[#76FF03] shadow-[0_0_25px_rgba(118,255,3,0.35)] -translate-y-2 scale-[1.03] z-20'
                       : 'border-white/10 hover:border-white/30'
@@ -269,7 +269,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                       : 'linear-gradient(180deg, rgba(8, 18, 8, 0.8) 0%, rgba(5, 11, 5, 0.9) 100%)',
                   }}
                 >
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center p-2.5 mb-2 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-black/50 border border-white/10 flex items-center justify-center p-2.5 mb-2 group-hover:scale-110 transition-transform">
                     <img
                       src={software.logo}
                       alt={software.name}
@@ -277,11 +277,11 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                     />
                   </div>
 
-                  <div className="space-y-0.5 mb-2">
-                    <h4 className="text-xs md:text-sm font-black text-white group-hover:text-[#76FF03] transition-colors leading-tight truncate max-w-full">
+                  <div className="space-y-1 mb-2 w-full">
+                    <h4 className="text-xs md:text-sm font-black text-white group-hover:text-[#76FF03] transition-colors leading-tight">
                       {software.shortName}
                     </h4>
-                    <span className="text-[10px] font-mono text-gray-400 block truncate">
+                    <span className="text-[10px] font-mono text-gray-400 block leading-relaxed">
                       {lang === 'es' ? software.roleEs : software.roleEn}
                     </span>
                   </div>
