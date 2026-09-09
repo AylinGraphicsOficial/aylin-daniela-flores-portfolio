@@ -66,7 +66,7 @@ if ($method === 'GET') {
         sendJsonResponse($row);
     }
 
-    $stmt = $pdo->query("SELECT * FROM `projects` ORDER BY `display_order` ASC, `createdAt` DESC");
+    $stmt = $pdo->query("SELECT * FROM `projects` WHERE `id` NOT IN ('modelado-3d', 'branding', 'edicion-video', 'social-media') ORDER BY `display_order` ASC, `createdAt` DESC");
     $rows = $stmt->fetchAll();
 
     $projects = array_map(function($row) {
@@ -181,10 +181,27 @@ if ($method === 'POST' || $method === 'PUT') {
 
     try {
         $stmtUpsert = $pdo->prepare($upsertSql);
+        $reservedDisciplineIds = ['modelado-3d', 'branding', 'edicion-video', 'social-media'];
 
         foreach ($projectsList as $index => $item) {
-            $projId = !empty($item['id']) ? $item['id'] : 'proj-' . time() . '-' . $index;
-            $title = $item['title'] ?? 'Nuevo Proyecto';
+            $projId = !empty($item['id']) ? trim($item['id']) : '';
+
+            // STRICT PROTECTION: If an item is a discipline ID, purge it from projects and do NOT insert!
+            if (in_array($projId, $reservedDisciplineIds, true)) {
+                try {
+                    $pdo->prepare("DELETE FROM `projects` WHERE `id` = :id")->execute([':id' => $projId]);
+                } catch (Exception $e) {}
+                continue;
+            }
+
+            if (empty($projId)) {
+                $projId = 'proj-' . time() . '-' . $index;
+            }
+
+            $title = trim($item['title'] ?? '');
+            if ($title === '') {
+                $title = 'Nuevo Proyecto';
+            }
             $category = $item['category'] ?? '3D MODELING';
             $year = $item['year'] ?? date('Y');
             $client = $item['client'] ?? '';

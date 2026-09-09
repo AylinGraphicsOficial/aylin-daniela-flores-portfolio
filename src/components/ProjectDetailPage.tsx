@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers, ExternalLink, Play, Film } from 'lucide-react';
 import { Project, Language } from '../types';
-import { projectsData } from '../data/portfolioData';
+import { getStoredProjects } from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 import { ProjectImageZoomModal } from './ProjectImageZoomModal';
@@ -15,48 +15,37 @@ interface ProjectDetailPageProps {
   onOpenProjectPlanner: () => void;
 }
 
-const fallbackImageMap: Record<string, string> = {
-  imagen_naipes: '/images/projects/la-rebusca/imagen_naipes@300x.webp',
-  naipe1: '/images/projects/la-rebusca/naipe1@300x.webp',
-  naipe2: '/images/projects/la-rebusca/naipe2@300x.webp',
-  naipe3: '/images/projects/la-rebusca/naipe3@300x.webp',
-  naipe4: '/images/projects/la-rebusca/naipe4@300x.webp',
-  packagin_1: '/images/projects/la-rebusca/packagin 1@300x.webp',
-  packagin2: '/images/projects/la-rebusca/packagin2@300x.webp',
-  post_losrebusca: '/images/projects/la-rebusca/post_losrebusca@300x.webp',
-  de_lado: '/images/orbit-stand-diana.webp',
-  lado_2: '/images/orbit-stand.webp',
-  aperitivos: '/images/orbit-stand-diana.webp',
-  zona_de_juego: '/images/orbit-stand.webp',
-  photo: '/images/orbit-stand-diana.webp',
-  diana: '/images/orbit-stand-diana.webp',
-  stand: '/images/orbit-stand.webp',
-};
-
 const handleImgError = (
   e: React.SyntheticEvent<HTMLImageElement, Event>,
   originalUrl: string,
-  category?: string
+  _category?: string
 ) => {
   const imgEl = e.currentTarget;
-  // 1. Try keyword matching
-  for (const [key, fallbackUrl] of Object.entries(fallbackImageMap)) {
-    if (originalUrl.toLowerCase().includes(key.toLowerCase()) && !imgEl.src.endsWith(fallbackUrl) && imgEl.src !== fallbackUrl) {
-      imgEl.src = fallbackUrl;
-      return;
+
+  // 1. If it's a legacy la-rebusca relative card asset, map to the production location:
+  if (originalUrl.includes('la-rebusca') || originalUrl.includes('naipe') || originalUrl.includes('packagin')) {
+    const rebuscaMap: Record<string, string> = {
+      imagen_naipes: '/images/projects/la-rebusca/imagen_naipes@300x.webp',
+      naipe1: '/images/projects/la-rebusca/naipe1@300x.webp',
+      naipe2: '/images/projects/la-rebusca/naipe2@300x.webp',
+      naipe3: '/images/projects/la-rebusca/naipe3@300x.webp',
+      naipe4: '/images/projects/la-rebusca/naipe4@300x.webp',
+      packagin_1: '/images/projects/la-rebusca/packagin 1@300x.webp',
+      packagin2: '/images/projects/la-rebusca/packagin2@300x.webp',
+      post_losrebusca: '/images/projects/la-rebusca/post_losrebusca@300x.webp',
+    };
+    for (const [key, fallbackUrl] of Object.entries(rebuscaMap)) {
+      if (originalUrl.toLowerCase().includes(key.toLowerCase()) && !imgEl.src.endsWith(fallbackUrl) && imgEl.src !== fallbackUrl) {
+        imgEl.src = fallbackUrl;
+        return;
+      }
     }
   }
 
-  // 2. Intelligent category fallback
-  let catFallback = '/images/orbit-stand-diana.webp';
-  if (category === '3D MODELING') catFallback = '/images/orbit-stand.webp';
-  else if (category === 'BRANDING') catFallback = '/images/brands/holy-nation.webp';
-  else if (category === 'MOTION') catFallback = '/images/hero-hands.jpg';
-  else if (category === 'DIGITAL ART') catFallback = '/images/orbit-tablet.webp';
-
-  if (imgEl.src !== catFallback && !imgEl.src.endsWith(catFallback)) {
-    imgEl.src = catFallback;
-  }
+  // 2. Prevent infinite loop and avoid swapping user custom images with diana/orbit-stand!
+  if (imgEl.dataset.hasFailed) return;
+  imgEl.dataset.hasFailed = 'true';
+  imgEl.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" fill="%23050B05"><rect width="800" height="600" fill="%230a140a"/><text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="%2376FF03" font-family="monospace" font-size="18" letter-spacing="2">MEDIA NO DISPONIBLE</text><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="%23888888" font-family="sans-serif" font-size="13">No se pudo cargar la imagen original</text></svg>';
 };
 
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
@@ -76,28 +65,34 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
     setActiveMediaTab(primaryMedia.hasVideo ? 'video' : 'render');
   }, [project.id, primaryMedia.hasVideo]);
 
-  const currentIndex = projectsData.findIndex((p) => p.id === project.id);
+  // Read dynamically from stored projects so newly added dashboard projects navigate correctly
+  const allProjects = useMemo(() => {
+    const list = getStoredProjects();
+    return list.length > 0 ? list : [project];
+  }, [project]);
+
+  const currentIndex = allProjects.findIndex((p) => p.id === project.id);
   const prevProject =
     currentIndex > 0
-      ? projectsData[currentIndex - 1]
-      : projectsData[projectsData.length - 1];
+      ? allProjects[currentIndex - 1]
+      : allProjects[allProjects.length - 1] || project;
   const nextProject =
-    currentIndex < projectsData.length - 1
-      ? projectsData[currentIndex + 1]
-      : projectsData[0];
+    currentIndex >= 0 && currentIndex < allProjects.length - 1
+      ? allProjects[currentIndex + 1]
+      : allProjects[0] || project;
 
   // Build unified high-res image list for zoom viewer
   const allImages = useMemo(() => {
     const list: string[] = [];
-    if (project.image) list.push(project.image);
+    if (project.image && project.image.trim() !== '') list.push(project.image);
     if (project.galleryImages && project.galleryImages.length > 0) {
       project.galleryImages.forEach((img) => {
-        if (img && !list.includes(img)) {
+        if (img && img.trim() !== '' && !list.includes(img)) {
           list.push(img);
         }
       });
     }
-    return list.length > 0 ? list : [project.image];
+    return list.length > 0 ? list : (project.image ? [project.image] : []);
   }, [project.image, project.galleryImages]);
 
   const handleOpenZoom = (targetImgUrl: string) => {

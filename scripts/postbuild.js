@@ -26,11 +26,16 @@ if (fs.existsSync('dist/assets')) {
   console.log(`✔ Copied ${distAssets.length} assets to assets/ directory`);
 }
 
-// 3. Ensure .htaccess is in dist/ and in root repository
+// 3. Ensure .htaccess and .user.ini are in dist/ and in root repository
 if (fs.existsSync('public/.htaccess')) {
   fs.copyFileSync('public/.htaccess', 'dist/.htaccess');
   fs.copyFileSync('public/.htaccess', '.htaccess');
   console.log('✔ Copied public/.htaccess to dist/.htaccess and root .htaccess');
+}
+if (fs.existsSync('public/.user.ini')) {
+  fs.copyFileSync('public/.user.ini', 'dist/.user.ini');
+  fs.copyFileSync('public/.user.ini', '.user.ini');
+  console.log('✔ Copied public/.user.ini to dist/.user.ini and root .user.ini');
 }
 
 console.log('✅ Postbuild completed successfully.');

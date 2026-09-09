@@ -409,14 +409,15 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteProject = (id: string, title: string) => {
+  const handleDeleteProject = async (id: string, title: string) => {
     if (
       window.confirm(
         `¿Estás seguro de eliminar el proyecto "${title}"? Se borrará también de Hostinger MySQL.`
       )
     ) {
       playClickSound();
-      deleteProject(id);
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      await deleteProject(id);
     }
   };
 
@@ -1681,7 +1682,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               className="w-10 h-8 rounded-lg object-cover bg-slate-900 border border-slate-700"
                               onError={(e) => {
                                 e.currentTarget.onerror = null;
-                                e.currentTarget.src = '/images/retro-mini.jpg';
+                                e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="80" viewBox="0 0 100 80" fill="%23050B05"><rect width="100" height="80" fill="%23091209"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2376FF03" font-family="monospace" font-size="10">PROY</text></svg>';
                               }}
                             />
                             <span className="font-semibold truncate max-w-xs">{p.title}</span>
@@ -2529,14 +2530,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             className="w-full h-full object-contain p-2"
                             onError={(e) => {
                               e.currentTarget.onerror = null;
-                              const fallback = proj.category === 'BRANDING'
-                                ? '/images/orbit-stand-diana.webp'
-                                : proj.category === 'MOTION'
-                                ? '/images/diplomados/diplomado-after-effects-2023.webp'
-                                : proj.category === 'DIGITAL ART'
-                                ? '/images/diplomados/diplomado 2-Taller-de-creacion-de-contenido-2025.webp'
-                                : '/images/orbit-stand.webp';
-                              e.currentTarget.src = fallback;
+                              e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="%23050B05"><rect width="400" height="300" fill="%23091209"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2376FF03" font-family="monospace" font-size="14" letter-spacing="1">PREVIEW</text></svg>';
                             }}
                           />
                           <button

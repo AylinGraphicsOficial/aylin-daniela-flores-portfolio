@@ -144,9 +144,10 @@ export const HeroProjectsSlider: React.FC<HeroProjectsSliderProps> = ({
                   loading={index < 3 ? 'eager' : 'lazy'}
                   decoding="async"
                   onError={(e) => {
-                    const fallback = item.category === 'BRANDING' ? '/images/orbit-stand-diana.webp' : '/images/orbit-stand.webp';
-                    if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
-                      e.currentTarget.src = fallback;
+                    const target = e.currentTarget;
+                    if (!target.dataset.hasFailed) {
+                      target.dataset.hasFailed = 'true';
+                      target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" fill="%23050B05"><rect width="800" height="600" fill="%230a140a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2376FF03" font-family="monospace" font-size="20">STUDIO KINETIC</text></svg>';
                     }
                   }}
                   className="hero-slide-img w-auto h-full max-h-[92%] sm:max-h-[95%] max-w-[90vw] lg:max-w-[65vw] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.95)] transition-transform duration-1000 ease-out group-hover/slider:scale-[1.02]"

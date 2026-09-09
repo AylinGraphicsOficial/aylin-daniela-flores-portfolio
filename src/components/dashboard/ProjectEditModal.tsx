@@ -114,7 +114,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         client: '',
         shortDesc: '',
         fullDesc: '',
-        image: '/images/orbit-stand.webp',
+        image: '',
         galleryImages: [],
         logo: '',
         videoUrl: '',
@@ -321,33 +321,75 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const titleTrimmed = (formData.title || '').trim();
+    if (!titleTrimmed) {
+      setUploadError('Por favor ingresa un título para el proyecto.');
+      return;
+    }
+
     const tagsArray = tagInput
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean);
 
     const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
-    const finalGallery = isVideo ? [] : (formData.galleryImages || []);
+
+    // Auto-detect thumbnail if image is empty but video has YouTube URL
+    let finalImage = (formData.image || '').trim();
+    if (!finalImage && formData.videoUrl) {
+      const media = detectMedia(formData.videoUrl);
+      if (media.thumbnailUrl) {
+        finalImage = media.thumbnailUrl;
+      }
+    }
+    if (!finalImage) {
+      finalImage = isVideo
+        ? '/images/hero-hands.jpg'
+        : formData.category === 'BRANDING'
+        ? '/images/brands/holy-nation.webp'
+        : formData.category === 'DIGITAL ART'
+        ? '/images/orbit-tablet.webp'
+        : '/images/orbit-stand.webp';
+    }
+
+    // Deduplicate gallery images and remove any duplicate of finalImage
+    const rawGallery = formData.galleryImages || [];
+    const seenGallery = new Set<string>();
+    const finalGallery: string[] = [];
+    if (!isVideo) {
+      for (const img of rawGallery) {
+        const trimmed = (img || '').trim();
+        if (trimmed && trimmed !== finalImage && !seenGallery.has(trimmed)) {
+          seenGallery.add(trimmed);
+          finalGallery.push(trimmed);
+        }
+      }
+    }
 
     const finalProject: Project = {
       id: formData.id || `proj-${Date.now()}`,
-      title: formData.title || 'Nuevo Proyecto',
+      title: titleTrimmed,
       category: (formData.category as any) || (isVideo ? 'MOTION' : '3D MODELING'),
       disciplineId: formData.disciplineId || (isVideo ? 'edicion-video' : 'modelado-3d'),
-      externalLink: formData.externalLink || '',
-      externalLinkText: formData.externalLinkText || 'VER MÁS DEL TRABAJO',
-      year: formData.year || '2026',
-      client: formData.client || 'Cliente',
+      externalLink: (formData.externalLink || '').trim(),
+      externalLinkText: (formData.externalLinkText || '').trim() || 'VER MÁS DEL TRABAJO',
+      year: (formData.year || '').trim() || '2026',
+      client: (formData.client || '').trim() || 'Cliente',
       shortDesc: formData.shortDesc || '',
       fullDesc: formData.fullDesc || '',
-      image: formData.image || (isVideo ? '/images/hero-hands.jpg' : '/images/orbit-stand.webp'),
+      image: finalImage,
       galleryImages: finalGallery,
-      logo: formData.logo || '',
-      videoUrl: formData.videoUrl || '',
-      videoClip: formData.videoClip || '',
-      gifUrl: formData.gifUrl || '',
+      logo: (formData.logo || '').trim(),
+      videoUrl: (formData.videoUrl || '').trim(),
+      videoClip: (formData.videoClip || '').trim(),
+      gifUrl: (formData.gifUrl || '').trim(),
       tags: tagsArray.length > 0 ? tagsArray : (isVideo ? ['Edición de Video', 'Motion Graphics'] : ['Design', '3D']),
       featured: formData.featured || false,
+      visibleInCatalog: formData.visibleInCatalog !== false,
+      sliderImage: (formData.sliderImage || '').trim(),
+      sliderTitle: (formData.sliderTitle || '').trim(),
+      sliderOrder: formData.sliderOrder ?? 1,
       metrics: formData.metrics || [],
       updatedAt: new Date().toISOString(),
     };

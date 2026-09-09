@@ -95,10 +95,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteProject = (id: string, title: string) => {
+  const handleDeleteProject = async (id: string, title: string) => {
     if (window.confirm(`¿Estás seguro de eliminar el proyecto "${title}"?`)) {
       playClickSound();
-      deleteProject(id);
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      await deleteProject(id);
     }
   };
 

@@ -483,16 +483,75 @@ const safeParseObject = async (res: Response): Promise<Record<string, any> | nul
   }
 };
 
+const DELETED_PROJECTS_KEY = 'aylin_portfolio_deleted_projects_v1';
+
+const readDeletedProjectIds = (): string[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(DELETED_PROJECTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const markProjectDeleted = (id: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = readDeletedProjectIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(list));
+    }
+  } catch {}
+};
+
+const unmarkProjectDeleted = (id: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = readDeletedProjectIds().filter((d) => d !== id);
+    localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(list));
+  } catch {}
+};
+
 const mergeByUpdatedAt = <T extends { id: string; updatedAt?: string }>(
   local: T[],
-  remote: T[]
+  remote: T[],
+  apiEndpoint: string,
+  wrapPayload?: (item: T) => any,
+  deletedIdsSet?: Set<string>
 ): { merged: T[]; changed: boolean } => {
   const localById = new Map(local.map((p) => [p.id, p]));
   const merged: T[] = [];
   let changed = false;
   const seenIds = new Set<string>();
 
+  const isProjectsEndpoint = apiEndpoint.includes('projects');
+  const reservedDisciplineIds = new Set(['modelado-3d', 'branding', 'edicion-video', 'social-media']);
+
   for (const r of remote) {
+    // If this is the projects endpoint and remote item has a reserved discipline ID, reject and purge from remote!
+    if (isProjectsEndpoint && reservedDisciplineIds.has(r.id)) {
+      changed = true;
+      enqueueWrite({
+        endpoint: apiEndpoint,
+        method: 'POST',
+        url: `${apiEndpoint}?action=delete&id=${encodeURIComponent(r.id)}`,
+      });
+      continue;
+    }
+
+    // If item was explicitly deleted locally, DO NOT resurrect it! Enforce remote deletion.
+    if (deletedIdsSet && deletedIdsSet.has(r.id)) {
+      changed = true;
+      enqueueWrite({
+        endpoint: apiEndpoint,
+        method: 'POST',
+        url: `${apiEndpoint}?action=delete&id=${encodeURIComponent(r.id)}`,
+      });
+      continue;
+    }
+
     seenIds.add(r.id);
     const l = localById.get(r.id);
     if (!l) {
@@ -505,28 +564,34 @@ const mergeByUpdatedAt = <T extends { id: string; updatedAt?: string }>(
       merged.push(r);
       if (JSON.stringify(l) !== JSON.stringify(r)) changed = true;
     } else {
-      // Local is newer → keep local, but mark as pending so next sync re-pushes
+      // Local is newer → keep local, but mark as pending so next sync re-pushes to correct endpoint
       merged.push(l);
+      const payload = wrapPayload ? wrapPayload(l) : l;
       enqueueWrite({
-        endpoint: PROJECTS_API,
+        endpoint: apiEndpoint,
         method: 'POST',
-        url: PROJECTS_API,
-        body: JSON.stringify(l),
+        url: apiEndpoint,
+        body: JSON.stringify(payload),
       });
     }
   }
 
-  // Preserve local items that remote doesn't have (deletion from remote shouldn't wipe local)
+  // Preserve local items that remote doesn't have (unless they were deleted or invalid)
   for (const l of local) {
+    if (deletedIdsSet && deletedIdsSet.has(l.id)) {
+      continue; // Was intentionally deleted, do NOT resurrect!
+    }
+    if (isProjectsEndpoint && reservedDisciplineIds.has(l.id)) {
+      continue; // Discipline must never exist in projects list!
+    }
     if (!seenIds.has(l.id)) {
-      // Don't resurrect: if remote never had it but local does, keep local
-      // but also re-enqueue the save so it propagates
       merged.push(l);
+      const payload = wrapPayload ? wrapPayload(l) : l;
       enqueueWrite({
-        endpoint: PROJECTS_API,
+        endpoint: apiEndpoint,
         method: 'POST',
-        url: PROJECTS_API,
-        body: JSON.stringify(l),
+        url: apiEndpoint,
+        body: JSON.stringify(payload),
       });
       changed = true;
     }
@@ -560,7 +625,15 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
     const remoteProjects = await safeParseArray(projRes);
     if (remoteProjects) {
       const localProjects = readJson<any[]>(PROJECTS_STORAGE_KEY, []);
-      const { merged, changed: c } = mergeByUpdatedAt(localProjects, remoteProjects);
+      const deletedIds = readDeletedProjectIds();
+      const deletedSet = new Set(deletedIds);
+      const { merged, changed: c } = mergeByUpdatedAt(
+        localProjects,
+        remoteProjects,
+        PROJECTS_API,
+        (p) => p,
+        deletedSet
+      );
       if (c || merged.length !== localProjects.length) {
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(merged));
         changed = true;
@@ -570,7 +643,12 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
     const remoteDisciplines = await safeParseArray(discRes);
     if (remoteDisciplines) {
       const localDisciplines = readJson<any[]>(DISCIPLINES_STORAGE_KEY, []);
-      const { merged, changed: c } = mergeByUpdatedAt(localDisciplines, remoteDisciplines);
+      const { merged, changed: c } = mergeByUpdatedAt(
+        localDisciplines,
+        remoteDisciplines,
+        DISCIPLINES_API,
+        (d) => ({ disciplines: [d] })
+      );
       if (c || merged.length !== localDisciplines.length) {
         localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(merged));
         changed = true;
@@ -1218,7 +1296,12 @@ export const getStoredProjects = (): Project[] => {
     const raw = localStorage.getItem(PROJECTS_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    const deletedSet = new Set(readDeletedProjectIds());
+    const reservedDisciplineIds = new Set(['modelado-3d', 'branding', 'edicion-video', 'social-media']);
+    return parsed.filter(
+      (p) => p && p.id && !deletedSet.has(p.id) && !reservedDisciplineIds.has(p.id)
+    );
   } catch (err) {
     console.error('Error reading stored projects:', err);
     return [];
@@ -1284,6 +1367,9 @@ export const saveProject = async (project: Project): Promise<boolean> => {
     createdAt: project.createdAt || now,
   };
 
+  // Re-enable if it was marked deleted in the past
+  unmarkProjectDeleted(finalProject.id);
+
   let updated: Project[];
   if (index >= 0) {
     updated = [...current];
@@ -1316,13 +1402,44 @@ export const saveProject = async (project: Project): Promise<boolean> => {
 };
 
 export const deleteProject = async (projectId: string): Promise<void> => {
+  // 1. Mark as tombstone so background sync NEVER resurrects it
+  markProjectDeleted(projectId);
+
+  // 2. Remove from local projects cache immediately
   const current = getStoredProjects();
   const updated = current.filter((p) => p.id !== projectId);
-
   writeJson(PROJECTS_STORAGE_KEY, updated);
   markLocalMutation(projectId);
+
+  // 3. Remove from any discipline assignments
+  const disciplines = getStoredDisciplines();
+  let disciplinesUpdated = false;
+  const updatedDisciplines = disciplines.map((disc) => {
+    let changed = false;
+    let nextProjectIds = disc.projectIds;
+    if (Array.isArray(disc.projectIds) && disc.projectIds.includes(projectId)) {
+      nextProjectIds = disc.projectIds.filter((id) => id !== projectId);
+      changed = true;
+    }
+    let nextTarget = disc.targetProjectId;
+    if (disc.targetProjectId === projectId) {
+      nextTarget = nextProjectIds && nextProjectIds.length > 0 ? nextProjectIds[0] : '';
+      changed = true;
+    }
+    if (changed) {
+      disciplinesUpdated = true;
+      return { ...disc, projectIds: nextProjectIds, targetProjectId: nextTarget, updatedAt: new Date().toISOString() };
+    }
+    return disc;
+  });
+  if (disciplinesUpdated) {
+    writeJson(DISCIPLINES_STORAGE_KEY, updatedDisciplines);
+  }
+
+  // 4. Notify UI components
   notifyDataChanged();
 
+  // 5. Send delete to remote API
   try {
     const res = await fetch(`${PROJECTS_API}?action=delete&id=${encodeURIComponent(projectId)}`, {
       method: 'POST',
@@ -1392,9 +1509,14 @@ export const toggleProjectFeatured = async (projectId: string): Promise<boolean>
  */
 export const saveAllProjects = async (incoming: Project[]): Promise<void> => {
   const current = getStoredProjects();
-  const byId = new Map<string, Project>(current.map((p) => [p.id, p]));
+  const deletedSet = new Set(readDeletedProjectIds());
+  const byId = new Map<string, Project>(
+    current.filter((p) => !deletedSet.has(p.id)).map((p) => [p.id, p])
+  );
   for (const p of incoming) {
-    byId.set(p.id, { ...p, updatedAt: p.updatedAt || new Date().toISOString() });
+    if (!deletedSet.has(p.id)) {
+      byId.set(p.id, { ...p, updatedAt: p.updatedAt || new Date().toISOString() });
+    }
   }
   const merged = Array.from(byId.values());
   writeJson(PROJECTS_STORAGE_KEY, merged);
