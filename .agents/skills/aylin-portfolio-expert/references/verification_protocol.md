@@ -51,9 +51,12 @@ Ejecutar y anotar resultados **antes** de cambiar nada:
 | Integridad de medios (rotos / huérfanos) | `GET /api/media.php?action=doctor&key=kinetic-media-2026` |
 | Existencia real de una URL | `HEAD /uploads/<archivo>` y `HEAD /images/<archivo>` |
 
-### 2.3 Inspección FTP (solo lectura)
-- Script: `node scratch/ftp_inspect.mjs <ruta>` (usa `basic-ftp`; **jamás** usa `clearWorkingDir` ni borres archivos).
+### 2.3 Inspección FTP y validación PHP (solo lectura / cambios mínimos)
+- Script de inspección: `node scratch/ftp_inspect.mjs <ruta>` (lista archivos con fecha y tamaño).
+- Script auxiliar: `node scratch/ftp_put.mjs list|put|rm <ruta> [local]` — usar `put`/`rm` **solo** para verificar o limpiar archivos de prueba puntuales; jamás borrados masivos ni `clearWorkingDir`.
+- Validación de sintaxis PHP sin PHP local: `npm.cmd install --no-save php-parser` y luego `node scratch/php_syntax_check.mjs` (valida todos los archivos de `public/api/`).
 - Rutas clave: `domains/aylinflores.com/public_html/`, `domains/aylinflores.com/uploads_storage/`.
+- **Regla**: el FTP nunca se usa para reemplazar el despliegue oficial (Git → CI). Solo diagnóstico y verificaciones puntuales.
 
 ### 2.4 Preguntas que la investigación debe responder
 1. ¿Qué falla exactamente (síntoma observable)?
