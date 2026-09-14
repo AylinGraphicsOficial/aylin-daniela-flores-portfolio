@@ -20,7 +20,11 @@ const SETTINGS_API = `${API_BASE}/settings.php`;
 const MESSAGES_API = `${API_BASE}/messages.php`;
 const COMMENTS_API = `${API_BASE}/comments.php`;
 const UPLOAD_API = `${API_BASE}/upload.php`;
+const MEDIA_API = `${API_BASE}/media.php`;
 const INIT_DB_API = `${API_BASE}/init_db.php`;
+
+// Clave de mantenimiento del almacenamiento protegido de medios (api/media.php)
+export const MEDIA_ADMIN_KEY = 'kinetic-media-2026';
 
 // ----- Pending writes queue (offline-first, eventually consistent) -----
 interface PendingWrite {
@@ -28,6 +32,7 @@ interface PendingWrite {
   method: 'POST' | 'PUT' | 'DELETE';
   url: string;
   body?: string;
+  headers?: Record<string, string>;
   attempts: number;
   queuedAt: number;
   lastError?: string;
@@ -657,6 +662,14 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
 
     const remoteSections = await safeParseObject(secRes);
     if (remoteSections) {
+      // Las marcas de tiempo viajan aparte para no alterar la forma de las
+      // secciones tipo lista (experiencia, diplomados, redes sociales).
+      const remoteSectionMeta: Record<string, string> =
+        (remoteSections as any).__meta && typeof (remoteSections as any).__meta === 'object'
+          ? (remoteSections as any).__meta
+          : {};
+      delete (remoteSections as any).__meta;
+
       if (remoteSections.about && !remoteSections.about.photo) {
         remoteSections.about.photo = '/images/fotografia-aylin.png';
       }
@@ -665,7 +678,8 @@ export const syncFromRemoteServer = async (): Promise<boolean> => {
       let sectionsChanged = false;
       for (const [k, v] of Object.entries(remoteSections)) {
         const localItem = next[k];
-        if (shouldAcceptRemote(k, (v as any)?.updatedAt)) {
+        const remoteUpdatedAt = remoteSectionMeta[k] || (v as any)?.updatedAt;
+        if (shouldAcceptRemote(k, remoteUpdatedAt)) {
           if (JSON.stringify(localItem) !== JSON.stringify(v)) sectionsChanged = true;
           next[k] = v;
         } else if (!localItem) {
@@ -724,7 +738,7 @@ const replayPendingWrites = async (): Promise<void> => {
     try {
       const init: RequestInit = {
         method: w.method,
-        headers: w.body ? { 'Content-Type': 'application/json' } : undefined,
+        headers: w.headers || (w.body ? { 'Content-Type': 'application/json' } : undefined),
         body: w.body,
       };
       const res = await fetch(w.url, init);
@@ -757,6 +771,27 @@ const writeJson = (key: string, value: any): void => {
   } catch (err) {
     console.warn(`Failed to write ${key}:`, err);
   }
+};
+
+/**
+ * Serialización determinista (claves ordenadas) para comparar objetos y
+ * detectar cambios reales sin falsos positivos por orden de propiedades.
+ */
+const stableStringify = (value: any): string => {
+  if (Array.isArray(value)) {
+    return '[' + value.map((item) => stableStringify(item)).join(',') + ']';
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    return (
+      '{' +
+      keys
+        .map((key) => JSON.stringify(key) + ':' + stableStringify(value[key]))
+        .join(',') +
+      '}'
+    );
+  }
+  return JSON.stringify(value === undefined ? null : value);
 };
 
 // ==================== MULTI-DEVICE REAL-TIME SYNC ENGINE ====================
@@ -834,27 +869,39 @@ export const saveStoredSection = async (
   markLocalMutation(sectionKey);
   notifyDataChanged();
 
+  const updatedAt = new Date().toISOString();
+  const url = `${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`;
+  const headers = { 'Content-Type': 'application/json', 'X-Updated-At': updatedAt };
+
   try {
-    const res = await fetch(`${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`, {
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     if (!res.ok) {
       enqueueWrite({
         endpoint: SETTINGS_API,
         method: 'POST',
-        url: `${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`,
+        url,
         body: JSON.stringify(data),
+        headers,
       });
+      return;
+    }
+    const payload = await res.json().catch(() => null);
+    if (payload && payload.skipped) {
+      // El servidor conserva una versión más reciente: se refresca la caché local.
+      void syncFromRemoteServer();
     }
   } catch (err) {
     console.warn(`Could not sync section ${sectionKey} with remote API:`, err);
     enqueueWrite({
       endpoint: SETTINGS_API,
       method: 'POST',
-      url: `${SETTINGS_API}?section=${encodeURIComponent(sectionKey)}`,
+      url,
       body: JSON.stringify(data),
+      headers,
     });
   }
 };
@@ -1252,7 +1299,29 @@ export interface UploadResult {
   fileType?: string;
   fileSize?: number;
   error?: string;
+  verified?: boolean;
+  storage?: {
+    protected?: boolean;
+    publicCopy?: boolean;
+    mirrors?: number;
+  };
 }
+
+/**
+ * Verifica que una URL de medios sea accesible públicamente.
+ * Devuelve true también cuando el servidor no permite HEAD (405/501).
+ */
+export const verifyMediaUrl = async (url: string): Promise<boolean> => {
+  if (!url || typeof url !== 'string') return false;
+  if (!url.startsWith('/')) return true; // Recursos externos: no se verifican
+  try {
+    const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    if (res.status === 405 || res.status === 501) return true;
+    return res.ok;
+  } catch {
+    return true; // Problema de red: no se invalida una subida ya hecha
+  }
+};
 
 export const uploadMediaFile = async (file: File): Promise<UploadResult> => {
   try {
@@ -1273,7 +1342,24 @@ export const uploadMediaFile = async (file: File): Promise<UploadResult> => {
     }
 
     const data: UploadResult = await response.json();
-    return data;
+    if (!data.success || !data.url) {
+      return data;
+    }
+
+    // Verificación inmediata: evita guardar en MySQL rutas que darían 404.
+    const reachable = await verifyMediaUrl(data.url);
+    if (!reachable) {
+      return {
+        ...data,
+        success: false,
+        verified: false,
+        error:
+          'El archivo llegó al servidor pero no es accesible en /uploads/. ' +
+          'Revisa permisos o vuelve a intentarlo (el respaldo protegido sí quedó guardado).',
+      };
+    }
+
+    return { ...data, verified: true };
   } catch (err) {
     console.error('Error uploading file to Hostinger:', err);
     return {
@@ -1281,6 +1367,74 @@ export const uploadMediaFile = async (file: File): Promise<UploadResult> => {
       error: 'No se pudo conectar con el servidor de subidas de Hostinger.',
     };
   }
+};
+
+// ==================== MEDIA STORAGE MAINTENANCE ====================
+
+export interface MediaStorageStatus {
+  success: boolean;
+  protectedDir?: string;
+  publicDir?: string;
+  protectedWritable?: boolean;
+  publicWritable?: boolean;
+  protectedFiles?: number;
+  publicFiles?: number;
+  mode?: string;
+  backupHealthy?: boolean;
+  error?: string;
+}
+
+export interface MediaDoctorReport {
+  success: boolean;
+  report?: {
+    referencedFiles: number;
+    presentFiles: number;
+    missingCount: number;
+    missing: { filename: string; url: string; referenced: string[] }[];
+    orphanCount: number;
+    orphans: { filename: string; url: string; size: number }[];
+    protectedDir: string;
+    publicDir: string;
+  };
+  error?: string;
+}
+
+export type MediaMaintenanceAction = 'status' | 'migrate' | 'repair' | 'doctor';
+
+/**
+ * Ejecuta una acción de mantenimiento del almacenamiento de medios.
+ * - migrate: respalda en el directorio protegido los archivos existentes
+ * - repair:  restaura copias públicas faltantes desde el respaldo
+ * - doctor:  detecta referencias rotas y archivos huérfanos
+ */
+export const runMediaMaintenance = async (
+  action: MediaMaintenanceAction
+): Promise<any | null> => {
+  try {
+    const res = await fetch(
+      `${MEDIA_API}?action=${encodeURIComponent(action)}&key=${encodeURIComponent(MEDIA_ADMIN_KEY)}`,
+      { cache: 'no-store' }
+    );
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      console.warn(`Media maintenance "${action}" failed:`, errJson.error || res.status);
+      return errJson && Object.keys(errJson).length > 0 ? errJson : null;
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn(`Media maintenance "${action}" error:`, err);
+    return null;
+  }
+};
+
+export const getMediaStorageStatus = async (): Promise<MediaStorageStatus | null> => {
+  const data = await runMediaMaintenance('status');
+  return data && data.success !== false ? (data as MediaStorageStatus) : null;
+};
+
+export const getMediaDoctorReport = async (): Promise<MediaDoctorReport | null> => {
+  const data = await runMediaMaintenance('doctor');
+  return data && data.success !== false ? (data as MediaDoctorReport) : null;
 };
 
 // ==================== PROJECTS CRUD ====================
@@ -1503,9 +1657,9 @@ export const toggleProjectFeatured = async (projectId: string): Promise<boolean>
 };
 
 /**
- * Bulk save: merges incoming projects into existing list (upsert by id),
- * preserving items not in the incoming list. Avoids wiping items from
- * other devices.
+ * Bulk save: merges incoming projects into the existing list (upsert by id) and
+ * pushes ONLY the items that actually changed. Enviar el arreglo completo con
+ * datos viejos era la causa de que otros proyectos perdieran sus imágenes.
  */
 export const saveAllProjects = async (incoming: Project[]): Promise<void> => {
   const current = getStoredProjects();
@@ -1513,38 +1667,56 @@ export const saveAllProjects = async (incoming: Project[]): Promise<void> => {
   const byId = new Map<string, Project>(
     current.filter((p) => !deletedSet.has(p.id)).map((p) => [p.id, p])
   );
+  const changed: Project[] = [];
+  const now = new Date().toISOString();
+
   for (const p of incoming) {
-    if (!deletedSet.has(p.id)) {
-      byId.set(p.id, { ...p, updatedAt: p.updatedAt || new Date().toISOString() });
+    if (!p || !p.id || deletedSet.has(p.id)) continue;
+
+    const existing = byId.get(p.id);
+    const normalized: Project = { ...p, updatedAt: now };
+
+    if (existing) {
+      const sameContent =
+        stableStringify({ ...existing, updatedAt: '' }) ===
+        stableStringify({ ...normalized, updatedAt: '' });
+      if (sameContent) {
+        byId.set(p.id, existing);
+        continue;
+      }
     }
+
+    byId.set(p.id, normalized);
+    changed.push(normalized);
   }
-  const merged = Array.from(byId.values());
-  writeJson(PROJECTS_STORAGE_KEY, merged);
-  incoming.forEach((p) => markLocalMutation(p.id));
+
+  if (changed.length === 0) {
+    return; // Sin cambios reales: no se envía nada al servidor
+  }
+
+  writeJson(PROJECTS_STORAGE_KEY, Array.from(byId.values()));
+  changed.forEach((p) => markLocalMutation(p.id));
   notifyDataChanged();
 
+  const body = JSON.stringify({ projects: changed });
   try {
     const res = await fetch(PROJECTS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projects: incoming }),
+      body,
     });
     if (!res.ok) {
-      enqueueWrite({
-        endpoint: PROJECTS_API,
-        method: 'POST',
-        url: PROJECTS_API,
-        body: JSON.stringify({ projects: incoming }),
-      });
+      enqueueWrite({ endpoint: PROJECTS_API, method: 'POST', url: PROJECTS_API, body });
+      return;
+    }
+    const payload = await res.json().catch(() => null);
+    if (payload && payload.skippedCount > 0) {
+      // El servidor tenía versiones más recientes: refrescar la caché local.
+      void syncFromRemoteServer();
     }
   } catch (err) {
     console.warn('Could not sync all projects with remote API:', err);
-    enqueueWrite({
-      endpoint: PROJECTS_API,
-      method: 'POST',
-      url: PROJECTS_API,
-      body: JSON.stringify({ projects: incoming }),
-    });
+    enqueueWrite({ endpoint: PROJECTS_API, method: 'POST', url: PROJECTS_API, body });
   }
 };
 
@@ -1570,7 +1742,8 @@ export const saveDiscipline = async (discipline: Discipline): Promise<void> => {
   const current = getStoredDisciplines();
   const index = current.findIndex((d) => d.id === discipline.id);
   const now = new Date().toISOString();
-  const final: Discipline = { ...discipline, updatedAt: discipline.updatedAt || now };
+  // Toda escritura local es una mutación real: la marca de tiempo siempre avanza.
+  const final: Discipline = { ...discipline, updatedAt: now };
   let updated: Discipline[];
   if (index >= 0) {
     updated = [...current];
@@ -1583,44 +1756,79 @@ export const saveDiscipline = async (discipline: Discipline): Promise<void> => {
   markLocalMutation(final.id);
   notifyDataChanged();
 
+  const body = JSON.stringify(final);
   try {
     const res = await fetch(DISCIPLINES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(final),
+      body,
     });
     if (!res.ok) {
-      enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify(final) });
+      enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body });
+      return;
+    }
+    const payload = await res.json().catch(() => null);
+    if (payload && payload.skippedCount > 0) {
+      void syncFromRemoteServer();
     }
   } catch (err) {
     console.warn('Could not sync discipline with remote API:', err);
-    enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify(final) });
+    enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body });
   }
 };
 
+/**
+ * Bulk save de disciplinas: solo envía las que cambiaron realmente.
+ */
 export const saveAllDisciplines = async (incoming: Discipline[]): Promise<void> => {
   const current = getStoredDisciplines();
   const byId = new Map<string, Discipline>(current.map((d) => [d.id, d]));
+  const changed: Discipline[] = [];
+  const now = new Date().toISOString();
+
   for (const d of incoming) {
-    byId.set(d.id, { ...d, updatedAt: d.updatedAt || new Date().toISOString() });
+    if (!d || !d.id) continue;
+    const existing = byId.get(d.id);
+    const normalized: Discipline = { ...d, updatedAt: now };
+    if (existing) {
+      const sameContent =
+        stableStringify({ ...existing, updatedAt: '' }) ===
+        stableStringify({ ...normalized, updatedAt: '' });
+      if (sameContent) {
+        byId.set(d.id, existing);
+        continue;
+      }
+    }
+    byId.set(d.id, normalized);
+    changed.push(normalized);
   }
-  const merged = Array.from(byId.values());
-  writeJson(DISCIPLINES_STORAGE_KEY, merged);
-  incoming.forEach((d) => markLocalMutation(d.id));
+
+  if (changed.length === 0) {
+    return;
+  }
+
+  writeJson(DISCIPLINES_STORAGE_KEY, Array.from(byId.values()));
+  changed.forEach((d) => markLocalMutation(d.id));
   notifyDataChanged();
 
+  const body = JSON.stringify({ disciplines: changed });
   try {
     const res = await fetch(DISCIPLINES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ disciplines: incoming }),
+      body,
     });
     if (!res.ok) {
-      enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify({ disciplines: incoming }) });
+      enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body });
+      return;
+    }
+    const payload = await res.json().catch(() => null);
+    if (payload && payload.skippedCount > 0) {
+      void syncFromRemoteServer();
     }
   } catch (err) {
     console.warn('Could not sync disciplines with remote API:', err);
-    enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body: JSON.stringify({ disciplines: incoming }) });
+    enqueueWrite({ endpoint: DISCIPLINES_API, method: 'POST', url: DISCIPLINES_API, body });
   }
 };
 
@@ -1720,20 +1928,30 @@ export const exportPortfolioJSON = (): string => {
 export const importPortfolioJSON = async (jsonString: string): Promise<boolean> => {
   try {
     const parsed = JSON.parse(jsonString);
+    const importStamp = new Date().toISOString();
     if (parsed.projects && Array.isArray(parsed.projects)) {
-      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(parsed.projects));
+      const projects = parsed.projects.map((p: any) => ({
+        ...p,
+        updatedAt: importStamp,
+      }));
+      projects.forEach((p: any) => p && p.id && unmarkProjectDeleted(p.id));
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
       await fetch(PROJECTS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projects: parsed.projects }),
+        body: JSON.stringify({ projects }),
       }).catch(() => {});
     }
     if (parsed.disciplines && Array.isArray(parsed.disciplines)) {
-      localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(parsed.disciplines));
+      const disciplines = parsed.disciplines.map((d: any) => ({
+        ...d,
+        updatedAt: importStamp,
+      }));
+      localStorage.setItem(DISCIPLINES_STORAGE_KEY, JSON.stringify(disciplines));
       await fetch(DISCIPLINES_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ disciplines: parsed.disciplines }),
+        body: JSON.stringify({ disciplines }),
       }).catch(() => {});
     }
     if (parsed.about) saveStoredAbout(parsed.about);

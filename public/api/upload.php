@@ -2,64 +2,67 @@
 /**
  * Aylin Daniela Flores - Studio Kinetic Portfolio
  * Media Upload API Engine (Images, GIFs, MP4/WebM Video Clips, 3D Assets)
+ *
+ * Estrategia de persistencia (Hostinger):
+ *  - Escritura principal en SECURE_UPLOAD_DIR (fuera de public_html), que
+ *    sobrevive a los re-despliegues de Git/FTP.
+ *  - Copia espejo en /uploads/ (public_html) para servido estático directo.
+ *  - Si el archivo desaparece del servidor público, .htaccess redirige a
+ *    api/media.php, que lo sirve desde el respaldo protegido.
  */
 
 require_once __DIR__ . '/config.php';
 
-// Allowed MIME types and extensions
-$allowedExtensions = [
-    // Images & Renders
-    'webp' => 'image/webp',
-    'png'  => 'image/png',
-    'jpg'  => 'image/jpeg',
-    'jpeg' => 'image/jpeg',
-    'svg'  => 'image/svg+xml',
-    'ico'  => 'image/x-icon',
-    // Animated
-    'gif'  => 'image/gif',
-    // Video clips
-    'mp4'  => 'video/mp4',
-    'webm' => 'video/webm',
-    'mov'  => 'video/quicktime',
-    'ogg'  => 'video/ogg',
-    // 3D / Documents
-    'glb'  => 'model/gltf-binary',
-    'gltf' => 'model/gltf+json',
-    'pdf'  => 'application/pdf'
-];
-
-$uploadDir = UPLOAD_DIR;
-if (!file_exists($uploadDir)) {
-    @mkdir($uploadDir, 0777, true);
-}
-
+// ==================== GET: List uploaded files ====================
 $method = $_SERVER['REQUEST_METHOD'];
 
-// ==================== GET: List uploaded files ====================
 if ($method === 'GET') {
-    $files = [];
-    if (file_exists($uploadDir) && is_dir($uploadDir)) {
-        $scanned = scandir($uploadDir);
+    ensureMediaDirectories();
+
+    $filesByIndex = [];
+    foreach (getMediaSourceDirs() as $dir) {
+        $scanned = @scandir($dir);
+        if (!is_array($scanned)) {
+            continue;
+        }
         foreach ($scanned as $item) {
-            if ($item === '.' || $item === '..' || $item === '.htaccess') continue;
-            $filePath = $uploadDir . '/' . $item;
-            if (is_file($filePath)) {
-                $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
-                $files[] = [
-                    'filename' => $item,
-                    'url'      => UPLOAD_URL_PATH . '/' . $item,
-                    'size'     => filesize($filePath),
-                    'type'     => $allowedExtensions[$ext] ?? 'application/octet-stream',
-                    'updatedAt'=> date('c', filemtime($filePath))
-                ];
+            if ($item === '.' || $item === '..' || $item === '.htaccess') {
+                continue;
             }
+            if (!isSafeMediaFileName($item)) {
+                continue;
+            }
+            $filePath = $dir . '/' . $item;
+            if (!is_file($filePath)) {
+                continue;
+            }
+            if (isset($filesByIndex[$item])) {
+                continue; // Ya indexado desde un directorio de mayor prioridad
+            }
+            $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
+            $mimeMap = mediaMimeMap();
+            $filesByIndex[$item] = [
+                'filename'  => $item,
+                'url'       => UPLOAD_URL_PATH . '/' . $item,
+                'size'      => filesize($filePath),
+                'type'      => $mimeMap[$ext] ?? 'application/octet-stream',
+                'updatedAt' => date('c', filemtime($filePath)),
+                'backedUp'  => is_file(SECURE_UPLOAD_DIR . '/' . $item),
+            ];
         }
     }
-    // Sort newest first
-    usort($files, function($a, $b) {
+
+    $files = array_values($filesByIndex);
+    usort($files, function ($a, $b) {
         return strcmp($b['updatedAt'], $a['updatedAt']);
     });
-    sendJsonResponse(['success' => true, 'files' => $files]);
+
+    sendJsonResponse([
+        'success'      => true,
+        'files'        => $files,
+        'storageMode'  => SECURE_UPLOAD_DIR !== LEGACY_PUBLIC_UPLOAD_DIR ? 'protected' : 'legacy',
+        'protectedDir' => SECURE_UPLOAD_DIR
+    ]);
 }
 
 // ==================== POST: Upload single or multiple files ====================
@@ -89,35 +92,84 @@ if ($method === 'POST') {
 
     $originalName = $fileInput['name'];
     $tmpName      = $fileInput['tmp_name'];
-    $fileSize     = $fileInput['size'];
+    $fileSize     = (int)$fileInput['size'];
     $ext          = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $mimeMap      = mediaMimeMap();
 
-    // Validate extension
-    if (!array_key_exists($ext, $allowedExtensions)) {
+    // Validar extensión permitida
+    if (!array_key_exists($ext, $mimeMap)) {
         sendJsonResponse([
             'success' => false,
             'error'   => "Formato .$ext no permitido. Formatos aceptados: WebP, PNG, JPG, GIF, MP4, WebM, MOV, GLB, PDF."
         ], 400);
     }
 
-    // Sanitize base name
+    // Sanitizar nombre base y generar nombre único
     $cleanBase = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
-    $cleanBase = substr($cleanBase, 0, 40); // limit length
-    $uniqueName = 'upload_' . time() . '_' . substr(md5(uniqid()), 0, 6) . '_' . $cleanBase . '.' . $ext;
-    $destination = $uploadDir . '/' . $uniqueName;
+    $cleanBase = substr((string)$cleanBase, 0, 40);
+    $uniqueName = 'upload_' . time() . '_' . substr(md5(uniqid('', true)), 0, 6) . '_' . $cleanBase . '.' . $ext;
 
-    if (!move_uploaded_file($tmpName, $destination)) {
+    ensureMediaDirectories();
+
+    // Directorio principal (protegido) + espejos públicos
+    $primaryDir = SECURE_UPLOAD_DIR;
+    if (!is_dir($primaryDir) || !is_writable($primaryDir)) {
+        $primaryDir = LEGACY_PUBLIC_UPLOAD_DIR;
+    }
+    if (!is_dir($primaryDir) || !is_writable($primaryDir)) {
         sendJsonResponse([
             'success' => false,
-            'error'   => 'No se pudo guardar el archivo en el directorio /uploads/. Verifica los permisos del servidor.'
+            'error'   => 'No hay ningún directorio de medios escribible en el servidor.'
         ], 500);
     }
 
+    $destination = $primaryDir . '/' . $uniqueName;
+    if (!move_uploaded_file($tmpName, $destination)) {
+        sendJsonResponse([
+            'success' => false,
+            'error'   => 'No se pudo guardar el archivo en el almacenamiento de medios. Verifica los permisos del servidor.'
+        ], 500);
+    }
     @chmod($destination, 0644);
+
+    // Validación ligera de imágenes rasterizadas (defensa en profundidad)
+    if (in_array($ext, ['webp', 'png', 'jpg', 'jpeg', 'gif'], true) && function_exists('getimagesize')) {
+        $imageInfo = @getimagesize($destination);
+        if ($imageInfo === false) {
+            @unlink($destination);
+            sendJsonResponse([
+                'success' => false,
+                'error'   => 'El archivo no es una imagen válida o está dañado.'
+            ], 400);
+        }
+    }
+
+    // Copia espejo en el resto de directorios (servido estático directo)
+    $mirrors = [];
+    foreach ([SECURE_UPLOAD_DIR, LEGACY_PUBLIC_UPLOAD_DIR] as $dir) {
+        $normalized = normalizeFsPath($dir);
+        if ($normalized === normalizeFsPath($primaryDir) || !is_dir($normalized)) {
+            continue;
+        }
+        $copyTarget = $normalized . '/' . $uniqueName;
+        if (@copy($destination, $copyTarget)) {
+            @chmod($copyTarget, 0644);
+            $mirrors[] = $copyTarget;
+        }
+    }
 
     $publicUrl = UPLOAD_URL_PATH . '/' . $uniqueName;
 
-    // Optional: Log to database
+    // Verificación final: el archivo debe existir físicamente en algún origen servible
+    $servedFrom = findMediaFile($uniqueName);
+    if ($servedFrom === null) {
+        sendJsonResponse([
+            'success' => false,
+            'error'   => 'El archivo se subió pero no se pudo verificar en el servidor. Inténtalo de nuevo.'
+        ], 500);
+    }
+
+    // Registro en la biblioteca de medios de MySQL
     $pdo = getDbConnection();
     if ($pdo) {
         try {
@@ -125,21 +177,29 @@ if ($method === 'POST') {
             $stmt->execute([
                 ':fn'  => $uniqueName,
                 ':url' => $publicUrl,
-                ':ft'  => $allowedExtensions[$ext] ?? 'application/octet-stream',
+                ':ft'  => $mimeMap[$ext] ?? 'application/octet-stream',
                 ':fs'  => $fileSize
             ]);
         } catch (Exception $e) {
-            // Ignore DB log error if table is not ready
+            // Si la tabla no está lista, no se interrumpe la subida
         }
     }
 
     sendJsonResponse([
         'success'      => true,
-        'message'      => 'Archivo subido con éxito a Hostinger.',
+        'message'      => 'Archivo subido y respaldado con éxito en Hostinger.',
         'url'          => $publicUrl,
         'filename'     => $uniqueName,
         'originalName' => $originalName,
-        'fileType'     => $allowedExtensions[$ext] ?? 'image/webp',
-        'fileSize'     => $fileSize
+        'fileType'     => $mimeMap[$ext] ?? 'image/webp',
+        'fileSize'     => $fileSize,
+        'storage'      => [
+            'protected'   => is_file(SECURE_UPLOAD_DIR . '/' . $uniqueName),
+            'publicCopy'  => is_file(LEGACY_PUBLIC_UPLOAD_DIR . '/' . $uniqueName),
+            'mirrors'     => count($mirrors)
+        ],
+        'verified'     => true
     ]);
 }
+
+sendJsonResponse(['success' => false, 'error' => 'Método no permitido'], 405);

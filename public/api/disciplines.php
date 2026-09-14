@@ -89,8 +89,25 @@ if ($method === 'POST' || $method === 'PUT') {
     ";
 
     $stmtUpsert = $pdo->prepare($upsertSql);
+    $existingStmt = $pdo->prepare("SELECT `updatedAt` FROM `disciplines` WHERE `id` = :lookupId LIMIT 1");
+    $savedIds = [];
+    $skippedIds = [];
 
     foreach ($disciplinesList as $index => $item) {
+        $disciplineId = trim((string)($item['id'] ?? ''));
+        if ($disciplineId === '') {
+            continue;
+        }
+
+        // Anti-sobrescritura: un cliente desactualizado no puede pisar datos más nuevos.
+        $existingStmt->execute([':lookupId' => $disciplineId]);
+        $existingUpdatedAt = $existingStmt->fetchColumn();
+        $incomingUpdatedAt = isset($item['updatedAt']) ? (string)$item['updatedAt'] : '';
+        if (!shouldApplyIncomingWrite($incomingUpdatedAt, $existingUpdatedAt ?: null)) {
+            $skippedIds[] = $disciplineId;
+            continue;
+        }
+
         $slidesJson = is_array($item['slides'] ?? null)
             ? json_encode($item['slides'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
             : (is_string($item['slides'] ?? null) ? $item['slides'] : '[]');
@@ -100,7 +117,7 @@ if ($method === 'POST' || $method === 'PUT') {
             : (is_string($item['projectIds'] ?? null) ? $item['projectIds'] : '[]');
 
         $stmtUpsert->execute([
-            ':id'             => $item['id'],
+            ':id'             => $disciplineId,
             ':number'         => $item['number'] ?? '0' . ($index + 1),
             ':verticalTextEs' => $item['verticalTextEs'] ?? '',
             ':verticalTextEn' => $item['verticalTextEn'] ?? '',
@@ -116,12 +133,16 @@ if ($method === 'POST' || $method === 'PUT') {
             ':targetProjectId'=> $item['targetProjectId'] ?? '',
             ':visible'        => isset($item['visible']) && !$item['visible'] ? 0 : 1,
             ':display_order'  => isset($item['display_order']) ? (int)$item['display_order'] : $index + 1,
-            ':updatedAt'      => date('c')
+            ':updatedAt'      => normalizeIncomingTimestamp($incomingUpdatedAt)
         ]);
+        $savedIds[] = $disciplineId;
     }
 
     sendJsonResponse([
         'success' => true,
-        'message' => 'Disciplinas y sliders sincronizados exitosamente con Hostinger MySQL.'
+        'message' => 'Disciplinas y sliders sincronizados exitosamente con Hostinger MySQL.',
+        'savedCount' => count($savedIds),
+        'skippedCount' => count($skippedIds),
+        'skipped' => $skippedIds
     ]);
 }

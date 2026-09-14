@@ -38,3 +38,8 @@ jobs:
           local-dir: ./dist/
           server-dir: domains/aylinflores.com/public_html/
           dangerous-clean-slate: false
+          # Los medios subidos desde el Dashboard viven en /uploads/ y en el
+          # respaldo protegido (fuera de public_html). El despliegue NUNCA debe
+          # tocarlos: ni subirlos ni eliminarlos.
+          exclude: |
+            uploads/**

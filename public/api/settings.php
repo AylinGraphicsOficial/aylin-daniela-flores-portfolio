@@ -2,6 +2,10 @@
 /**
  * Aylin Daniela Flores - Studio Kinetic Portfolio
  * Site Sections & Settings REST API (About, Experience, Diplomados, 3D Lab, Profile)
+ *
+ * Anti-sobrescritura: cada guardado viaja con la marca de tiempo del cliente
+ * (encabezado X-Updated-At). Si el registro en MySQL es más reciente que esa
+ * marca, la escritura se omite para no perder cambios hechos desde otro equipo.
  */
 
 require_once __DIR__ . '/config.php';
@@ -27,13 +31,20 @@ if ($method === 'GET') {
         sendJsonResponse(json_decode($raw, true) ?: []);
     }
 
-    $stmt = $pdo->query("SELECT `section_key`, `data` FROM `site_sections`");
+    $stmt = $pdo->query("SELECT `section_key`, `data`, `updatedAt` FROM `site_sections`");
     $rows = $stmt->fetchAll();
 
     $settings = [];
+    $meta = [];
     foreach ($rows as $r) {
-        $settings[$r['section_key']] = json_decode($r['data'], true) ?: [];
+        $decoded = json_decode($r['data'], true);
+        $settings[$r['section_key']] = is_array($decoded) ? $decoded : [];
+        $meta[$r['section_key']] = $r['updatedAt'];
     }
+
+    // `__meta` expone las marcas de tiempo por sección sin alterar la forma de
+    // los datos (las secciones tipo lista deben seguir siendo arreglos).
+    $settings['__meta'] = $meta;
 
     sendJsonResponse($settings);
 }
@@ -42,47 +53,86 @@ if ($method === 'GET') {
 if ($method === 'POST' || $method === 'PUT') {
     $payload = getJsonPayload();
 
-    if (!empty($section)) {
-        // Save single section
-        $jsonStr = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $stmt = $pdo->prepare("
-            INSERT INTO `site_sections` (`section_key`, `data`, `updatedAt`)
-            VALUES (:k, :d, :now)
-            ON DUPLICATE KEY UPDATE `data` = VALUES(`data`), `updatedAt` = VALUES(`updatedAt`)
-        ");
-        $stmt->execute([
-            ':k'   => $section,
-            ':d'   => $jsonStr,
-            ':now' => date('c')
-        ]);
-
-        sendJsonResponse([
-            'success' => true,
-            'message' => "Sección '{$section}' guardada exitosamente en Hostinger MySQL."
-        ]);
+    if (!is_array($payload)) {
+        sendJsonResponse(['error' => 'Datos inválidos'], 400);
     }
 
-    // Bulk save multiple sections
-    if (is_array($payload)) {
-        $stmt = $pdo->prepare("
-            INSERT INTO `site_sections` (`section_key`, `data`, `updatedAt`)
-            VALUES (:k, :d, :now)
-            ON DUPLICATE KEY UPDATE `data` = VALUES(`data`), `updatedAt` = VALUES(`updatedAt`)
-        ");
+    // Marca de tiempo del cliente (encabezado o campo dentro del payload).
+    $incomingUpdatedAt = '';
+    if (!empty($_SERVER['HTTP_X_UPDATED_AT'])) {
+        $incomingUpdatedAt = (string)$_SERVER['HTTP_X_UPDATED_AT'];
+    } elseif (!empty($payload['updatedAt'])) {
+        $incomingUpdatedAt = (string)$payload['updatedAt'];
+    }
 
-        foreach ($payload as $secKey => $secData) {
-            $stmt->execute([
-                ':k'   => $secKey,
-                ':d'   => json_encode($secData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                ':now' => date('c')
+    $upsertSql = "
+        INSERT INTO `site_sections` (`section_key`, `data`, `updatedAt`)
+        VALUES (:k, :d, :now)
+        ON DUPLICATE KEY UPDATE `data` = VALUES(`data`), `updatedAt` = VALUES(`updatedAt`)
+    ";
+
+    if (!empty($section)) {
+        // Guardar una sola sección
+        $stmtExisting = $pdo->prepare("SELECT `updatedAt` FROM `site_sections` WHERE `section_key` = :k LIMIT 1");
+        $stmtExisting->execute([':k' => $section]);
+        $existingUpdatedAt = $stmtExisting->fetchColumn();
+
+        if (!shouldApplyIncomingWrite($incomingUpdatedAt, $existingUpdatedAt ?: null)) {
+            sendJsonResponse([
+                'success'  => true,
+                'skipped'  => true,
+                'message'  => "La sección '{$section}' tiene cambios más recientes en el servidor; no se sobrescribió.",
+                'serverUpdatedAt' => $existingUpdatedAt
             ]);
         }
 
+        $jsonStr = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $stmt = $pdo->prepare($upsertSql);
+        $stmt->execute([
+            ':k'   => $section,
+            ':d'   => $jsonStr,
+            ':now' => normalizeIncomingTimestamp($incomingUpdatedAt)
+        ]);
+
         sendJsonResponse([
             'success' => true,
-            'message' => 'Configuraciones de secciones guardadas con éxito en Hostinger MySQL.'
+            'message' => "Sección '{$section}' guardada exitosamente en Hostinger MySQL.",
+            'updatedAt' => normalizeIncomingTimestamp($incomingUpdatedAt)
         ]);
     }
 
-    sendJsonResponse(['error' => 'Datos inválidos'], 400);
+    // Guardado masivo de secciones
+    $stmtExisting = $pdo->prepare("SELECT `updatedAt` FROM `site_sections` WHERE `section_key` = :k LIMIT 1");
+    $stmt = $pdo->prepare($upsertSql);
+    $saved = [];
+    $skipped = [];
+
+    foreach ($payload as $secKey => $secData) {
+        if ($secKey === '__meta' || !is_string($secKey) || $secKey === '') {
+            continue;
+        }
+        $stmtExisting->execute([':k' => $secKey]);
+        $existingUpdatedAt = $stmtExisting->fetchColumn();
+        if (!shouldApplyIncomingWrite($incomingUpdatedAt, $existingUpdatedAt ?: null)) {
+            $skipped[] = $secKey;
+            continue;
+        }
+        $stmt->execute([
+            ':k'   => $secKey,
+            ':d'   => json_encode($secData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            ':now' => normalizeIncomingTimestamp($incomingUpdatedAt)
+        ]);
+        $saved[] = $secKey;
+    }
+
+    sendJsonResponse([
+        'success' => true,
+        'message' => $skipped
+            ? 'Configuraciones guardadas (algunas secciones se conservaron por ser más recientes en el servidor).'
+            : 'Configuraciones de secciones guardadas con éxito en Hostinger MySQL.',
+        'saved'   => $saved,
+        'skipped' => $skipped
+    ]);
 }
+
+sendJsonResponse(['error' => 'Método no permitido'], 405);

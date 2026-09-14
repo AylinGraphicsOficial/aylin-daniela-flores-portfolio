@@ -181,7 +181,10 @@ if ($method === 'POST' || $method === 'PUT') {
 
     try {
         $stmtUpsert = $pdo->prepare($upsertSql);
+        $existingStmt = $pdo->prepare("SELECT `updatedAt` FROM `projects` WHERE `id` = :lookupId LIMIT 1");
         $reservedDisciplineIds = ['modelado-3d', 'branding', 'edicion-video', 'social-media'];
+        $savedIds = [];
+        $skippedIds = [];
 
         foreach ($projectsList as $index => $item) {
             $projId = !empty($item['id']) ? trim($item['id']) : '';
@@ -196,6 +199,15 @@ if ($method === 'POST' || $method === 'PUT') {
 
             if (empty($projId)) {
                 $projId = 'proj-' . time() . '-' . $index;
+            }
+
+            // Anti-sobrescritura: un cliente desactualizado no puede pisar datos más nuevos.
+            $existingStmt->execute([':lookupId' => $projId]);
+            $existingUpdatedAt = $existingStmt->fetchColumn();
+            $incomingUpdatedAt = isset($item['updatedAt']) ? (string)$item['updatedAt'] : '';
+            if (!shouldApplyIncomingWrite($incomingUpdatedAt, $existingUpdatedAt ?: null)) {
+                $skippedIds[] = $projId;
+                continue;
             }
 
             $title = trim($item['title'] ?? '');
@@ -238,7 +250,7 @@ if ($method === 'POST' || $method === 'PUT') {
 
             $displayOrder = isset($item['display_order']) ? (int)$item['display_order'] : $index;
             $createdAt = $item['createdAt'] ?? date('c');
-            $updatedAt = date('c');
+            $updatedAt = normalizeIncomingTimestamp($incomingUpdatedAt);
 
             $stmtUpsert->execute([
                 ':id'               => $projId,
@@ -268,12 +280,15 @@ if ($method === 'POST' || $method === 'PUT') {
                 ':createdAt'        => $createdAt,
                 ':updatedAt'        => $updatedAt
             ]);
+            $savedIds[] = $projId;
         }
 
         sendJsonResponse([
             'success' => true,
             'message' => 'Proyecto(s) guardado(s) exitosamente en Hostinger MySQL.',
-            'savedCount' => count($projectsList)
+            'savedCount' => count($savedIds),
+            'skippedCount' => count($skippedIds),
+            'skipped' => $skippedIds
         ]);
     } catch (Exception $e) {
         sendJsonResponse([

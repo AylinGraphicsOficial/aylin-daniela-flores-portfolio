@@ -9,6 +9,12 @@ DirectoryIndex index.html production.html
   RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
   RewriteRule ^(.*)$ /public/$1 [L]
 
+  # 1b. Medios subidos desde el Dashboard: si /uploads/<archivo> no existe en el
+  #     servidor (por ejemplo tras un redespliegue), servirlo desde el
+  #     almacenamiento protegido mediante api/media.php.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^uploads/([^/]+)$ /api/media.php?f=$1 [L,QSA,NC]
+
   # 2. Never rewrite static assets to HTML; let server return clean 404 if missing
   RewriteCond %{REQUEST_URI} \.(css|js|mjs|webp|png|jpg|jpeg|gif|svg|ico|glb|gltf|mp4|webm|pdf|woff|woff2|ttf|eot)$ [NC]
   RewriteRule ^ - [L]

@@ -160,6 +160,9 @@ try {
         @mkdir(UPLOAD_DIR, 0777, true);
     }
 
+    // Ensure protected media storage (outside public_html) exists as well
+    $mediaDirs = ensureMediaDirectories();
+
     // 5. Seed initial projects if empty
     $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM `projects`");
     $projectCount = (int)$stmt->fetchColumn();
@@ -582,7 +585,10 @@ try {
         'totalProjects'   => $finalProjects,
         'totalDisciplines'=> $finalDisciplines,
         'totalSections'   => $finalSections,
-        'uploadsReady'    => is_writable(UPLOAD_DIR)
+        'uploadsReady'    => is_writable(UPLOAD_DIR) || (is_dir(SECURE_UPLOAD_DIR) && is_writable(SECURE_UPLOAD_DIR)),
+        'protectedMediaDir'   => SECURE_UPLOAD_DIR,
+        'protectedMediaReady' => is_dir(SECURE_UPLOAD_DIR) && is_writable(SECURE_UPLOAD_DIR),
+        'mediaDirs'       => $mediaDirs
     ]);
 
 } catch (PDOException $e) {

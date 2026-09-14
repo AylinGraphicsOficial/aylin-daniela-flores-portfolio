@@ -94,6 +94,10 @@ import {
   deleteStoredComment,
   syncCommentsFromRemote,
   getCategoryFallbackImage,
+  runMediaMaintenance,
+  getMediaStorageStatus,
+  MediaStorageStatus,
+  MediaDoctorReport,
 } from '../../utils/portfolioStorage';
 import { getProjectPrimaryMedia } from '../../utils/mediaDetector';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
@@ -194,6 +198,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedMediaItem[]>([]);
 
+  // Media storage diagnostics & maintenance
+  const [mediaStatus, setMediaStatus] = useState<MediaStorageStatus | null>(null);
+  const [mediaDoctor, setMediaDoctor] = useState<MediaDoctorReport['report'] | null>(null);
+  const [isMediaMaintenanceRunning, setIsMediaMaintenanceRunning] = useState<boolean>(false);
+
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -253,19 +262,65 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     return () => unsubscribe();
   }, []);
 
+  const fetchUploadedMedia = () => {
+    fetch('/api/upload.php')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.files)) {
+          setUploadedFiles(data.files);
+        }
+      })
+      .catch(() => {});
+  };
+
   // Fetch uploaded files when opening the media tab
   useEffect(() => {
     if (activeTab === 'media') {
-      fetch('/api/upload.php')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && Array.isArray(data.files)) {
-            setUploadedFiles(data.files);
-          }
-        })
-        .catch(() => {});
+      fetchUploadedMedia();
+      getMediaStorageStatus().then((status) => {
+        if (status) setMediaStatus(status);
+      });
     }
   }, [activeTab]);
+
+  // ==================== MEDIA STORAGE MAINTENANCE ====================
+  const handleMediaMaintenance = async (
+    action: 'migrate' | 'repair' | 'doctor'
+  ) => {
+    playClickSound();
+    setIsMediaMaintenanceRunning(true);
+    const result = await runMediaMaintenance(action);
+
+    if (action === 'doctor') {
+      if (result && result.success && result.report) {
+        setMediaDoctor(result.report);
+        showNotification(
+          result.report.missingCount > 0
+            ? `Diagnóstico: ${result.report.missingCount} archivo(s) referenciados están rotos.`
+            : 'Diagnóstico completo: todas las referencias de medios están correctas.'
+        );
+      } else {
+        showNotification('No se pudo ejecutar el diagnóstico de medios.');
+      }
+    } else {
+      const report = result?.report;
+      if (report) {
+        const restored = report.restored ?? report.copied ?? 0;
+        showNotification(
+          action === 'migrate'
+            ? `Respaldo protegido actualizado: ${report.copied} copiado(s), ${report.skipped} ya respaldado(s).`
+            : `Copias públicas restauradas: ${restored} archivo(s).`
+        );
+      } else {
+        showNotification('Mantenimiento de medios ejecutado.');
+      }
+      fetchUploadedMedia();
+    }
+
+    const status = await getMediaStorageStatus();
+    if (status) setMediaStatus(status);
+    setIsMediaMaintenanceRunning(false);
+  };
 
   const showNotification = (msg: string) => {
     play8BitArcadeSound();
@@ -4355,6 +4410,116 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 <p className={`text-xs ${textMuted} mt-1`}>
                   Explorador de imágenes WebP/PNG, GIFs animados y clips MP4/WebM alojados en el servidor.
                 </p>
+              </div>
+
+              {/* Panel de almacenamiento protegido y mantenimiento */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-teal-950/25 border border-teal-500/30 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-teal-300 flex items-center gap-2">
+                      <Database className="w-4 h-4" />
+                      <span>Almacenamiento Protegido de Medios</span>
+                    </h3>
+                    <p className={`text-[11px] ${textMuted} mt-1 max-w-xl`}>
+                      Los archivos se respaldan fuera de <code>public_html</code> para que no se pierdan
+                      cuando se actualiza el sitio. Usa estas acciones si una imagen dejó de verse.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={isMediaMaintenanceRunning}
+                      onClick={() => handleMediaMaintenance('migrate')}
+                      className="px-3 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition-colors"
+                    >
+                      Respaldar medios
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isMediaMaintenanceRunning}
+                      onClick={() => handleMediaMaintenance('repair')}
+                      className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold cursor-pointer transition-colors"
+                    >
+                      Restaurar copias públicas
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isMediaMaintenanceRunning}
+                      onClick={() => handleMediaMaintenance('doctor')}
+                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white border border-slate-600 text-xs font-bold cursor-pointer transition-colors"
+                    >
+                      {isMediaMaintenanceRunning ? 'Analizando...' : 'Diagnóstico de medios'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3 rounded-xl bg-black/30 border border-teal-500/20">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">Modo</span>
+                    <span className="text-sm font-bold text-teal-300">
+                      {mediaStatus ? (mediaStatus.mode === 'protected' ? 'Protegido' : 'Clásico') : '—'}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/30 border border-teal-500/20">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">Respaldo</span>
+                    <span className={`text-sm font-bold ${mediaStatus?.backupHealthy ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {mediaStatus ? (mediaStatus.backupHealthy ? 'Activo' : 'Revisar') : '—'}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/30 border border-teal-500/20">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">En respaldo</span>
+                    <span className="text-sm font-bold text-white">{mediaStatus?.protectedFiles ?? '—'}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/30 border border-teal-500/20">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">En /uploads/</span>
+                    <span className="text-sm font-bold text-white">{mediaStatus?.publicFiles ?? '—'}</span>
+                  </div>
+                </div>
+
+                {mediaStatus?.protectedDir && (
+                  <p className="text-[10px] font-mono text-slate-500 break-all">
+                    Respaldo: {mediaStatus.protectedDir}
+                  </p>
+                )}
+
+                {mediaDoctor && (
+                  <div className="p-3 rounded-xl bg-black/40 border border-slate-700 space-y-2">
+                    <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
+                      <span className="text-white">
+                        Referencias verificadas: {mediaDoctor.presentFiles}/{mediaDoctor.referencedFiles}
+                      </span>
+                      <span className={mediaDoctor.missingCount > 0 ? 'text-rose-400' : 'text-emerald-400'}>
+                        {mediaDoctor.missingCount > 0
+                          ? `${mediaDoctor.missingCount} archivo(s) roto(s)`
+                          : 'Sin archivos rotos'}
+                      </span>
+                      <span className="text-slate-400">
+                        {mediaDoctor.orphanCount} archivo(s) sin referencia
+                      </span>
+                    </div>
+                    {mediaDoctor.missingCount > 0 && (
+                      <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+                        {mediaDoctor.missing.map((item) => (
+                          <div
+                            key={item.filename}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 p-2 rounded-lg bg-rose-950/30 border border-rose-500/30"
+                          >
+                            <span className="text-[11px] font-mono text-rose-200 break-all">
+                              {item.url}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {item.referenced.slice(0, 3).join(' · ')}
+                            </span>
+                          </div>
+                        ))}
+                        <p className="text-[11px] text-amber-300 pt-1">
+                          Vuelve a subir estos archivos desde su sección (Perfil, Diplomados o Proyectos).
+                          Con el respaldo protegido ya no se volverán a perder.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {uploadedFiles.length === 0 ? (

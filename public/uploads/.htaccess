@@ -1,5 +1,7 @@
 # Secure Uploads Directory Configuration
 # Allow direct HTTP access to media files
+Options -Indexes
+
 <IfModule mod_authz_core.c>
     Require all granted
 </IfModule>
