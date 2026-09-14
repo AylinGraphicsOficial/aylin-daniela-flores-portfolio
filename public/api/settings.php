@@ -51,6 +51,20 @@ if ($method === 'GET') {
 
 // ==================== POST / PUT: Update Section Data ====================
 if ($method === 'POST' || $method === 'PUT') {
+    // Protección: un cuerpo con JSON inválido NO debe convertirse en un arreglo
+    // vacío que pueda borrar el contenido de una sección.
+    $rawBody = file_get_contents('php://input');
+    $hasBody = is_string($rawBody) && trim($rawBody) !== '';
+    if ($hasBody) {
+        $decodedBody = json_decode($rawBody, true);
+        if (!is_array($decodedBody)) {
+            sendJsonResponse([
+                'success' => false,
+                'error'   => 'Cuerpo JSON inválido: la sección no fue modificada.'
+            ], 400);
+        }
+    }
+
     $payload = getJsonPayload();
 
     if (!is_array($payload)) {
@@ -73,9 +87,23 @@ if ($method === 'POST' || $method === 'PUT') {
 
     if (!empty($section)) {
         // Guardar una sola sección
-        $stmtExisting = $pdo->prepare("SELECT `updatedAt` FROM `site_sections` WHERE `section_key` = :k LIMIT 1");
+        $stmtExisting = $pdo->prepare("SELECT `updatedAt`, `data` FROM `site_sections` WHERE `section_key` = :k LIMIT 1");
         $stmtExisting->execute([':k' => $section]);
-        $existingUpdatedAt = $stmtExisting->fetchColumn();
+        $existingRow = $stmtExisting->fetch();
+        $existingUpdatedAt = $existingRow ? $existingRow['updatedAt'] : null;
+        $existingData = $existingRow ? json_decode((string)$existingRow['data'], true) : null;
+
+        // Protección: un payload vacío no puede borrar una sección con contenido.
+        $incomingIsEmpty = count($payload) === 0;
+        $existingIsObject = is_array($existingData)
+            && count($existingData) > 0
+            && array_keys($existingData) !== range(0, count($existingData) - 1);
+        if ($incomingIsEmpty && $existingIsObject) {
+            sendJsonResponse([
+                'success' => false,
+                'error'   => "La sección '{$section}' llegó vacía; se canceló el guardado para proteger el contenido existente."
+            ], 400);
+        }
 
         if (!shouldApplyIncomingWrite($incomingUpdatedAt, $existingUpdatedAt ?: null)) {
             sendJsonResponse([
