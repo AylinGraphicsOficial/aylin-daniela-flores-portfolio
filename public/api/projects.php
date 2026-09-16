@@ -18,6 +18,7 @@ if (!$pdo) {
 
 // Auto-migration: ensure all modern columns exist with isolated try-catch blocks
 $migrations = [
+    "CREATE TABLE IF NOT EXISTS `deleted_items` (`id` VARCHAR(100) NOT NULL PRIMARY KEY, `deletedAt` VARCHAR(50) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     "ALTER TABLE `projects` ADD COLUMN `logo` VARCHAR(500) DEFAULT '' AFTER `galleryImages`",
     "ALTER TABLE `projects` ADD COLUMN `sliderImage` VARCHAR(500) DEFAULT '' AFTER `logo`",
     "ALTER TABLE `projects` ADD COLUMN `sliderTitle` VARCHAR(255) DEFAULT '' AFTER `sliderImage`",
@@ -125,8 +126,20 @@ if ($method === 'POST' || $method === 'PUT') {
 
     // Action: Delete (via POST)
     if ($action === 'delete' && !empty($id)) {
+        try {
+            $pdo->prepare("INSERT INTO `deleted_items` (`id`, `deletedAt`) VALUES (:id, :now) ON DUPLICATE KEY UPDATE `deletedAt` = VALUES(`deletedAt`)")
+                ->execute([':id' => $id, ':now' => date('c')]);
+        } catch (Exception $e) {}
         $stmt = $pdo->prepare("DELETE FROM `projects` WHERE `id` = :id");
         $stmt->execute([':id' => $id]);
+        sendJsonResponse(['success' => true, 'id' => $id]);
+    }
+
+    // Action: Undelete / Unmark tombstone (if user explicitly creates an item with same ID)
+    if ($action === 'undelete' && !empty($id)) {
+        try {
+            $pdo->prepare("DELETE FROM `deleted_items` WHERE `id` = :id")->execute([':id' => $id]);
+        } catch (Exception $e) {}
         sendJsonResponse(['success' => true, 'id' => $id]);
     }
 
@@ -182,6 +195,7 @@ if ($method === 'POST' || $method === 'PUT') {
     try {
         $stmtUpsert = $pdo->prepare($upsertSql);
         $existingStmt = $pdo->prepare("SELECT `updatedAt` FROM `projects` WHERE `id` = :lookupId LIMIT 1");
+        $deletedStmt = $pdo->prepare("SELECT 1 FROM `deleted_items` WHERE `id` = :lookupId LIMIT 1");
         $reservedDisciplineIds = ['modelado-3d', 'branding', 'edicion-video', 'social-media'];
         $savedIds = [];
         $skippedIds = [];
@@ -199,6 +213,13 @@ if ($method === 'POST' || $method === 'PUT') {
 
             if (empty($projId)) {
                 $projId = 'proj-' . time() . '-' . $index;
+            }
+
+            // STRICT PROTECTION: If an item was explicitly deleted, reject upsert and NEVER resurrect!
+            $deletedStmt->execute([':lookupId' => $projId]);
+            if ($deletedStmt->fetchColumn()) {
+                $skippedIds[] = $projId;
+                continue;
             }
 
             // Anti-sobrescritura: un cliente desactualizado no puede pisar datos más nuevos.

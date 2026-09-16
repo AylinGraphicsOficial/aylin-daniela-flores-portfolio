@@ -108,6 +108,14 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
+    // 3b. Create Deleted Items Tombstone Table (Anti-Resurrection)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `deleted_items` (
+            `id` VARCHAR(100) NOT NULL PRIMARY KEY,
+            `deletedAt` VARCHAR(50) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
     // 4. Create Site Sections Table (About, Experience, Diplomados, 3D Lab, Profile)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS `site_sections` (

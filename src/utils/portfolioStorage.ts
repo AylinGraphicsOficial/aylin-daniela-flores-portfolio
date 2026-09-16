@@ -68,6 +68,20 @@ const clearQueuedWrite = (matchUrl: string, method: string): void => {
   writePendingQueue(q);
 };
 
+const clearQueuedWritesForId = (id: string): void => {
+  const q = readPendingQueue().filter((w) => {
+    if (w.url.includes(encodeURIComponent(id)) || w.url.includes(id)) return false;
+    if (w.body && w.body.includes(`"id":"${id}"`)) return false;
+    return true;
+  });
+  writePendingQueue(q);
+};
+
+const isIdPendingOfflineCreation = (id: string): boolean => {
+  const q = readPendingQueue();
+  return q.some((w) => w.method === 'POST' && w.body && w.body.includes(`"id":"${id}"`));
+};
+
 // ----- Local meta (per-item lastLocalWriteAt to prevent remote-overwrites-local) -----
 interface LocalMeta {
   [itemId: string]: number; // ms timestamp of last local mutation
@@ -581,23 +595,17 @@ const mergeByUpdatedAt = <T extends { id: string; updatedAt?: string }>(
     }
   }
 
-  // Preserve local items that remote doesn't have (unless they were deleted or invalid)
+  // Preserve local items ONLY if they are actively queued for offline creation.
+  // Never re-upload or resurrect items that were deleted on the remote server!
   for (const l of local) {
     if (deletedIdsSet && deletedIdsSet.has(l.id)) {
-      continue; // Was intentionally deleted, do NOT resurrect!
+      continue;
     }
     if (isProjectsEndpoint && reservedDisciplineIds.has(l.id)) {
-      continue; // Discipline must never exist in projects list!
+      continue;
     }
-    if (!seenIds.has(l.id)) {
+    if (!seenIds.has(l.id) && isIdPendingOfflineCreation(l.id)) {
       merged.push(l);
-      const payload = wrapPayload ? wrapPayload(l) : l;
-      enqueueWrite({
-        endpoint: apiEndpoint,
-        method: 'POST',
-        url: apiEndpoint,
-        body: JSON.stringify(payload),
-      });
       changed = true;
     }
   }
@@ -1564,6 +1572,7 @@ export const deleteProject = async (projectId: string): Promise<void> => {
   const updated = current.filter((p) => p.id !== projectId);
   writeJson(PROJECTS_STORAGE_KEY, updated);
   markLocalMutation(projectId);
+  clearQueuedWritesForId(projectId);
 
   // 3. Remove from any discipline assignments
   const disciplines = getStoredDisciplines();

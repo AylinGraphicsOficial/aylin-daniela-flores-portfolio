@@ -74,15 +74,14 @@ const DisciplineSliderCard: React.FC<{
             loading="lazy"
             decoding="async"
             onError={(e) => {
+              e.currentTarget.onerror = null;
               let fallback = discipline.image || '/images/orbit-stand.webp';
               if (discipline.id === 'edicion-video') fallback = '/images/hero-hands.jpg';
               else if (discipline.id === 'social-media') fallback = '/images/orbit-tablet.webp';
               else if (discipline.id === 'branding') fallback = '/images/brands/holy-nation.webp';
               else if (discipline.id === 'modelado-3d') fallback = '/images/orbit-stand.webp';
 
-              if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
-                e.currentTarget.src = fallback;
-              }
+              e.currentTarget.src = fallback;
             }}
             className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
@@ -308,14 +307,9 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                     loading="lazy"
                     decoding="async"
                     onError={(e) => {
-                      if (media.hasVideo && media.thumbnailUrl && e.currentTarget.src !== media.thumbnailUrl) {
-                        e.currentTarget.src = media.thumbnailUrl;
-                        return;
-                      }
+                      e.currentTarget.onerror = null;
                       const fallback = getCategoryFallbackImage(project.category);
-                      if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
-                        e.currentTarget.src = fallback;
-                      }
+                      e.currentTarget.src = fallback;
                     }}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
