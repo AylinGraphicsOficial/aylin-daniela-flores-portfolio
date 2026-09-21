@@ -45,7 +45,6 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   const navLinks = [
     { href: '#work', label: t.nav.work },
     { href: '#viewer3d', label: t.nav.viewer3d },
-    { href: '#experience', label: t.nav.experience },
     { href: '#about', label: t.nav.about },
     { href: '#contact', label: t.nav.contact },
   ];
@@ -248,7 +247,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                   playClickSound();
                   setMobileMenuOpen(false);
                 }}
-                className="text-base font-bold text-gray-200 hover:text-[#76FF03] py-1 border-b border-white/5"
+                className="text-base font-bold text-gray-200 hover:text-[#76FF03] py-2.5 px-3 rounded-xl hover:bg-white/5 border-b border-white/5 flex items-center justify-between transition-all active:scale-[0.99]"
               >
                 {link.label}
               </a>

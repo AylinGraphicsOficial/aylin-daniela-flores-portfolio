@@ -12,7 +12,6 @@ import { GradualBlur } from './components/GradualBlur';
 import { TopNavBar } from './components/TopNavBar';
 import { HeroSection } from './components/HeroSection';
 import { WorksBentoGrid } from './components/WorksBentoGrid';
-import { ExperienceTimeline } from './components/ExperienceTimeline';
 import { AboutSection } from './components/AboutSection';
 import { DiplomadosSection } from './components/DiplomadosSection';
 import { BrandsSection } from './components/BrandsSection';
@@ -365,9 +364,6 @@ export default function App() {
             </Suspense>
           </div>
 
-          <div className="scroll-reveal">
-            <ExperienceTimeline lang={lang} />
-          </div>
 
           <div className="scroll-reveal">
             <AboutSection lang={lang} />

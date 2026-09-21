@@ -27,6 +27,8 @@ const DisciplineSliderCard: React.FC<{
       : [{ id: 'fallback', image: discipline.image, visible: true }];
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const touchStartXRef = React.useRef<number | null>(null);
+  const touchStartYRef = React.useRef<number | null>(null);
 
   const handlePrevSlide = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -44,20 +46,49 @@ const DisciplineSliderCard: React.FC<{
     );
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current !== null && e.changedTouches.length > 0) {
+      const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+      const deltaY = touchStartYRef.current !== null ? e.changedTouches[0].clientY - touchStartYRef.current : 0;
+      if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        if (deltaX < 0) {
+          playClickSound();
+          setCurrentSlideIndex((prev) =>
+            prev === visibleSlides.length - 1 ? 0 : prev + 1
+          );
+        } else {
+          playClickSound();
+          setCurrentSlideIndex((prev) =>
+            prev === 0 ? visibleSlides.length - 1 : prev - 1
+          );
+        }
+      }
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+    }
+  };
+
   const activeSlide = visibleSlides[currentSlideIndex] || visibleSlides[0];
 
   return (
     <div
-      className="flex flex-row items-start gap-4 sm:gap-8 md:gap-12 group cursor-pointer"
+      className="flex flex-row items-start gap-2.5 sm:gap-8 md:gap-12 group cursor-pointer"
       onClick={onSelect}
       onMouseEnter={playHoverSound}
     >
       {/* Left Side: Bold Italic Number + Vertical Label */}
-      <div className="flex flex-col items-center flex-shrink-0 pt-2 w-10 sm:w-16">
-        <span className="text-3xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-white select-none leading-none">
+      <div className="flex flex-col items-center flex-shrink-0 pt-1 sm:pt-2 w-7 sm:w-16">
+        <span className="text-2xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-white select-none leading-none">
           {discipline.number}
         </span>
-        <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] sm:tracking-[0.3em] text-gray-400 font-bold [writing-mode:vertical-rl] rotate-180 mt-6 sm:mt-10 select-none whitespace-nowrap">
+        <span className="text-[8px] sm:text-xs font-mono uppercase tracking-[0.2em] sm:tracking-[0.3em] text-gray-400 font-bold [writing-mode:vertical-rl] rotate-180 mt-4 sm:mt-10 select-none whitespace-nowrap">
           {lang === 'es' ? discipline.verticalTextEs : discipline.verticalTextEn}
         </span>
       </div>
@@ -65,7 +96,11 @@ const DisciplineSliderCard: React.FC<{
       {/* Right Side: Main Interactive Slider Card + Typography */}
       <div className="flex-1 min-w-0">
         {/* Interactive Image Slider Card */}
-        <div className="relative aspect-[16/8] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_25px_60px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-3 sm:p-5">
+        <div
+          className="relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_25px_60px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-2.5 sm:p-5 touch-pan-y"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {/* Active Image Render with smooth transition */}
           <img
             key={activeSlide.id || activeSlide.image}
@@ -93,24 +128,24 @@ const DisciplineSliderCard: React.FC<{
                 type="button"
                 onClick={handlePrevSlide}
                 onMouseEnter={playHoverSound}
-                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/75 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
+                className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/80 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
                 aria-label="Slide anterior"
               >
-                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
               </button>
 
               <button
                 type="button"
                 onClick={handleNextSlide}
                 onMouseEnter={playHoverSound}
-                className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/75 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
+                className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/80 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
                 aria-label="Slide siguiente"
               >
-                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
               </button>
 
               {/* Progress Dots */}
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10">
+              <div className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10">
                 {visibleSlides.map((_, idx) => (
                   <button
                     key={idx}
@@ -123,7 +158,7 @@ const DisciplineSliderCard: React.FC<{
                     aria-label={`Ir a diapositiva ${idx + 1}`}
                     className={`h-1.5 rounded-full transition-all cursor-pointer ${
                       idx === currentSlideIndex
-                        ? 'w-6 bg-[#76FF03]'
+                        ? 'w-5 sm:w-6 bg-[#76FF03]'
                         : 'w-1.5 bg-white/30 hover:bg-white/70'
                     }`}
                   />
@@ -134,7 +169,7 @@ const DisciplineSliderCard: React.FC<{
 
           {/* Slide Title Badge (Optional) */}
           {activeSlide.title && (
-            <div className="absolute top-4 left-4 z-20 px-3.5 py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-xs font-mono font-medium text-white shadow-md">
+            <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-[10px] sm:text-xs font-mono font-medium text-white shadow-md max-w-[65vw] truncate">
               {activeSlide.title}
             </div>
           )}
@@ -203,10 +238,10 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   return (
     <section
       id="work"
-      className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative"
+      className="py-16 sm:py-20 md:py-32 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative"
     >
       {/* Header Section */}
-      <div className="flex flex-col items-center text-center mb-16 sm:mb-20 space-y-4">
+      <div className="flex flex-col items-center text-center mb-12 sm:mb-20 space-y-4">
         {/* Category Pill Tag */}
         <div className="section-tag-pill">
           <span className="badge-dot" />
@@ -214,7 +249,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
         </div>
 
         {/* Section Title */}
-        <h2 className="text-4xl sm:text-6xl md:text-7xl font-black text-white uppercase italic tracking-tight leading-none">
+        <h2 className="text-3xl sm:text-6xl md:text-7xl font-black text-white uppercase italic tracking-tight leading-none">
           {lang === 'es' ? 'PORTAFOLIO & ESPECIALIDADES' : 'PORTFOLIO & DISCIPLINES'}
         </h2>
         <p className="text-xs sm:text-sm text-gray-400 max-w-xl font-normal leading-relaxed">
@@ -225,7 +260,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
       </div>
 
       {/* 4 Hero Discipline Showcase Sections with Interactive Sliders */}
-      <div className="space-y-20 sm:space-y-28">
+      <div className="space-y-16 sm:space-y-28">
         {disciplines
           .filter((d) => d.visible !== false)
           .map((item) => (
@@ -239,15 +274,15 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
       </div>
 
       {/* Divider to Projects Catalog Grid */}
-      <div className="my-24 sm:my-32">
-        <div className="w-full h-px bg-white/15 mb-16" />
+      <div className="my-16 sm:my-32">
+        <div className="w-full h-px bg-white/15 mb-12 sm:mb-16" />
 
         {/* Centered Catalog Header */}
-        <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
+        <div className="flex flex-col items-center text-center mb-10 sm:mb-16">
           <span className="text-xs font-mono font-bold tracking-[0.3em] text-[#76FF03] uppercase block mb-2">
             {lang === 'es' ? 'TODAS LAS PRODUCCIONES' : 'ALL PRODUCTIONS'}
           </span>
-          <h3 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase italic tracking-tight text-white leading-none">
+          <h3 className="text-3xl sm:text-6xl md:text-7xl font-black uppercase italic tracking-tight text-white leading-none">
             {lang === 'es' ? 'CATÁLOGO DE PROYECTOS' : 'PROJECTS CATALOG'}
           </h3>
         </div>

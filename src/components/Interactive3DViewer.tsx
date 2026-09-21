@@ -672,16 +672,16 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
           </div>
 
           {/* Bottom Interactive Hint */}
-          <div className="absolute bottom-4 left-4 right-4 z-20 flex flex-col sm:flex-row items-center justify-between gap-2 pointer-events-none">
-            <span className="text-[11px] font-mono text-gray-400 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
-              🖱️ {lang === 'es' ? 'Arrastra para rotar 360° • Click derecho para mover • Scroll para zoom' : 'Drag to rotate 360° • Right click to pan • Scroll to zoom'}
+          <div className="absolute bottom-3 sm:bottom-4 left-3 right-3 sm:left-4 sm:right-4 z-20 flex flex-col sm:flex-row items-center justify-between gap-2 pointer-events-none">
+            <span className="text-[10px] sm:text-[11px] font-mono text-gray-300 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-center">
+              {lang === 'es' ? '👆 1 dedo rota • 2 dedos zoom • 🖱️ Arrastra y scroll' : '👆 1 finger rotate • 2 fingers zoom • 🖱️ Drag and scroll'}
             </span>
 
             <div className="flex items-center space-x-2 pointer-events-auto">
               <button
                 type="button"
                 onClick={() => handleZoom(0.85)}
-                className="p-2 rounded-xl bg-black/70 hover:bg-black text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
                 title="Acercar"
               >
                 <ZoomIn className="w-4 h-4" />
@@ -689,7 +689,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
               <button
                 type="button"
                 onClick={() => handleZoom(1.15)}
-                className="p-2 rounded-xl bg-black/70 hover:bg-black text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
                 title="Alejar"
               >
                 <ZoomOut className="w-4 h-4" />
@@ -697,7 +697,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
               <button
                 type="button"
                 onClick={handleResetCamera}
-                className="p-2 rounded-xl bg-black/70 hover:bg-black text-gray-300 hover:text-[#76FF03] border border-white/10 transition-colors cursor-pointer"
+                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-[#76FF03] border border-white/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
                 title="Centrar Vista"
               >
                 <RefreshCw className="w-4 h-4" />

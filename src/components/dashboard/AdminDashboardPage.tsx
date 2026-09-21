@@ -31,7 +31,6 @@ import {
   CheckCheck,
   Video,
   User,
-  Briefcase,
   Award,
   Compass,
   FileText,
@@ -53,7 +52,7 @@ import {
   Clock,
   Send,
 } from 'lucide-react';
-import { Project, Discipline, ExperienceItem, SocialLink, DiplomadoItem, ContactMessage, CommentItem } from '../../types';
+import { Project, Discipline, SocialLink, DiplomadoItem, ContactMessage, CommentItem } from '../../types';
 import {
   getStoredProjects,
   getStoredDisciplines,
@@ -71,8 +70,6 @@ import {
   getStoredAbout,
   saveStoredAbout,
   AboutSectionData,
-  getStoredExperience,
-  saveStoredExperience,
   getStoredDiplomados,
   saveStoredDiplomados,
   getStoredLab3D,
@@ -131,7 +128,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     | 'disciplines'
     | 'featured'
     | 'about'
-    | 'experience'
     | 'diplomados'
     | 'lab3d'
     | 'socials'
@@ -147,7 +143,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   // Sections states
   const [aboutData, setAboutData] = useState<AboutSectionData>(getStoredAbout);
-  const [experiences, setExperiences] = useState<ExperienceItem[]>(getStoredExperience);
   const [diplomados, setDiplomados] = useState<DiplomadoItem[]>(getStoredDiplomados);
   const [lab3dData, setLab3dData] = useState<Lab3DData>(getStoredLab3D);
 
@@ -181,13 +176,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
 
-  // New Experience Form State & Drag-and-Drop
-  const [editingExp, setEditingExp] = useState<ExperienceItem | null>(null);
-  const [isExpModalOpen, setIsExpModalOpen] = useState(false);
-  const [expToolsInput, setExpToolsInput] = useState('');
-  const [expResponsibilitiesInput, setExpResponsibilitiesInput] = useState('');
-  const [draggedExpIndex, setDraggedExpIndex] = useState<number | null>(null);
-  const [dragOverExpIndex, setDragOverExpIndex] = useState<number | null>(null);
 
   // Uploading Profile Photo
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -234,7 +222,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setProjects(getStoredProjects());
       setDisciplines(getStoredDisciplines());
       setAboutData(getStoredAbout());
-      setExperiences(getStoredExperience());
       setDiplomados(getStoredDiplomados());
       setLab3dData(getStoredLab3D());
       setSocials(getStoredSocials());
@@ -610,102 +597,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     }
   };
 
-  // Experience Handlers
-  const handleSaveExperienceList = async (updatedList: ExperienceItem[]) => {
-    setExperiences(updatedList);
-    await saveStoredExperience(updatedList);
-    showNotification('¡Línea de Experiencia actualizada en Hostinger MySQL!');
-  };
-
-  const handleDeleteExperience = (id: string) => {
-    if (window.confirm('¿Eliminar esta experiencia laboral?')) {
-      const updated = experiences.filter((e) => e.id !== id);
-      handleSaveExperienceList(updated);
-    }
-  };
-
-  const handleSaveSingleExperience = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingExp) return;
-
-    const parsedTools = expToolsInput
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    const parsedResponsibilities = expResponsibilitiesInput
-      .split('\n')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-
-    const finalizedExp: ExperienceItem = {
-      ...editingExp,
-      toolsUsed: parsedTools,
-      responsibilities: parsedResponsibilities.length > 0 ? parsedResponsibilities : editingExp.responsibilities,
-    };
-
-    const index = experiences.findIndex((x) => x.id === finalizedExp.id);
-    let updated: ExperienceItem[];
-    if (index >= 0) {
-      updated = [...experiences];
-      updated[index] = finalizedExp;
-    } else {
-      updated = [{ ...finalizedExp, id: finalizedExp.id || `exp-${Date.now()}` }, ...experiences];
-    }
-    handleSaveExperienceList(updated);
-    setIsExpModalOpen(false);
-    setEditingExp(null);
-    setExpToolsInput('');
-    setExpResponsibilitiesInput('');
-  };
-
-  // Experience Drag & Drop Handlers
-  const handleExpDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedExpIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', `${index}`);
-  };
-
-  const handleExpDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverExpIndex !== index) {
-      setDragOverExpIndex(index);
-    }
-  };
-
-  const handleExpDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (draggedExpIndex === null || draggedExpIndex === dropIndex) {
-      setDraggedExpIndex(null);
-      setDragOverExpIndex(null);
-      return;
-    }
-
-    const updated = [...experiences];
-    const [movedItem] = updated.splice(draggedExpIndex, 1);
-    updated.splice(dropIndex, 0, movedItem);
-
-    setDraggedExpIndex(null);
-    setDragOverExpIndex(null);
-    handleSaveExperienceList(updated);
-  };
-
-  const handleExpDragEnd = () => {
-    setDraggedExpIndex(null);
-    setDragOverExpIndex(null);
-  };
-
-  const handleMoveExperience = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= experiences.length) return;
-
-    playClickSound();
-    const updated = [...experiences];
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
-    handleSaveExperienceList(updated);
-  };
 
   // Diplomados Handlers
   const handleAddDiplomado = async (e: React.FormEvent) => {
@@ -1221,25 +1112,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               <span className="flex-1 text-left truncate">Sobre Mí & Perfil</span>
             </button>
 
-            {/* 7. Experiencia Laboral - Cyan */}
-            <button
-              type="button"
-              onClick={() => {
-                playClickSound();
-                setActiveTab('experience');
-              }}
-              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
-                activeTab === 'experience'
-                  ? 'bg-cyan-600 text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] border-cyan-400/40'
-                  : 'text-cyan-400 hover:bg-cyan-500/10 border-transparent hover:border-cyan-500/30'
-              }`}
-            >
-              <Briefcase className="w-4 h-4 flex-shrink-0" />
-              <span className="flex-1 text-left truncate">Experiencia Laboral</span>
-              <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-black/30 text-gray-300">
-                {experiences.length}
-              </span>
-            </button>
 
             {/* 8. Diplomados & Cursos - Fuchsia */}
             <button
@@ -2907,176 +2779,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           )}
 
-          {/* ================= TAB 5: EXPERIENCIA LABORAL ================= */}
-          {activeTab === 'experience' && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight">
-                    Línea de Tiempo & Trayectoria Profesional ({experiences.length})
-                  </h2>
-                  <p className={`text-xs ${textMuted} mt-1`}>
-                    Gestiona los cargos, empresas, periodos y logros de tu trayectoria profesional.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingExp({
-                      id: `exp-${Date.now()}`,
-                      role: '',
-                      company: '',
-                      location: 'El Salvador',
-                      period: '2026',
-                      isCurrent: true,
-                      description: '',
-                      responsibilities: [],
-                      toolsUsed: [],
-                    });
-                    setExpToolsInput('');
-                    setExpResponsibilitiesInput('');
-                    setIsExpModalOpen(true);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Añadir Experiencia</span>
-                </button>
-              </div>
-
-              {/* Experience Cards with Native Drag & Drop */}
-              <div className="space-y-4">
-                {experiences.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    draggable
-                    onDragStart={(e) => handleExpDragStart(e, idx)}
-                    onDragOver={(e) => handleExpDragOver(e, idx)}
-                    onDragLeave={() => setDragOverExpIndex(null)}
-                    onDrop={(e) => handleExpDrop(e, idx)}
-                    onDragEnd={handleExpDragEnd}
-                    className={`p-5 rounded-2xl border transition-all duration-200 ${bgCard} flex flex-col md:flex-row items-start justify-between gap-4 ${
-                      draggedExpIndex === idx ? 'opacity-40 scale-[0.98] border-dashed border-emerald-500' : ''
-                    } ${
-                      dragOverExpIndex === idx && draggedExpIndex !== idx ? 'border-emerald-400 bg-emerald-500/10 ring-2 ring-emerald-500/30' : ''
-                    }`}
-                  >
-                    <div className="flex items-start gap-3 flex-1 w-full">
-                      {/* Drag Handle & Reorder buttons */}
-                      <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
-                        <div
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800/80 cursor-grab active:cursor-grabbing transition-colors"
-                          title="Arrastra este módulo para cambiar su posición en el portafolio"
-                        >
-                          <GripVertical className="w-5 h-5" />
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <button
-                            type="button"
-                            onClick={() => handleMoveExperience(idx, 'up')}
-                            disabled={idx === 0}
-                            className="p-1 text-slate-400 hover:text-emerald-400 disabled:opacity-20 disabled:hover:text-slate-400 rounded cursor-pointer disabled:cursor-not-allowed transition-colors"
-                            title="Subir módulo"
-                          >
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveExperience(idx, 'down')}
-                            disabled={idx === experiences.length - 1}
-                            className="p-1 text-slate-400 hover:text-emerald-400 disabled:opacity-20 disabled:hover:text-slate-400 rounded cursor-pointer disabled:cursor-not-allowed transition-colors"
-                            title="Bajar módulo"
-                          >
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Content Details */}
-                      <div className="space-y-2 flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            #{idx + 1}
-                          </span>
-                          <h4 className="text-base font-bold text-white truncate">{item.role}</h4>
-                          {item.isCurrent && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                              Actual
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-xs font-mono text-slate-400">
-                          <span className="text-emerald-400 font-semibold">{item.company}</span>
-                          {item.period ? ` • ${item.period}` : ''}
-                          {item.location ? ` • ${item.location}` : ''}
-                        </p>
-
-                        {item.description && (
-                          <p className={`text-xs ${textMuted} leading-relaxed max-w-2xl`}>
-                            {item.description}
-                          </p>
-                        )}
-
-                        {item.responsibilities && item.responsibilities.length > 0 && (
-                          <div className="pt-2">
-                            <span className="text-[10px] font-mono uppercase text-emerald-400/80 font-bold block mb-1">
-                              Responsabilidades ({item.responsibilities.length}):
-                            </span>
-                            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
-                              {item.responsibilities.slice(0, 3).map((r, rI) => (
-                                <li key={rI} className="truncate">{r}</li>
-                              ))}
-                              {item.responsibilities.length > 3 && (
-                                <li className="text-[10px] text-slate-500 list-none">+{item.responsibilities.length - 3} más...</li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
-
-                        {item.toolsUsed && item.toolsUsed.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1.5">
-                            {item.toolsUsed.map((tool, tI) => (
-                              <span
-                                key={tI}
-                                className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800/90 text-slate-300 border border-slate-700/60"
-                              >
-                                {tool}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingExp(item);
-                          setExpToolsInput((item.toolsUsed || []).join(', '));
-                          setExpResponsibilitiesInput((item.responsibilities || []).join('\n'));
-                          setIsExpModalOpen(true);
-                        }}
-                        className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 hover:text-white text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        <span>Editar</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteExperience(item.id)}
-                        className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer transition-colors"
-                        title="Eliminar experiencia"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* ================= TAB 6: DIPLOMADOS & CERTIFICACIONES ================= */}
           {activeTab === 'diplomados' && (
@@ -4676,168 +4378,6 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         </main>
       </div>
 
-      {/* Experience Edit Modal */}
-      {isExpModalOpen && editingExp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div
-            className={`relative w-full max-w-xl p-6 sm:p-8 rounded-2xl border ${bgCard} shadow-2xl space-y-4`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-700/50">
-              <h3 className="text-lg font-bold">
-                {editingExp.role ? 'Editar Experiencia' : 'Nueva Experiencia'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsExpModalOpen(false);
-                  setEditingExp(null);
-                  setExpToolsInput('');
-                  setExpResponsibilitiesInput('');
-                }}
-                className="p-1 text-slate-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveSingleExperience} className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Cargo / Rol *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editingExp.role}
-                  onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })}
-                  placeholder="Ej. Directora del Área de Diseño Gráfico"
-                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">
-                    Empresa / Estudio / Organización *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingExp.company}
-                    onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })}
-                    placeholder="Ej. Imprenta Bifronte"
-                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-semibold`}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">
-                    Periodo *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingExp.period}
-                    onChange={(e) => setEditingExp({ ...editingExp, period: e.target.value })}
-                    placeholder="Ej. 2024 o 2020 - 2026"
-                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">
-                    Ubicación
-                  </label>
-                  <input
-                    type="text"
-                    value={editingExp.location || ''}
-                    onChange={(e) => setEditingExp({ ...editingExp, location: e.target.value })}
-                    placeholder="Ej. Sonsonate, El Salvador (Remoto / Global)"
-                    className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs`}
-                  />
-                </div>
-
-                <div className="pt-4 sm:pt-3">
-                  <label className="flex items-center gap-2 cursor-pointer bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60 hover:border-emerald-500/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={!!editingExp.isCurrent}
-                      onChange={(e) => setEditingExp({ ...editingExp, isCurrent: e.target.checked })}
-                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-slate-900 border-slate-700"
-                    />
-                    <span className="text-xs font-medium text-slate-200">
-                      ¿Es tu puesto / trabajo actual?
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Descripción General
-                </label>
-                <textarea
-                  rows={3}
-                  value={editingExp.description}
-                  onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })}
-                  placeholder="Resumen de las actividades y contribuciones en este puesto..."
-                  className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed`}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Responsabilidades y Logros Clave (Una por línea)
-                </label>
-                <textarea
-                  rows={4}
-                  value={expResponsibilitiesInput}
-                  onChange={(e) => setExpResponsibilitiesInput(e.target.value)}
-                  placeholder="• Dirección, gestión y ejecución integral del área gráfica&#10;• Planificación de metodologías de aprendizaje y contenido&#10;• Supervisión de procesos de preprensa técnica y branding"
-                  className={`w-full p-3 rounded-xl border ${bgInput} text-xs leading-relaxed font-sans`}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">
-                  Herramientas / Software Utilizado (Separadas por comas)
-                </label>
-                <input
-                  type="text"
-                  value={expToolsInput}
-                  onChange={(e) => setExpToolsInput(e.target.value)}
-                  placeholder="Adobe Illustrator, Adobe Photoshop, Blender, ZBrush, After Effects..."
-                  className={`w-full px-3 py-2 rounded-xl border ${bgInput} text-xs font-mono`}
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/50">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsExpModalOpen(false);
-                    setEditingExp(null);
-                    setExpToolsInput('');
-                    setExpResponsibilitiesInput('');
-                  }}
-                  className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold hover:bg-slate-800 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase transition-colors shadow-sm"
-                >
-                  Guardar Experiencia
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Diplomado Edit Modal */}
       {isDipModalOpen && editingDip && (

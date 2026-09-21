@@ -44,6 +44,33 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
   const [selectedCommentForModal, setSelectedCommentForModal] = useState<CommentItem | null>(null);
   const [carouselPage, setCarouselPage] = useState(0);
+  const commentTouchStartXRef = React.useRef<number | null>(null);
+  const commentTouchStartYRef = React.useRef<number | null>(null);
+
+  const handleCommentTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      commentTouchStartXRef.current = e.touches[0].clientX;
+      commentTouchStartYRef.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleCommentTouchEnd = (e: React.TouchEvent) => {
+    if (commentTouchStartXRef.current !== null && e.changedTouches.length > 0) {
+      const deltaX = e.changedTouches[0].clientX - commentTouchStartXRef.current;
+      const deltaY = commentTouchStartYRef.current !== null ? e.changedTouches[0].clientY - commentTouchStartYRef.current : 0;
+      if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        if (deltaX < 0) {
+          playClickSound();
+          setCarouselPage((prev) => (prev < totalPages - 1 ? prev + 1 : 0));
+        } else {
+          playClickSound();
+          setCarouselPage((prev) => (prev > 0 ? prev - 1 : totalPages - 1));
+        }
+      }
+      commentTouchStartXRef.current = null;
+      commentTouchStartYRef.current = null;
+    }
+  };
 
   // Comment Form State
   const [isAddingComment, setIsAddingComment] = useState(false);
@@ -159,7 +186,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   );
 
   return (
-    <section id="contact" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
+    <section id="contact" className="py-16 md:py-32 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative overflow-hidden">
       {/* Background Ambience Glows */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#76FF03]/8 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#38B000]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -238,7 +265,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                         placeholder="Ej. Roberto Henríquez"
                         value={commentName}
                         onChange={(e) => setCommentName(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
+                        className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-base sm:text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
                       />
                     </div>
                   </div>
@@ -254,7 +281,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                         placeholder="Ej. Diana Brand / Diseñador"
                         value={commentCompany}
                         onChange={(e) => setCommentCompany(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
+                        className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-base sm:text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03]"
                       />
                     </div>
                   </div>
@@ -297,7 +324,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                     placeholder={lang === 'es' ? 'Comparte tu opinión sobre el trabajo realizado o experiencia colaborando...' : 'Share your thoughts on the creative work or collaboration...'}
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03] resize-none"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-base sm:text-xs placeholder-gray-500 focus:outline-none focus:border-[#76FF03] resize-none"
                   />
                 </div>
 
@@ -442,7 +469,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
           })()
         ) : (
           /* Multi-Comment Responsive Grid / Carousel with Arrow Navigation */
-          <div className="space-y-6">
+          <div
+            className="space-y-6 touch-pan-y"
+            onTouchStart={handleCommentTouchStart}
+            onTouchEnd={handleCommentTouchEnd}
+          >
             <div
               className={`grid gap-6 ${
                 featuredComments.length === 2
@@ -716,7 +747,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               )}
             </SpecularButton>
           </div>
-          <p className="text-xl md:text-2xl font-bold font-mono text-white select-all break-all sm:break-normal">
+          <p className="text-lg sm:text-2xl font-bold font-mono text-white select-all break-all sm:break-normal">
             aylin.graphicsdesign@gmail.com
           </p>
         </div>

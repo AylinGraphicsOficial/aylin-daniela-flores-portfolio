@@ -138,7 +138,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       {/* Giant Wix-Style Project Title Header */}
       <div className="max-w-7xl mx-auto mb-12">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8 mb-8">
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter text-white leading-none inline-block">
+          <h1 className="text-3xl sm:text-6xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter text-white leading-none inline-block break-words max-w-full">
             {project.title}
           </h1>
 

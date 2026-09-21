@@ -1,4 +1,5 @@
 import { Client } from "basic-ftp";
+import fs from "fs";
 
 async function uploadCore() {
   const client = new Client();
@@ -18,6 +19,10 @@ async function uploadCore() {
     await client.cd(targetDir);
     console.log("Uploading index.html...");
     await client.uploadFrom("dist/index.html", "index.html");
+    if (fs.existsSync("dist/production.html")) {
+      console.log("Uploading production.html...");
+      await client.uploadFrom("dist/production.html", "production.html");
+    }
 
     console.log("Uploading assets folder...");
     await client.uploadFromDir("dist/assets", "assets");

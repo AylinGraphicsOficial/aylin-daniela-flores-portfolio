@@ -13,10 +13,12 @@
   --stark-white: #FFFFFF;
 }
 
-body {
+html, body, #root {
   background-color: #050B05;
   color: #FFFFFF;
   overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Custom Scrollbar */

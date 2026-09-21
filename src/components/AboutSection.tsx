@@ -148,12 +148,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
   const photoUrl = aboutData.photo || '/images/fotografia-aylin.png';
 
   return (
-    <section id="about" className="py-12 md:py-20 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
+    <section id="about" className="py-12 md:py-20 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative overflow-hidden">
       {/* Background ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#76FF03]/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Orbit Section: Aylin's Portrait with 3D Project Assets in Orbit */}
-      <div className="w-full max-w-4xl mx-auto mb-4 flex flex-col items-center">
+      <div className="w-full max-w-4xl mx-auto mb-4 flex flex-col items-center overflow-hidden">
         <div className="w-full relative">
           <OrbitImages
             images={orbitImagesList}

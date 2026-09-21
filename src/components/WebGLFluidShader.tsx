@@ -121,18 +121,31 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
       targetY: canvas.height / 2
     };
 
-    function handleMouseMove(e: MouseEvent) {
+    function updateCoordinates(clientX: number, clientY: number) {
       if (!canvas || !interactive) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width && rect.height) {
-        const nx = (e.clientX - rect.left) / rect.width;
-        const ny = 1.0 - (e.clientY - rect.top) / rect.height;
+        const nx = (clientX - rect.left) / rect.width;
+        const ny = 1.0 - (clientY - rect.top) / rect.height;
         mousePos.targetX = nx * canvas.width;
         mousePos.targetY = ny * canvas.height;
       }
     }
 
+    function handleMouseMove(e: MouseEvent) {
+      updateCoordinates(e.clientX, e.clientY);
+    }
+
+    function handleTouch(e: TouchEvent) {
+      if (e.touches && e.touches.length > 0) {
+        const touch = e.touches[0];
+        updateCoordinates(touch.clientX, touch.clientY);
+      }
+    }
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('touchstart', handleTouch, { passive: true });
+    window.addEventListener('touchmove', handleTouch, { passive: true });
 
     function resize() {
       if (!canvas || !gl) return;
@@ -186,6 +199,8 @@ export const WebGLFluidShader: React.FC<WebGLFluidShaderProps> = ({ interactive 
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchstart', handleTouch);
+      window.removeEventListener('touchmove', handleTouch);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       resizeObserver.disconnect();
       if (gl) {
