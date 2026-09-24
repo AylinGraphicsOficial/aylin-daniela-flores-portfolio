@@ -186,7 +186,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   );
 
   return (
-    <section id="contact" className="py-16 md:py-32 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative overflow-hidden">
+    <section id="contact" className="py-16 md:py-32 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto relative overflow-hidden">
       {/* Background Ambience Glows */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#76FF03]/8 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#38B000]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -216,14 +216,14 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               variant="glass"
               size="sm"
               radius={10}
-              className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#76FF03] border-[#76FF03]/40 hover:bg-[#76FF03]/10"
+              className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#76FF03] hover:bg-[#76FF03]/10"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{isAddingComment ? (lang === 'es' ? 'CERRAR FORMULARIO' : 'CLOSE FORM') : (lang === 'es' ? 'DEJAR UN COMENTARIO' : 'LEAVE A REVIEW')}</span>
             </SpecularButton>
 
             {featuredComments.length > pageSize && (
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-gray-400">
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 text-xs font-mono text-gray-400">
                 <span>{carouselPage + 1} / {totalPages}</span>
               </div>
             )}
@@ -232,10 +232,10 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
         {/* New Comment Submission Form Panel */}
         {isAddingComment && (
-          <div className="max-w-xl mx-auto glass-panel p-6 sm:p-8 rounded-2xl border border-[#76FF03]/30 bg-[#061006]/90 shadow-[0_10px_40px_rgba(0,0,0,0.6)] animate-in fade-in duration-300">
+          <div className="max-w-xl mx-auto glass-panel p-6 sm:p-8 rounded-2xl bg-[#061006]/90 shadow-[0_10px_40px_rgba(0,0,0,0.6)] animate-in fade-in duration-300">
             {commentSuccess ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-[#76FF03]/20 border border-[#76FF03] mx-auto flex items-center justify-center text-[#76FF03]">
+                <div className="w-12 h-12 rounded-full bg-[#76FF03]/20 mx-auto flex items-center justify-center text-[#76FF03]">
                   <Check className="w-6 h-6" />
                 </div>
                 <h4 className="text-lg font-bold text-white uppercase">
@@ -364,7 +364,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             return (
               <div className="max-w-2xl mx-auto">
                 <div
-                  className="glass-panel p-7 sm:p-9 rounded-3xl border border-[#76FF03]/40 bg-gradient-to-b from-[#0a1a0a]/90 to-[#040804]/95 shadow-[0_15px_50px_rgba(118,255,3,0.12)] flex flex-col justify-between space-y-5 hover:border-[#76FF03] transition-all group relative"
+                  className="glass-panel p-7 sm:p-9 rounded-3xl bg-gradient-to-b from-[#0a1a0a]/90 to-[#040804]/95 shadow-[0_15px_50px_rgba(118,255,3,0.12)] flex flex-col justify-between space-y-5 transition-all group relative"
                 >
                   {/* Decorative Glow */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#76FF03]/10 rounded-full blur-2xl pointer-events-none" />
@@ -384,7 +384,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono px-2.5 py-1 rounded-full font-bold bg-[#76FF03]/15 text-[#76FF03] border border-[#76FF03]/30 uppercase tracking-wider">
+                        <span className="text-[10px] font-mono px-2.5 py-1 rounded-full font-bold bg-[#76FF03]/15 text-[#76FF03] uppercase tracking-wider">
                           ★ {lang === 'es' ? 'TESTIMONIO DESTACADO' : 'FEATURED REVIEW'}
                         </span>
                         <button
@@ -439,9 +439,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                   </div>
 
                   {/* Author Info Footer */}
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                  <div className="pt-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#76FF03]/20 to-[#38B000]/30 border border-[#76FF03]/50 flex items-center justify-center text-sm font-black text-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#76FF03]/20 to-[#38B000]/30 flex items-center justify-center text-sm font-black text-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]">
                         {c.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -488,7 +488,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                 return (
                   <div
                     key={c.id}
-                    className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col justify-between space-y-4 hover:border-[#76FF03]/40 transition-all hover:shadow-[0_10px_30px_rgba(118,255,3,0.1)] group relative"
+                    className="glass-panel p-6 rounded-2xl flex flex-col justify-between space-y-4 transition-all hover:shadow-[0_10px_30px_rgba(118,255,3,0.1)] group relative"
                   >
                     <div className="space-y-3">
                       {/* Top Bar: Stars + Badge / Modal Action */}
@@ -552,9 +552,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                     </div>
 
                     {/* Author Footer */}
-                    <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <div className="pt-3 flex items-center justify-between">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-[#76FF03]/10 border border-[#76FF03]/40 flex items-center justify-center text-xs font-bold text-[#76FF03] flex-shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#76FF03]/10 flex items-center justify-center text-xs font-bold text-[#76FF03] flex-shrink-0">
                           {c.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -639,7 +639,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
           onClick={() => setSelectedCommentForModal(null)}
         >
           <div
-            className="max-w-xl w-full glass-panel p-6 sm:p-8 rounded-3xl border border-[#76FF03]/40 bg-[#061206]/95 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative animate-in zoom-in-95 duration-200"
+            className="max-w-xl w-full glass-panel p-6 sm:p-8 rounded-3xl bg-[#061206]/95 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -652,7 +652,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             </button>
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-2xl bg-[#76FF03]/10 border border-[#76FF03]/40 flex items-center justify-center text-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]">
+              <div className="w-11 h-11 rounded-2xl bg-[#76FF03]/10 flex items-center justify-center text-[#76FF03] shadow-[0_0_15px_rgba(118,255,3,0.2)]">
                 <Quote className="w-5 h-5" />
               </div>
               <div>
@@ -674,15 +674,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               </div>
             </div>
 
-            <div className="my-5 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+            <div className="my-5 p-4 rounded-2xl bg-white/[0.03]">
               <p className="text-sm sm:text-base text-gray-100 leading-relaxed italic whitespace-pre-line">
                 "{selectedCommentForModal.comment}"
               </p>
             </div>
 
-            <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+            <div className="pt-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#76FF03]/20 border border-[#76FF03] flex items-center justify-center text-sm font-bold text-[#76FF03]">
+                <div className="w-10 h-10 rounded-full bg-[#76FF03]/20 flex items-center justify-center text-sm font-bold text-[#76FF03]">
                   {selectedCommentForModal.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -722,7 +722,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         </div>
 
         {/* Quick Copy Email Card (Centered) */}
-        <div className="glass-panel p-6 rounded-lg border border-white/10 space-y-3 text-left">
+        <div className="glass-panel p-6 rounded-lg space-y-3 text-left">
           <div className="flex justify-between items-center">
             <span className="text-xs font-mono text-[#76FF03] uppercase font-bold">
               {t.contact.directEmail}
@@ -753,7 +753,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         </div>
 
         {/* Live El Salvador Clock (Centered) */}
-        <div className="glass-panel p-6 rounded-lg border border-white/10 flex items-center justify-between text-left">
+        <div className="glass-panel p-6 rounded-lg flex items-center justify-between text-left">
           <div className="space-y-1">
             <span className="text-xs font-mono text-gray-400 block">
               {t.contact.localTime}
@@ -762,13 +762,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               {currentTime || '02:30:00 PM'}
             </span>
           </div>
-          <div className="w-12 h-12 rounded-md bg-[#38B000]/20 border border-[#76FF03]/50 flex items-center justify-center text-[#76FF03]">
+          <div className="w-12 h-12 rounded-md bg-[#38B000]/20 flex items-center justify-center text-[#76FF03]">
             <Clock className="w-6 h-6 animate-pulse" />
           </div>
         </div>
 
         {/* Start Project Quote Banner (Centered) */}
-        <div className="glass-panel p-6 sm:p-8 rounded-lg border border-[#76FF03]/40 bg-gradient-to-br from-[#38B000]/20 to-[#050B05] flex flex-col sm:flex-row justify-between items-center gap-5 text-left shadow-[0_10px_30px_rgba(118,255,3,0.15)]">
+        <div className="glass-panel p-6 sm:p-8 rounded-lg bg-gradient-to-br from-[#38B000]/20 to-[#050B05] flex flex-col sm:flex-row justify-between items-center gap-5 text-left shadow-[0_10px_30px_rgba(118,255,3,0.15)]">
           <div>
             <h4 className="text-base font-bold text-white mb-1">
               {lang === 'es' ? '¿Deseas iniciar o cotizar un nuevo proyecto?' : 'Looking for a tailored quote?'}

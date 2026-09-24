@@ -61,7 +61,7 @@ export const BrandsSection: React.FC<BrandsSectionProps> = ({ lang }) => {
   return (
     <section
       id="brands"
-      className="w-full py-12 md:py-16 relative border-t border-white/10 overflow-hidden"
+      className="w-full py-12 md:py-16 relative overflow-hidden"
       aria-label={isEs ? 'Marcas y alianzas' : 'Brands and partnerships'}
     >
       {/* Ambient background glow */}
@@ -85,7 +85,7 @@ export const BrandsSection: React.FC<BrandsSectionProps> = ({ lang }) => {
       </div>
 
       {/* Interactive Full-Width 100% LogoLoop Track */}
-      <div className="w-full py-6 md:py-8 bg-white/[0.015] border-y border-white/10 backdrop-blur-sm overflow-hidden relative">
+      <div className="w-full py-6 md:py-8 bg-white/[0.015] backdrop-blur-sm overflow-hidden relative">
         <LogoLoop
           logos={brandLogos}
           speed={45}

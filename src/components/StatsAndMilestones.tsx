@@ -10,7 +10,7 @@ export const StatsAndMilestones: React.FC<StatsAndMilestonesProps> = ({ lang }) 
   const t = translations[lang];
 
   return (
-    <section id="stats" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative">
+    <section id="stats" className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto relative">
       {/* Background glow */}
       <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#38B000]/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -45,7 +45,7 @@ export const StatsAndMilestones: React.FC<StatsAndMilestonesProps> = ({ lang }) 
                 </h3>
               </div>
 
-              <p className="text-xs text-gray-400 font-normal leading-relaxed pt-4 border-t border-white/10">
+              <p className="text-xs text-gray-400 font-normal leading-relaxed pt-4">
                 {stat.description}
               </p>
             </div>

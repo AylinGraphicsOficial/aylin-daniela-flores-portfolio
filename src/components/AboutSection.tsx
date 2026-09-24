@@ -148,7 +148,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
   const photoUrl = aboutData.photo || '/images/fotografia-aylin.png';
 
   return (
-    <section id="about" className="py-12 md:py-20 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative overflow-hidden">
+    <section id="about" className="py-12 md:py-20 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto relative overflow-hidden">
       {/* Background ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#76FF03]/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -214,7 +214,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
           {t.about.titleEnd}
         </h2>
 
-        <p className="text-base md:text-lg text-gray-200 leading-relaxed max-w-3xl mx-auto border-y border-[#76FF03]/30 py-4 font-normal">
+        <p className="text-base md:text-lg text-gray-200 leading-relaxed max-w-3xl mx-auto py-4 font-normal">
           {bioText}
         </p>
 
@@ -260,8 +260,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                   onClick={playClickSound}
                   className={`arcade-card group relative p-3.5 md:p-4 rounded-lg flex flex-col items-center justify-between text-center transition-all duration-300 cursor-pointer select-none min-h-[132px] ${
                     isHovered
-                      ? 'border-[#76FF03] shadow-[0_0_25px_rgba(118,255,3,0.35)] -translate-y-2 scale-[1.03] z-20'
-                      : 'border-white/10 hover:border-white/30'
+                      ? 'shadow-[0_0_25px_rgba(118,255,3,0.35)] -translate-y-2 scale-[1.03] z-20'
+                      : ''
                   }`}
                   style={{
                     background: isHovered
@@ -269,7 +269,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ lang }) => {
                       : 'linear-gradient(180deg, rgba(8, 18, 8, 0.8) 0%, rgba(5, 11, 5, 0.9) 100%)',
                   }}
                 >
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-black/50 border border-white/10 flex items-center justify-center p-2.5 mb-2 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-black/50 flex items-center justify-center p-2.5 mb-2 group-hover:scale-110 transition-transform">
                     <img
                       src={software.logo}
                       alt={software.name}

@@ -34,7 +34,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
   return (
     <section
       id="diplomados"
-      className="w-full py-12 md:py-16 relative border-t border-white/10 overflow-hidden"
+      className="w-full py-12 md:py-16 relative overflow-hidden"
       aria-label={isEs ? 'Diplomados y certificaciones' : 'Diplomas and certifications'}
     >
       {/* Ambient background glow */}
@@ -58,7 +58,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
       </div>
 
       {/* Infinite LogoLoop Track with Diploma Cards & Synchronized Labels */}
-      <div className="w-full py-8 md:py-12 bg-white/[0.015] border-y border-white/10 backdrop-blur-sm overflow-hidden relative">
+      <div className="w-full py-8 md:py-12 bg-white/[0.015] backdrop-blur-sm overflow-hidden relative">
         <LogoLoop
           logos={visibleDiplomados}
           speed={24}
@@ -76,7 +76,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
               className="flex flex-col items-center group cursor-pointer select-none transition-transform duration-300 hover:scale-[1.03]"
             >
               {/* Diploma Certificate Card */}
-              <div className="relative rounded-2xl overflow-hidden border border-white/15 bg-black/80 p-2 shadow-2xl transition-all duration-300 group-hover:border-[#76FF03]/80 group-hover:shadow-[0_0_30px_rgba(118,255,3,0.35)]">
+              <div className="relative rounded-2xl overflow-hidden bg-black/80 p-2 shadow-2xl transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(118,255,3,0.35)]">
                 <img
                   src={item.src}
                   alt={item.title}
@@ -88,7 +88,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
               </div>
 
               {/* Synchronized Attached Label Badge: Diploma Name + Awarded Degree / Institution */}
-              <div className="mt-3 w-full max-w-[300px] md:max-w-[380px] px-3.5 py-2 rounded-xl bg-black/90 backdrop-blur-md border border-white/10 text-center shadow-xl transition-all duration-300 group-hover:border-[#76FF03]/50 group-hover:bg-[#071207]/95">
+              <div className="mt-3 w-full max-w-[300px] md:max-w-[380px] px-3.5 py-2 rounded-xl bg-black/90 backdrop-blur-md text-center shadow-xl transition-all duration-300 group-hover:bg-[#071207]/95">
                 <p className="text-white text-xs md:text-sm font-bold tracking-tight truncate group-hover:text-[#76FF03] transition-colors leading-snug" title={item.title}>
                   {item.title}
                 </p>

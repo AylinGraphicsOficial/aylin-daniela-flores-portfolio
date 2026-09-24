@@ -97,7 +97,7 @@ const DisciplineSliderCard: React.FC<{
       <div className="flex-1 min-w-0">
         {/* Interactive Image Slider Card */}
         <div
-          className="relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_25px_60px_rgba(118,255,3,0.2)] transition-all duration-500 flex items-center justify-center p-2.5 sm:p-5 touch-pan-y"
+          className="relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-500 flex items-center justify-center p-2.5 sm:p-5 touch-pan-y"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -128,7 +128,7 @@ const DisciplineSliderCard: React.FC<{
                 type="button"
                 onClick={handlePrevSlide}
                 onMouseEnter={playHoverSound}
-                className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/80 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
+                className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/80 hover:bg-[#76FF03] text-white hover:text-[#050B05] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95 border-0"
                 aria-label="Slide anterior"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
@@ -138,14 +138,14 @@ const DisciplineSliderCard: React.FC<{
                 type="button"
                 onClick={handleNextSlide}
                 onMouseEnter={playHoverSound}
-                className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/80 border border-white/20 hover:border-[#76FF03] text-white hover:text-[#76FF03] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95"
+                className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/80 hover:bg-[#76FF03] text-white hover:text-[#050B05] flex items-center justify-center backdrop-blur-md transition-all z-20 cursor-pointer shadow-lg active:scale-95 border-0"
                 aria-label="Slide siguiente"
               >
                 <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
               </button>
 
               {/* Progress Dots */}
-              <div className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10">
+              <div className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-black/70 backdrop-blur-md">
                 {visibleSlides.map((_, idx) => (
                   <button
                     key={idx}
@@ -169,7 +169,7 @@ const DisciplineSliderCard: React.FC<{
 
           {/* Slide Title Badge (Optional) */}
           {activeSlide.title && (
-            <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-[10px] sm:text-xs font-mono font-medium text-white shadow-md max-w-[65vw] truncate">
+            <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg bg-black/75 backdrop-blur-md text-[10px] sm:text-xs font-mono font-medium text-white shadow-md max-w-[65vw] truncate">
               {activeSlide.title}
             </div>
           )}
@@ -185,7 +185,7 @@ const DisciplineSliderCard: React.FC<{
             <h3 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tight text-white group-hover/title:text-[#76FF03] transition-colors leading-none">
               {lang === 'es' ? discipline.titleEs : discipline.titleEn}
             </h3>
-            <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-white/20 group-hover:border-[#76FF03] group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 group-hover:rotate-45 flex-shrink-0 shadow-lg">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-white/10 group-hover:bg-[#76FF03] text-white group-hover:text-[#050B05] flex items-center justify-center transition-all duration-300 group-hover:rotate-45 flex-shrink-0 shadow-lg border-0">
               <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
@@ -238,7 +238,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
   return (
     <section
       id="work"
-      className="py-16 sm:py-20 md:py-32 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative"
+      className="py-16 sm:py-20 md:py-32 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto relative"
     >
       {/* Header Section */}
       <div className="flex flex-col items-center text-center mb-12 sm:mb-20 space-y-4">
@@ -275,7 +275,7 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
 
       {/* Divider to Projects Catalog Grid */}
       <div className="my-16 sm:my-32">
-        <div className="w-full h-px bg-white/15 mb-12 sm:mb-16" />
+        <div className="w-full h-px bg-white/5 mb-12 sm:mb-16" />
 
         {/* Centered Catalog Header */}
         <div className="flex flex-col items-center text-center mb-10 sm:mb-16">
@@ -287,18 +287,21 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
           </h3>
         </div>
 
-        {/* 4-Column Grid: Closer Gap (gap-4 sm:gap-5), Larger Ratio (aspect-[16/10]), 15% Reduced Corners (rounded-[8px]) */}
+        {/* 4-Column Grid: Closer Gap (gap-4 sm:gap-5), Larger Ratio (aspect-[16/10]), Flat borderless cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {projects
             .filter((p) => p.visibleInCatalog !== false)
             .map((project) => {
             const media = getProjectPrimaryMedia(project);
+            const customImage = project.image && project.image.trim() ? project.image.trim() : '';
             const displayMediaSrc =
-              media.type === 'gif'
-                ? media.gifSrc || project.image
+              customImage
+                ? customImage
+                : media.type === 'gif'
+                ? media.gifSrc || getCategoryFallbackImage(project.category)
                 : media.hasVideo && media.thumbnailUrl
                 ? media.thumbnailUrl
-                : project.image || getCategoryFallbackImage(project.category);
+                : getCategoryFallbackImage(project.category);
 
             return (
               <div
@@ -310,18 +313,18 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 onMouseEnter={playHoverSound}
                 className="group cursor-pointer flex flex-col"
               >
-                {/* Refined Image Card (Larger aspect ratio, rounded-[8px], closer spacing) */}
-                <div className="relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] border border-white/15 group-hover:border-[#76FF03]/70 group-hover:shadow-[0_12px_30px_rgba(118,255,3,0.25)] transition-all duration-500 flex items-center justify-center p-3 sm:p-3.5">
+                {/* Refined Image Card (Flat borderless, aspect-[16/10]) */}
+                <div className="relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.9)] transition-all duration-500 flex items-center justify-center p-3 sm:p-3.5">
                   {/* Media Type Badges */}
                   {media.hasVideo && (
-                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md border border-[#76FF03]/60 text-[#76FF03] font-mono text-[9px] font-bold tracking-wider shadow">
+                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-[#76FF03] font-mono text-[9px] font-bold tracking-wider shadow">
                       <Play className="w-2.5 h-2.5 fill-[#76FF03]" />
                       <span>{media.type === 'youtube' ? 'VIDEO / YT' : 'VIDEO'}</span>
                     </div>
                   )}
 
                   {media.type === 'gif' && (
-                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md border border-cyan-400/60 text-cyan-300 font-mono text-[9px] font-bold tracking-wider shadow">
+                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-cyan-300 font-mono text-[9px] font-bold tracking-wider shadow">
                       <Sparkles className="w-2.5 h-2.5" />
                       <span>GIF</span>
                     </div>

@@ -175,7 +175,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [newModelColor, setNewModelColor] = useState('#76FF03');
   const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
-
+  const [editingModelItem, setEditingModelItem] = useState<Lab3DModelItem | null>(null);
+  const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+  const [isUploadingModelEdit, setIsUploadingModelEdit] = useState(false);
 
   // Uploading Profile Photo
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -737,11 +739,76 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   const handleStartEditModel = (model: Lab3DModelItem) => {
-    setEditingModelId(model.id);
+    handleOpenEditModelModal(model);
   };
 
   const handleCancelEditModel = () => {
     setEditingModelId(null);
+    setEditingModelItem(null);
+  };
+
+  const handleOpenEditModelModal = (model: Lab3DModelItem) => {
+    playClickSound();
+    setEditingModelItem({ ...model });
+    setIsModelModalOpen(true);
+  };
+
+  const handleSaveEditModelModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingModelItem) return;
+    playClickSound();
+
+    const nameTrimmed = (editingModelItem.name || '').trim();
+    if (!nameTrimmed) {
+      alert('Por favor ingresa un nombre para el proyecto/modelo 3D.');
+      return;
+    }
+
+    const updatedItem = {
+      ...editingModelItem,
+      name: nameTrimmed,
+    };
+
+    const updatedModels = (lab3dData.models || []).map((m) =>
+      m.id === updatedItem.id ? updatedItem : m
+    );
+    const updatedLabData: Lab3DData = { ...lab3dData, models: updatedModels };
+    setLab3dData(updatedLabData);
+    await saveStoredLab3D(updatedLabData);
+    setIsModelModalOpen(false);
+    setEditingModelItem(null);
+    showNotification('¡Nombre y datos del modelo 3D guardados en Hostinger MySQL!');
+  };
+
+  const handleModelEditGlbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !editingModelItem) return;
+    setIsUploadingModelEdit(true);
+    const res = await uploadMediaFile(file);
+    setIsUploadingModelEdit(false);
+    if (res.success && res.url) {
+      setEditingModelItem({ ...editingModelItem, url: res.url });
+      showNotification('¡Archivo GLB del modelo 3D actualizado!');
+    } else {
+      alert(res.error || 'Error al subir el modelo 3D GLB.');
+    }
+  };
+
+  const handleQuickThumbnailUpload = async (projectId: string, file: File) => {
+    playClickSound();
+    showNotification('Subiendo nueva miniatura a Hostinger...');
+    const res = await uploadMediaFile(file);
+    if (res.success && res.url) {
+      const updatedProjects = projects.map((p) =>
+        p.id === projectId ? { ...p, image: res.url, updatedAt: new Date().toISOString() } : p
+      );
+      setProjects(updatedProjects);
+      await saveAllProjects(updatedProjects);
+      showNotification('¡Miniatura actualizada y sincronizada en Hostinger MySQL!');
+    } else {
+      alert(res.error || 'Error al subir la nueva miniatura.');
+    }
   };
 
   const handleSaveEditModel = async (model: Lab3DModelItem, patch: Partial<Lab3DModelItem>) => {
@@ -2438,10 +2505,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     proj.disciplineId === 'edicion-video' ||
                     proj.category === 'MOTION';
                   const media = getProjectPrimaryMedia(proj);
-                  const cardThumbnail =
-                    media.hasVideo && media.thumbnailUrl
-                      ? media.thumbnailUrl
-                      : proj.image || getCategoryFallbackImage(proj.category);
+                  const cardThumbnail = (proj.image && proj.image.trim() !== '')
+                    ? proj.image
+                    : (media.thumbnailUrl || getCategoryFallbackImage(proj.category));
 
                   return (
                     <div
@@ -2449,8 +2515,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       className={`rounded-2xl border ${bgCard} overflow-hidden p-4 flex flex-col justify-between hover:border-slate-600 transition-all`}
                     >
                       <div>
-                        {/* Image Preview */}
-                        <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3">
+                        {/* Image Preview with Quick Thumbnail Changer */}
+                        <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3 group/thumb">
                           <img
                             src={cardThumbnail}
                             alt={proj.title}
@@ -2460,6 +2526,26 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="%23050B05"><rect width="400" height="300" fill="%23091209"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2376FF03" font-family="monospace" font-size="14" letter-spacing="1">PREVIEW</text></svg>';
                             }}
                           />
+
+                          {/* Quick Change Thumbnail Button on Hover */}
+                          <label
+                            className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/85 hover:bg-emerald-600 text-white text-[10px] font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-md opacity-90 hover:opacity-100"
+                            title="Cambiar miniatura de previsualización para este proyecto"
+                          >
+                            <Upload className="w-3 h-3 text-[#76FF03]" />
+                            <span>Cambiar Miniatura</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                e.target.value = '';
+                                if (file) handleQuickThumbnailUpload(proj.id, file);
+                              }}
+                            />
+                          </label>
+
                           <button
                             type="button"
                             onClick={() => handleToggleFeatured(proj.id)}
@@ -3261,28 +3347,32 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                               </button>
                             </div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleSetDefaultModel(model.id)}
-                              className={`text-xs font-semibold cursor-pointer ${
-                                isDefault
-                                  ? 'text-emerald-400 font-bold'
-                                  : 'text-slate-400 hover:text-white'
-                              }`}
-                            >
-                              {isDefault ? '✓ Por Defecto' : 'Fijar por Defecto'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSetDefaultModel(model.id)}
+                                className={`text-xs font-semibold cursor-pointer ${
+                                  isDefault
+                                    ? 'text-emerald-400 font-bold'
+                                    : 'text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                {isDefault ? '✓ Por Defecto' : 'Fijar por Defecto'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModelModal(model)}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                                title="Modificar nombre y propiedades de este modelo 3D"
+                              >
+                                <Edit className="w-3 h-3" />
+                                <span>Modificar Nombre</span>
+                              </button>
+                            </div>
                           )}
 
                           <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleStartEditModel(model)}
-                              className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded cursor-pointer transition-colors"
-                              title="Editar Texto e Icono"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteModel(model.id)}
@@ -4525,12 +4615,202 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         </div>
       )}
 
+      {/* 3D Model Edit Modal */}
+      {isModelModalOpen && editingModelItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => {
+            setIsModelModalOpen(false);
+            setEditingModelItem(null);
+          }}
+        >
+          <div
+            className="max-w-lg w-full rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 sm:p-7 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <Box className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Modificar Nombre de Modelo 3D</h3>
+                  <p className="text-xs text-slate-400">
+                    Cambia el nombre y propiedades visibles en los botones del Laboratorio 3D.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsModelModalOpen(false);
+                  setEditingModelItem(null);
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditModelModal} className="space-y-4">
+              <div>
+                <label className="text-xs font-mono text-emerald-400 font-bold block mb-1 uppercase tracking-wider">
+                  Nombre del Proyecto / Modelo 3D *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={editingModelItem.name}
+                  onChange={(e) =>
+                    setEditingModelItem({ ...editingModelItem, name: e.target.value })
+                  }
+                  placeholder="Ej. Cipitio Encastre 3D, Honda 150L XR 2025, Dinosaurio Pepakura, DARION"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-bold text-white focus:outline-none focus:border-emerald-500"
+                />
+                <span className="text-[10px] text-slate-400 font-mono mt-1 block">
+                  Este nombre se refleja instantáneamente en el selector y en el visor en tiempo real.
+                </span>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-slate-400 block mb-1">
+                  Estadísticas / Descripción de Topología
+                </label>
+                <input
+                  type="text"
+                  value={editingModelItem.stats || ''}
+                  onChange={(e) =>
+                    setEditingModelItem({ ...editingModelItem, stats: e.target.value })
+                  }
+                  placeholder="Ej. 14,250 Polígonos • Texturas PBR 4K"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-mono text-slate-400 block mb-1">
+                    Icono Representativo
+                  </label>
+                  <select
+                    value={editingModelItem.icon || 'box'}
+                    onChange={(e) =>
+                      setEditingModelItem({ ...editingModelItem, icon: e.target.value })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    {LAB_MODEL_ICONS.map((opt) => (
+                      <option key={opt.key} value={opt.key}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-mono text-slate-400 block mb-1">
+                    Color del Badge
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={editingModelItem.iconColor || '#76FF03'}
+                      onChange={(e) =>
+                        setEditingModelItem({ ...editingModelItem, iconColor: e.target.value })
+                      }
+                      className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border border-slate-700"
+                    />
+                    <span className="text-xs font-mono text-slate-300">
+                      {editingModelItem.iconColor || '#76FF03'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-slate-400 block mb-1">
+                  Texto del Badge (ej. GLB, 3D, NEW)
+                </label>
+                <input
+                  type="text"
+                  value={editingModelItem.badge || ''}
+                  onChange={(e) =>
+                    setEditingModelItem({ ...editingModelItem, badge: e.target.value })
+                  }
+                  placeholder="GLB"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white font-mono uppercase focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-slate-400 block mb-1">
+                  Archivo / URL del Modelo 3D (GLB)
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={editingModelItem.url || ''}
+                    onChange={(e) =>
+                      setEditingModelItem({ ...editingModelItem, url: e.target.value })
+                    }
+                    placeholder="/uploads/modelo.glb o URL"
+                    className="flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                  <label className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700 transition-colors shrink-0">
+                    {isUploadingModelEdit ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    )}
+                    <span>{isUploadingModelEdit ? 'Subiendo...' : 'Subir Otro GLB'}</span>
+                    <input
+                      type="file"
+                      accept=".glb,.gltf"
+                      disabled={isUploadingModelEdit}
+                      onChange={handleModelEditGlbUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModelModalOpen(false);
+                    setEditingModelItem(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all cursor-pointer shadow-sm uppercase tracking-wider"
+                >
+                  Guardar Nombre & Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Project Edit Modal */}
       <ProjectEditModal
         isOpen={isEditModalOpen}
         project={editingProject}
         onClose={() => setIsEditModalOpen(false)}
         onSave={async (proj) => {
+          setProjects((prev) => {
+            const exists = prev.some((p) => p.id === proj.id);
+            if (exists) {
+              return prev.map((p) => (p.id === proj.id ? proj : p));
+            }
+            return [proj, ...prev];
+          });
           const ok = await saveProject(proj);
           if (ok) {
             showNotification('¡Proyecto guardado y sincronizado con Hostinger MySQL con éxito!');

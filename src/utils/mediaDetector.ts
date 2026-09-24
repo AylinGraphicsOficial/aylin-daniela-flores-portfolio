@@ -91,6 +91,8 @@ export function getProjectPrimaryMedia(project: {
   gifUrl?: string;
   image?: string;
 }): ProjectPrimaryMedia {
+  const customImage = project.image && project.image.trim() ? project.image.trim() : '';
+
   if (project.videoUrl && project.videoUrl.trim()) {
     const detected = detectMedia(project.videoUrl);
     if (detected.type === 'youtube' || detected.type === 'vimeo' || detected.type === 'video') {
@@ -98,8 +100,8 @@ export function getProjectPrimaryMedia(project: {
         type: detected.type,
         embedUrl: detected.embedUrl,
         videoSrc: detected.type === 'video' ? detected.originalUrl : undefined,
-        imageSrc: project.image || detected.thumbnailUrl || '',
-        thumbnailUrl: detected.thumbnailUrl || project.image || '',
+        imageSrc: customImage || detected.thumbnailUrl || '',
+        thumbnailUrl: customImage || detected.thumbnailUrl || '',
         hasVideo: true,
       };
     }
@@ -109,8 +111,8 @@ export function getProjectPrimaryMedia(project: {
       type: 'video',
       videoSrc: project.videoClip.trim(),
       embedUrl: project.videoClip.trim(),
-      imageSrc: project.image || '',
-      thumbnailUrl: project.image || '',
+      imageSrc: customImage || '',
+      thumbnailUrl: customImage || '',
       hasVideo: true,
     };
   }
@@ -118,37 +120,37 @@ export function getProjectPrimaryMedia(project: {
     return {
       type: 'gif',
       gifSrc: project.gifUrl.trim(),
-      imageSrc: project.gifUrl.trim(),
-      thumbnailUrl: project.gifUrl.trim(),
+      imageSrc: customImage || project.gifUrl.trim(),
+      thumbnailUrl: customImage || project.gifUrl.trim(),
       hasVideo: false,
     };
   }
-  if (project.image && project.image.trim()) {
-    const detectedImg = detectMedia(project.image);
+  if (customImage) {
+    const detectedImg = detectMedia(customImage);
     if (detectedImg.type === 'youtube' || detectedImg.type === 'vimeo' || detectedImg.type === 'video') {
       return {
         type: detectedImg.type,
         embedUrl: detectedImg.embedUrl,
         videoSrc: detectedImg.type === 'video' ? detectedImg.originalUrl : undefined,
-        imageSrc: detectedImg.thumbnailUrl || project.image,
-        thumbnailUrl: detectedImg.thumbnailUrl || project.image,
+        imageSrc: customImage || detectedImg.thumbnailUrl || '',
+        thumbnailUrl: customImage || detectedImg.thumbnailUrl || '',
         hasVideo: true,
       };
     }
     if (detectedImg.type === 'gif') {
       return {
         type: 'gif',
-        gifSrc: project.image,
-        imageSrc: project.image,
-        thumbnailUrl: project.image,
+        gifSrc: customImage,
+        imageSrc: customImage,
+        thumbnailUrl: customImage,
         hasVideo: false,
       };
     }
   }
   return {
     type: 'image',
-    imageSrc: project.image || '',
-    thumbnailUrl: project.image || '',
+    imageSrc: customImage,
+    thumbnailUrl: customImage,
     hasVideo: false,
   };
 }

@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
   const visibleSocials = socialLinks.filter((link) => link.visible !== false);
 
   return (
-    <footer className="w-full py-16 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-20 flex flex-col justify-between items-center gap-8">
+    <footer className="w-full py-16 px-4 md:px-8 max-w-7xl mx-auto relative z-20 flex flex-col justify-between items-center gap-8">
       {/* Top row */}
       <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center space-x-3">
@@ -60,7 +60,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
               rel="noreferrer"
               onClick={playClickSound}
               onMouseEnter={playHoverSound}
-              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#76FF03]/10 border border-white/10 hover:border-[#76FF03]/40 text-xs font-mono font-bold text-gray-300 hover:text-[#76FF03] transition-all duration-300 shadow-sm"
+              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#76FF03]/10 text-xs font-mono font-bold text-gray-300 hover:text-[#76FF03] transition-all duration-300 shadow-sm"
               title={`Visitar ${link.label}`}
             >
               <SocialIcon
@@ -87,7 +87,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
       </div>
 
       {/* Bottom row with Discreet Admin Login Lock Button */}
-      <div className="w-full pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400 font-mono gap-4">
+      <div className="w-full pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400 font-mono gap-4">
         <span>
           © {new Date().getFullYear()} AYLIN DANIELA FLORES. ALL RIGHTS RESERVED.
         </span>

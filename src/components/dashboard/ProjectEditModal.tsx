@@ -137,6 +137,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   // Subir imagen Hero directamente a Hostinger
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     setIsUploadingImage(true);
@@ -155,6 +156,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   // Subir logotipo representativo a Hostinger
   const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     setIsUploadingLogo(true);
@@ -242,6 +244,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   // Subir clip de video MP4/WebM
   const handleVideoClipUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     setIsUploadingClip(true);
@@ -260,6 +263,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   // Subir GIF animado
   const handleGifUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     setIsUploadingGif(true);
@@ -278,6 +282,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
   // Subir imagen para Hero Slider (16:9)
   const handleSliderImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     setIsUploadingSliderImage(true);
@@ -914,7 +919,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                 )}
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-28 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center flex-shrink-0">
+                  <div className="w-28 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center flex-shrink-0 relative group">
                     {formData.image ? (
                       <img
                         src={formData.image}
@@ -945,29 +950,95 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                       placeholder={isVideo ? "Ruta miniatura (/uploads/... o /images/...) o URL https://..." : "Ruta (/uploads/... o /images/...) o URL https://..."}
                       className={`w-full px-3 py-2 rounded-xl border ${bgInput} outline-none text-xs font-mono`}
                     />
-                    <label className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${isVideo ? 'bg-cyan-700 hover:bg-cyan-600 border border-cyan-500/40' : 'bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-500/40'} text-white transition-colors cursor-pointer text-xs font-semibold`}>
-                      {isUploadingImage ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Upload className="w-3.5 h-3.5" />
+                    
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${isVideo ? 'bg-cyan-700 hover:bg-cyan-600 border border-cyan-500/40' : 'bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-500/40'} text-white transition-colors cursor-pointer text-xs font-semibold`}>
+                        {isUploadingImage ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                        <span>
+                          {isUploadingImage
+                            ? 'Subiendo...'
+                            : isVideo
+                            ? 'Subir Miniatura a Hostinger'
+                            : 'Subir Nueva Miniatura a Hostinger'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={isUploadingImage}
+                          onChange={handleImageFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {/* Botón para extraer carátula automática de YouTube si hay videoUrl */}
+                      {formData.videoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const detected = detectMedia(formData.videoUrl || '');
+                            if (detected.thumbnailUrl) {
+                              setFormData((prev) => ({ ...prev, image: detected.thumbnailUrl }));
+                            }
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-mono font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                          title="Usar la carátula automática de YouTube/Vimeo"
+                        >
+                          <Film className="w-3 h-3 text-cyan-400" />
+                          <span>Usar Carátula de Video</span>
+                        </button>
                       )}
-                      <span>
-                        {isUploadingImage
-                          ? 'Subiendo...'
-                          : isVideo
-                          ? 'Subir Miniatura de Video a Hostinger'
-                          : 'Subir Imagen Principal a Hostinger'}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={isUploadingImage}
-                        onChange={handleImageFileUpload}
-                        className="hidden"
-                      />
-                    </label>
+
+                      {/* Limpiar miniatura */}
+                      {formData.image && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-rose-400 text-xs font-medium transition-colors cursor-pointer"
+                          title="Quitar miniatura actual"
+                        >
+                          Restablecer
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Selección rápida de miniatura desde la galería existente si hay renders */}
+                {(formData.galleryImages || []).length > 0 && (
+                  <div className="pt-2 border-t border-slate-700/40 space-y-1.5">
+                    <span className="text-[11px] font-mono text-slate-400 block font-semibold">
+                      O selecciona de los renders de tu galería como miniatura principal:
+                    </span>
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                      {(formData.galleryImages || []).map((imgUrl, imgIdx) => {
+                        const isCurrent = formData.image === imgUrl;
+                        return (
+                          <button
+                            key={imgIdx}
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, image: imgUrl }))}
+                            className={`w-14 h-10 rounded-lg overflow-hidden border p-0.5 flex-shrink-0 cursor-pointer transition-all ${
+                              isCurrent
+                                ? 'border-[#76FF03] ring-2 ring-[#76FF03]/40 scale-105'
+                                : 'border-slate-700 opacity-60 hover:opacity-100'
+                            }`}
+                            title={`Establecer render #${imgIdx + 1} como miniatura principal`}
+                          >
+                            <img
+                              src={imgUrl}
+                              alt={`Render ${imgIdx + 1}`}
+                              className="w-full h-full object-cover rounded"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}

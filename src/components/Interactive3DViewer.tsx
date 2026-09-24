@@ -536,7 +536,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
   return (
     <section
       id="viewer3d"
-      className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto border-t border-white/10 relative"
+      className="py-20 md:py-32 px-4 md:px-8 max-w-7xl mx-auto relative"
     >
       {/* Section Header Centered */}
       <div className="flex flex-col items-center text-center mb-12 space-y-4 max-w-3xl mx-auto">
@@ -595,14 +595,12 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                   style={isSelected ? undefined : { color }}
                 />
 
-                {/* Circular color badge with number */}
+                {/* Circular color badge with number - Flat aesthetic */}
                 <span
-                  className="w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] font-black border transition-all"
+                  className="w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] font-black transition-all"
                   style={{
                     backgroundColor: isSelected ? 'rgba(0, 0, 0, 0.2)' : `${color}25`,
-                    borderColor: isSelected ? 'rgba(0, 0, 0, 0.4)' : color,
                     color: isSelected ? '#050B05' : color,
-                    boxShadow: isSelected ? 'none' : `0 0 8px ${color}40`,
                   }}
                 >
                   {numStr}
@@ -634,10 +632,10 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
 
       {/* Main 3D Stage & Control Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left 3D Viewport Stage (8 Cols) */}
+        {/* Left 3D Viewport Stage (8 Cols) - Flat container */}
         <div
           ref={containerRef}
-          className="lg:col-span-8 relative aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:min-h-[520px] rounded-3xl overflow-hidden bg-[#030703] border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8)] group select-none"
+          className="lg:col-span-8 relative aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:min-h-[520px] rounded-3xl overflow-hidden bg-[#030703] shadow-[0_20px_50px_rgba(0,0,0,0.8)] group select-none"
         >
           {/* Subtle Ambient Vignette glowing with selected lightingColor */}
           <div
@@ -689,7 +687,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
               <button
                 type="button"
                 onClick={() => handleZoom(1.15)}
-                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
+                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-white transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
                 title="Alejar"
               >
                 <ZoomOut className="w-4 h-4" />
@@ -697,7 +695,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
               <button
                 type="button"
                 onClick={handleResetCamera}
-                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-[#76FF03] border border-white/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
+                className="p-2 sm:p-2 rounded-xl bg-black/75 hover:bg-black text-gray-300 hover:text-[#76FF03] transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
                 title="Centrar Vista"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -706,8 +704,8 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
           </div>
         </div>
 
-        {/* Right Tools & Shading Inspector Panel (4 Cols) */}
-        <div className="lg:col-span-4 rounded-3xl p-6 bg-[#081208] border border-white/15 flex flex-col justify-between space-y-6">
+        {/* Right Tools & Shading Inspector Panel (4 Cols) - Flat Aesthetic */}
+        <div className="lg:col-span-4 rounded-3xl p-6 bg-[#081208] flex flex-col justify-between space-y-6">
           <div className="space-y-6">
             <div>
               <span className="text-xs font-mono font-bold tracking-[0.2em] text-[#76FF03] uppercase block mb-1">
@@ -722,7 +720,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
             </div>
 
             {/* Shading & Wireframe Toggle */}
-            <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="space-y-2 pt-2">
               <label className="text-xs font-mono font-bold text-gray-300 uppercase block">
                 Modo de Renderizado
               </label>
@@ -733,10 +731,10 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                     playClickSound();
                     setIsWireframe(false);
                   }}
-                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                     !isWireframe
-                      ? 'bg-[#76FF03] text-black border-[#76FF03] shadow-[0_0_20px_rgba(118,255,3,0.4)]'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                      ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.3)]'
+                      : 'bg-white/5 text-gray-400 hover:text-white'
                   }`}
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -749,10 +747,10 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                     playClickSound();
                     setIsWireframe(true);
                   }}
-                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                     isWireframe
-                      ? 'bg-[#76FF03] text-black border-[#76FF03] shadow-[0_0_20px_rgba(118,255,3,0.4)]'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                      ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.3)]'
+                      : 'bg-white/5 text-gray-400 hover:text-white'
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
@@ -762,7 +760,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
             </div>
 
             {/* Auto-Rotation Toggle */}
-            <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-mono font-bold text-gray-300 uppercase">
                   Rotación 360° Turntable
@@ -773,10 +771,10 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
                     playClickSound();
                     setAutoRotate(!autoRotate);
                   }}
-                  className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer border ${
+                  className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
                     autoRotate
-                      ? 'bg-[#76FF03]/20 border-[#76FF03] text-[#76FF03]'
-                      : 'bg-white/5 border-white/10 text-gray-400'
+                      ? 'bg-[#76FF03]/20 text-[#76FF03]'
+                      : 'bg-white/5 text-gray-400'
                   }`}
                 >
                   {autoRotate ? 'Activa' : 'Pausada'}
@@ -785,7 +783,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
             </div>
 
             {/* Lighting Color Selector */}
-            <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-mono font-bold text-gray-300 uppercase block">
                   Iluminación de Estudio
@@ -824,7 +822,7 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
           </div>
 
           {/* Bottom Quality Verification Stamp */}
-          <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center space-x-3">
+          <div className="p-3.5 rounded-2xl bg-white/[0.03] flex items-center space-x-3">
             <div className="w-8 h-8 rounded-xl bg-[#76FF03]/15 text-[#76FF03] flex items-center justify-center flex-shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
