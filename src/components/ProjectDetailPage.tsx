@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers, ExternalLink, Play, Film } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Box, Sparkles, ZoomIn, Maximize2, Layers, ExternalLink, Play, Film, Video } from 'lucide-react';
 import { Project, Language } from '../types';
 import { getStoredProjects } from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 import { ProjectImageZoomModal } from './ProjectImageZoomModal';
-import { getProjectPrimaryMedia } from '../utils/mediaDetector';
+import { getProjectPrimaryMedia, getProjectMediaCollection, ProjectMediaItem } from '../utils/mediaDetector';
 
 interface ProjectDetailPageProps {
   project: Project;
@@ -58,12 +58,26 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [isZoomOpen, setIsZoomOpen] = useState<boolean>(false);
   const [zoomInitialIndex, setZoomInitialIndex] = useState<number>(0);
 
-  const primaryMedia = useMemo(() => getProjectPrimaryMedia(project), [project]);
-  const [activeMediaTab, setActiveMediaTab] = useState<'video' | 'render'>('video');
+  const mediaCollection = useMemo(() => getProjectMediaCollection(project), [project]);
+  const primaryMedia = mediaCollection.primaryMedia;
+
+  // Selected media ID for the main showcase player
+  const [selectedMediaId, setSelectedMediaId] = useState<string>(() => {
+    if (mediaCollection.videos.length > 0) return mediaCollection.videos[0].id;
+    return mediaCollection.items[0]?.id || 'media-hero-image';
+  });
 
   useEffect(() => {
-    setActiveMediaTab(primaryMedia.hasVideo ? 'video' : 'render');
-  }, [project.id, primaryMedia.hasVideo]);
+    if (mediaCollection.videos.length > 0) {
+      setSelectedMediaId(mediaCollection.videos[0].id);
+    } else {
+      setSelectedMediaId(mediaCollection.items[0]?.id || 'media-hero-image');
+    }
+  }, [project.id, mediaCollection.items]);
+
+  const currentMedia: ProjectMediaItem | undefined = useMemo(() => {
+    return mediaCollection.items.find((item) => item.id === selectedMediaId) || mediaCollection.items[0];
+  }, [mediaCollection.items, selectedMediaId]);
 
   // Read dynamically from stored projects so newly added dashboard projects navigate correctly
   const allProjects = useMemo(() => {
@@ -265,124 +279,280 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       </div>
 
       {/* Main Full-Bleed Media Showcase (Video Player / Hero Artwork) */}
-      <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16 mt-16">
-        {/* Switcher Tab if project has both Video and Render Image */}
-        {primaryMedia.hasVideo && project.image && (
-          <div className="flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                playClickSound();
-                setActiveMediaTab('video');
-              }}
-              className={`px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
-                activeMediaTab === 'video'
-                  ? 'bg-[#76FF03] text-black shadow-[0_0_25px_rgba(118,255,3,0.45)]'
-                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white/20'
-              }`}
-            >
-              <Play className={`w-3.5 h-3.5 ${activeMediaTab === 'video' ? 'fill-black' : 'fill-current'}`} />
-              <span>{lang === 'es' ? 'VER VIDEO / REPRODUCCIÓN' : 'PLAY VIDEO'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                playClickSound();
-                setActiveMediaTab('render');
-              }}
-              className={`px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
-                activeMediaTab === 'render'
-                  ? 'bg-[#76FF03] text-black shadow-[0_0_25px_rgba(118,255,3,0.45)]'
-                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white/20'
-              }`}
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-              <span>{lang === 'es' ? 'RENDER HERO (ZOOM HD)' : 'HERO RENDER (ZOOM HD)'}</span>
-            </button>
+      <div className="max-w-7xl mx-auto space-y-10 sm:space-y-14 mt-16">
+        {/* Dynamic Media Switcher Tabs if project has multiple visual/audiovisual elements */}
+        {mediaCollection.items.length > 1 && (
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-2xl bg-white/[0.03] backdrop-blur-md max-w-fit mx-auto">
+            {mediaCollection.items.map((item) => {
+              const isSelected = item.id === currentMedia?.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setSelectedMediaId(item.id);
+                  }}
+                  onMouseEnter={playHoverSound}
+                  className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#76FF03] text-[#050B05] shadow-[0_0_25px_rgba(118,255,3,0.45)] scale-[1.02]'
+                      : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {item.sourceType === 'youtube' ? (
+                    <Play className={`w-3.5 h-3.5 ${isSelected ? 'fill-black' : 'fill-current text-red-400'}`} />
+                  ) : item.sourceType === 'clip' ? (
+                    <Film className={`w-3.5 h-3.5 ${isSelected ? 'text-black' : 'text-cyan-400'}`} />
+                  ) : item.sourceType === 'gif' ? (
+                    <Sparkles className={`w-3.5 h-3.5 ${isSelected ? 'text-black' : 'text-purple-400'}`} />
+                  ) : (
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {item.sourceType === 'youtube'
+                      ? lang === 'es'
+                        ? 'Video YouTube'
+                        : 'YouTube Video'
+                      : item.sourceType === 'clip'
+                      ? lang === 'es'
+                        ? 'Clip Directo (MP4)'
+                        : 'Direct Clip (MP4)'
+                      : item.sourceType === 'gif'
+                      ? lang === 'es'
+                        ? 'GIF Animado'
+                        : 'Animated GIF'
+                      : lang === 'es'
+                      ? 'Render Hero (Zoom HD)'
+                      : 'Hero Render (Zoom HD)'}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
 
-        {/* Video Player Display */}
-        {primaryMedia.hasVideo && activeMediaTab === 'video' ? (
-          <div className="w-full rounded-3xl overflow-hidden bg-black border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative transition-all duration-500">
-            {primaryMedia.type === 'youtube' || primaryMedia.type === 'vimeo' ? (
+        {/* Active Media Showcase Player / Viewer */}
+        {currentMedia && (
+          <div
+            id="main-media-showcase"
+            className="w-full rounded-3xl overflow-hidden bg-black shadow-2xl relative transition-all duration-500"
+          >
+            {/* 1. YouTube or Vimeo Video Embed */}
+            {currentMedia.type === 'youtube' || currentMedia.type === 'vimeo' ? (
               <div className="relative w-full aspect-video">
                 <iframe
-                  src={primaryMedia.embedUrl}
+                  key={currentMedia.embedUrl}
+                  src={currentMedia.embedUrl}
                   title={project.title}
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
               </div>
-            ) : (
-              <div className="w-full flex items-center justify-center p-2 sm:p-4">
+            ) : currentMedia.type === 'video' ? (
+              /* 2. Direct Video Clip Player (HTML5 Native MP4/WebM) */
+              <div className="w-full flex items-center justify-center p-2 sm:p-4 bg-black">
                 <video
-                  src={primaryMedia.videoSrc}
+                  key={currentMedia.videoSrc}
+                  src={currentMedia.videoSrc}
                   controls
                   autoPlay
-                  muted
-                  loop
                   playsInline
-                  className="w-full h-auto max-h-[85vh] object-contain mx-auto rounded-2xl"
+                  className="w-full h-auto max-h-[85vh] object-contain mx-auto rounded-2xl shadow-2xl"
                 />
               </div>
+            ) : currentMedia.type === 'gif' ? (
+              /* 3. Animated GIF Showcase */
+              <div
+                onClick={() => handleOpenZoom(currentMedia.gifSrc || currentMedia.url)}
+                onMouseEnter={playHoverSound}
+                className="w-full rounded-3xl overflow-hidden bg-[#0a120a] relative group cursor-pointer transition-all duration-500 p-2 sm:p-4 flex items-center justify-center"
+                title={lang === 'es' ? 'Clic para ampliar GIF' : 'Click to expand GIF'}
+              >
+                <img
+                  src={currentMedia.gifSrc || currentMedia.url}
+                  alt={project.title}
+                  className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                />
+              </div>
+            ) : (
+              /* 4. Main Hero Artwork with Interactive Zoom Overlay */
+              <div
+                onClick={() => handleOpenZoom(currentMedia.imageSrc || currentMedia.url)}
+                onMouseEnter={playHoverSound}
+                className="w-full rounded-3xl overflow-hidden bg-[#0a120a] relative group cursor-pointer transition-all duration-500 p-2 sm:p-4 flex items-center justify-center"
+                title={lang === 'es' ? 'Clic para ampliar y hacer zoom en alta resolución' : 'Click to expand and zoom in high-res'}
+              >
+                <img
+                  src={currentMedia.imageSrc || currentMedia.url}
+                  alt={project.title}
+                  onError={(e) => handleImgError(e, currentMedia.imageSrc || currentMedia.url, project.category)}
+                  className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                />
+
+                {/* Floating Zoom Badge */}
+                <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10 flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md text-gray-200 group-hover:text-white transition-all shadow-xl font-mono text-xs font-bold">
+                    <ZoomIn className="w-4 h-4 text-[#76FF03] group-hover:scale-110 transition-transform" />
+                    <span>{lang === 'es' ? 'Hacer Zoom / Ver Detalle' : 'Zoom In / View Details'}</span>
+                  </div>
+                </div>
+              </div>
             )}
-            {/* Header Badge */}
+
+            {/* Header Badge indicating the currently playing media */}
             <div className="absolute top-4 left-4 z-10 flex items-center space-x-2 pointer-events-none">
-              <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/50 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
-                <Play className="w-3 h-3 fill-[#76FF03]" />
+              <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-black/85 backdrop-blur-md text-[#76FF03] text-xs font-mono font-bold shadow-lg">
+                {currentMedia.isVideo ? (
+                  <Play className="w-3 h-3 fill-[#76FF03]" />
+                ) : currentMedia.type === 'gif' ? (
+                  <Sparkles className="w-3 h-3 text-[#76FF03]" />
+                ) : (
+                  <ZoomIn className="w-3 h-3 text-[#76FF03]" />
+                )}
                 <span>
-                  {primaryMedia.type === 'youtube'
-                    ? 'YOUTUBE PLAYER'
-                    : primaryMedia.type === 'vimeo'
-                    ? 'VIMEO PLAYER'
-                    : 'VIDEO MP4/WEBM'}
+                  {currentMedia.badge} • {currentMedia.title}
                 </span>
               </div>
             </div>
           </div>
-        ) : primaryMedia.type === 'gif' ? (
-          /* Animated GIF Showcase */
-          <div
-            onClick={() => handleOpenZoom(primaryMedia.gifSrc || project.image)}
-            onMouseEnter={playHoverSound}
-            className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative group cursor-pointer transition-all duration-500"
-            title={lang === 'es' ? 'Clic para ampliar GIF' : 'Click to expand GIF'}
-          >
-            <img
-              src={primaryMedia.gifSrc || project.image}
-              alt={project.title}
-              className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
-            />
-            <div className="absolute top-4 left-4 z-10 flex items-center space-x-2">
-              <div className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-[#76FF03]/50 text-[#76FF03] text-xs font-mono font-bold shadow-lg">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>GIF ANIMADO</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Main Hero Artwork with Interactive Zoom Overlay */
-          <div
-            onClick={() => handleOpenZoom(project.image)}
-            onMouseEnter={playHoverSound}
-            className="w-full rounded-3xl overflow-hidden bg-[#0a120a] border border-white/15 hover:border-[#76FF03]/60 shadow-2xl relative group cursor-pointer transition-all duration-500"
-            title={lang === 'es' ? 'Clic para ampliar y hacer zoom en alta resolución' : 'Click to expand and zoom in high-res'}
-          >
-            <img
-              src={project.image}
-              alt={project.title}
-              onError={(e) => handleImgError(e, project.image, project.category)}
-              className="w-full h-auto max-h-[85vh] object-contain mx-auto transition-transform duration-700 ease-out p-2 sm:p-4 group-hover:scale-[1.01]"
-            />
+        )}
 
-            {/* Floating Zoom Badge / Button */}
-            <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10 flex items-center space-x-2">
-              <div className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/20 group-hover:border-[#76FF03] text-gray-200 group-hover:text-white transition-all shadow-xl font-mono text-xs font-bold">
-                <ZoomIn className="w-4 h-4 text-[#76FF03] group-hover:scale-110 transition-transform" />
-                <span>{lang === 'es' ? 'Hacer Zoom / Ver Detalle' : 'Zoom In / View Details'}</span>
+        {/* Audiovisual Media Grid: Shows all videos/clips when project has multiple videos */}
+        {mediaCollection.videos.length > 1 && (
+          <div className="pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+              <div>
+                <span className="text-xs font-mono font-bold tracking-[0.25em] text-[#76FF03] uppercase block mb-1">
+                  {lang === 'es' ? 'PRODUCCIONES AUDIOVISUALES' : 'AUDIOVISUAL PRODUCTIONS'}
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black uppercase italic tracking-tight text-white">
+                  {lang === 'es' ? 'VIDEOS & CLIPS DE ESTE PROYECTO' : 'PROJECT VIDEOS & CLIPS'}
+                </h3>
+                <p className="text-xs sm:text-sm font-mono text-gray-400 mt-1">
+                  {lang === 'es'
+                    ? 'Este proyecto cuenta con múltiples producciones de video. Selecciona cualquiera para reproducirlo en el visor principal.'
+                    : 'This project features multiple video productions. Select any to play in the main showcase viewer.'}
+                </p>
               </div>
+
+              <span className="text-xs font-mono text-[#76FF03] bg-[#76FF03]/10 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 self-start sm:self-auto font-bold">
+                <Film className="w-3.5 h-3.5 text-[#76FF03]" />
+                <span>
+                  {mediaCollection.videos.length}{' '}
+                  {lang === 'es' ? 'Videos Disponibles' : 'Videos Available'}
+                </span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+              {mediaCollection.videos.map((vidItem, vIdx) => {
+                const isCurrent = vidItem.id === currentMedia?.id;
+                return (
+                  <div
+                    key={vidItem.id}
+                    onClick={() => {
+                      playClickSound();
+                      setSelectedMediaId(vidItem.id);
+                      const el = document.getElementById('main-media-showcase');
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }}
+                    onMouseEnter={playHoverSound}
+                    className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between group ${
+                      isCurrent
+                        ? 'bg-[#76FF03]/10 shadow-[0_0_35px_rgba(118,255,3,0.2)] ring-1 ring-[#76FF03]'
+                        : 'bg-white/[0.03] hover:bg-white/[0.07] shadow-lg hover:shadow-2xl'
+                    }`}
+                  >
+                    <div>
+                      {/* Top Bar with Badge */}
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-black/80 text-[#76FF03] flex items-center gap-1.5 shadow">
+                          <Film className="w-3 h-3 text-[#76FF03]" />
+                          <span>{vidItem.badge}</span>
+                        </span>
+                        <span className="text-[10px] font-mono text-gray-400">
+                          {lang === 'es' ? `Video #${vIdx + 1}` : `Video #${vIdx + 1}`}
+                        </span>
+                      </div>
+
+                      {/* Mini Video / Thumbnail Preview Box */}
+                      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black flex items-center justify-center mb-4 shadow-md">
+                        {vidItem.type === 'video' ? (
+                          <video
+                            src={vidItem.videoSrc}
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <img
+                            src={vidItem.thumbnailUrl || project.image}
+                            alt={vidItem.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        )}
+
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/15 transition-colors flex items-center justify-center">
+                          <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform ${
+                              isCurrent
+                                ? 'bg-[#76FF03] text-[#050B05] scale-110 shadow-[0_0_20px_#76FF03]'
+                                : 'bg-black/80 text-[#76FF03] group-hover:scale-110'
+                            }`}
+                          >
+                            <Play className="w-5 h-5 fill-current ml-0.5" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Video Title & Subtitle */}
+                      <h4 className="text-base sm:text-lg font-black uppercase italic tracking-tight text-white group-hover:text-[#76FF03] transition-colors leading-snug">
+                        {vidItem.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1 font-mono">
+                        {vidItem.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Footer Status and Play Button */}
+                    <div className="mt-5 pt-3.5 border-t border-white/10 flex items-center justify-between">
+                      <span
+                        className={`text-xs font-mono font-bold flex items-center gap-2 ${
+                          isCurrent ? 'text-[#76FF03]' : 'text-gray-300 group-hover:text-white'
+                        }`}
+                      >
+                        {isCurrent ? (
+                          <>
+                            <span className="w-2 h-2 rounded-full bg-[#76FF03] animate-ping" />
+                            <span>{lang === 'es' ? 'Reproduciendo en Visor' : 'Playing in Viewer'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 text-[#76FF03] fill-[#76FF03]" />
+                            <span>{lang === 'es' ? 'Reproducir este Video' : 'Play this Video'}</span>
+                          </>
+                        )}
+                      </span>
+
+                      {vidItem.url && vidItem.type === 'youtube' && (
+                        <a
+                          href={vidItem.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[11px] font-mono text-gray-400 hover:text-[#76FF03] flex items-center gap-1 transition-colors"
+                          title="Abrir directamente en YouTube"
+                        >
+                          <span>YouTube</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

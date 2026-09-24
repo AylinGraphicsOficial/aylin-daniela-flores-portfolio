@@ -2593,12 +2593,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           {isVideoProj ? (
                             <span
                               className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
-                                proj.videoUrl || proj.clipUrl
+                                proj.videoUrl && proj.videoClip
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                  : proj.videoUrl || proj.videoClip
                                   ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                                   : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                               }`}
                             >
-                              🎬 {proj.videoUrl || proj.clipUrl ? 'Video + Miniatura ✓' : 'Solo Miniatura (Sin Video)'}
+                              🎬 {proj.videoUrl && proj.videoClip
+                                ? '2 Videos (YT + MP4) ✓'
+                                : proj.videoUrl
+                                ? 'YouTube + Miniatura ✓'
+                                : proj.videoClip
+                                ? 'Clip MP4 + Miniatura ✓'
+                                : 'Solo Miniatura (Sin Video)'}
                             </span>
                           ) : (
                             <span

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2, ZoomIn, Play, Sparkles } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight, Layers, Palette, CheckCircle2, ZoomIn, Play, Sparkles, Film } from 'lucide-react';
 import { Project, Language } from '../types';
 import { playClickSound } from '../utils/audio';
 import { SpecularButton } from './SpecularButton';
 import { ProjectImageZoomModal } from './ProjectImageZoomModal';
-import { getProjectPrimaryMedia } from '../utils/mediaDetector';
+import { getProjectPrimaryMedia, getProjectMediaCollection } from '../utils/mediaDetector';
 
 interface CaseStudyModalProps {
   project: Project | null;
@@ -24,8 +24,26 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
 
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [isZoomOpen, setIsZoomOpen] = useState<boolean>(false);
-  const primaryMedia = getProjectPrimaryMedia(project);
-  const [activeMediaTab, setActiveMediaTab] = useState<'video' | 'gallery'>('video');
+  const mediaCollection = useMemo(() => getProjectMediaCollection(project), [project]);
+  const primaryMedia = mediaCollection.primaryMedia;
+
+  const [activeMediaId, setActiveMediaId] = useState<string>(() => {
+    if (mediaCollection.videos.length > 0) return mediaCollection.videos[0].id;
+    return 'gallery';
+  });
+
+  useEffect(() => {
+    if (mediaCollection.videos.length > 0) {
+      setActiveMediaId(mediaCollection.videos[0].id);
+    } else {
+      setActiveMediaId('gallery');
+    }
+  }, [project.id, mediaCollection.videos]);
+
+  const activeVideo = useMemo(() => {
+    return mediaCollection.videos.find((v) => v.id === activeMediaId);
+  }, [mediaCollection.videos, activeMediaId]);
+
   const gallery = project.galleryImages && project.galleryImages.length > 0
     ? project.galleryImages
     : [project.image];
@@ -92,42 +110,68 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
             )}
           </div>
 
-          {/* Media Switcher Tab when Project has Video */}
-          {primaryMedia.hasVideo && (
-            <div className="flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveMediaTab('video')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
-                  activeMediaTab === 'video'
-                    ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.4)]'
-                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
-                }`}
-              >
-                <Play className={`w-3 h-3 ${activeMediaTab === 'video' ? 'fill-black' : 'fill-current'}`} />
-                <span>{lang === 'es' ? 'VER VIDEO' : 'PLAY VIDEO'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveMediaTab('gallery')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
-                  activeMediaTab === 'gallery'
-                    ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.4)]'
-                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
-                }`}
-              >
-                <Layers className="w-3 h-3" />
-                <span>{lang === 'es' ? 'GALERÍA DE RENDERS' : 'RENDERS GALLERY'}</span>
-              </button>
+          {/* Media Switcher Tabs when Project has Videos or Renders */}
+          {(mediaCollection.hasVideo || gallery.length > 0) && (
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              {mediaCollection.videos.map((vid) => {
+                const isSelected = activeMediaId === vid.id;
+                return (
+                  <button
+                    key={vid.id}
+                    type="button"
+                    onClick={() => {
+                      playClickSound();
+                      setActiveMediaId(vid.id);
+                    }}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.4)]'
+                        : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                    }`}
+                  >
+                    {vid.sourceType === 'clip' ? (
+                      <Film className={`w-3 h-3 ${isSelected ? 'text-black' : 'text-cyan-400'}`} />
+                    ) : (
+                      <Play className={`w-3 h-3 ${isSelected ? 'fill-black' : 'fill-current text-red-400'}`} />
+                    )}
+                    <span>
+                      {vid.sourceType === 'clip'
+                        ? lang === 'es'
+                          ? 'CLIP DIRECTO (MP4)'
+                          : 'DIRECT CLIP (MP4)'
+                        : vid.title}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {gallery.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setActiveMediaId('gallery');
+                  }}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${
+                    activeMediaId === 'gallery'
+                      ? 'bg-[#76FF03] text-black shadow-[0_0_20px_rgba(118,255,3,0.4)]'
+                      : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                  }`}
+                >
+                  <Layers className="w-3 h-3" />
+                  <span>{lang === 'es' ? 'GALERÍA DE RENDERS' : 'RENDERS GALLERY'}</span>
+                </button>
+              )}
             </div>
           )}
 
-          {primaryMedia.hasVideo && activeMediaTab === 'video' ? (
-            <div className="relative rounded-2xl overflow-hidden bg-black border border-white/15 hover:border-[#76FF03]/50 min-h-[300px] md:min-h-[460px] flex items-center justify-center shadow-2xl">
-              {primaryMedia.type === 'youtube' || primaryMedia.type === 'vimeo' ? (
+          {activeVideo ? (
+            <div className="relative rounded-2xl overflow-hidden bg-black min-h-[300px] md:min-h-[460px] flex items-center justify-center shadow-2xl">
+              {activeVideo.type === 'youtube' || activeVideo.type === 'vimeo' ? (
                 <div className="relative w-full aspect-video">
                   <iframe
-                    src={primaryMedia.embedUrl}
+                    key={activeVideo.embedUrl}
+                    src={activeVideo.embedUrl}
                     title={project.title}
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -136,11 +180,10 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({
                 </div>
               ) : (
                 <video
-                  src={primaryMedia.videoSrc}
+                  key={activeVideo.videoSrc}
+                  src={activeVideo.videoSrc}
                   controls
                   autoPlay
-                  muted
-                  loop
                   playsInline
                   className="w-full h-full max-h-[500px] object-contain"
                 />

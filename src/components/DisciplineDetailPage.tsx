@@ -9,6 +9,8 @@ import {
   Calendar,
   User,
   Layers,
+  Play,
+  Film,
 } from 'lucide-react';
 import { Discipline, Project, Language } from '../types';
 import {
@@ -17,6 +19,7 @@ import {
   subscribeToPortfolioChanges,
 } from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
+import { getProjectMediaCollection } from '../utils/mediaDetector';
 
 interface DisciplineDetailPageProps {
   discipline: Discipline;
@@ -275,6 +278,28 @@ export const DisciplineDetailPage: React.FC<DisciplineDetailPageProps> = ({
                   <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/15 text-[10px] font-mono text-gray-300">
                     {project.year}
                   </div>
+
+                  {/* Video Badges */}
+                  {(() => {
+                    const media = getProjectMediaCollection(project);
+                    if (media.hasMultipleVideos) {
+                      return (
+                        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[10px] font-mono font-bold text-[#76FF03] flex items-center gap-1.5 shadow">
+                          <Film className="w-3 h-3 text-[#76FF03]" />
+                          <span>2 VIDEOS (YT + MP4)</span>
+                        </div>
+                      );
+                    }
+                    if (media.hasVideo) {
+                      return (
+                        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[10px] font-mono font-bold text-[#76FF03] flex items-center gap-1.5 shadow">
+                          <Play className="w-3 h-3 fill-[#76FF03]" />
+                          <span>{media.primaryMedia.type === 'youtube' ? 'VIDEO / YT' : 'CLIP MP4'}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 {/* Card Content & Meta */}

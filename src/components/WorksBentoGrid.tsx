@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, ChevronLeft, ChevronRight, Play, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, ChevronRight, Play, Sparkles, Film } from 'lucide-react';
 import { Project, Language, Discipline, DisciplineSlide } from '../types';
 import {
   getStoredProjects,
@@ -316,12 +316,17 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 {/* Refined Image Card (Flat borderless, aspect-[16/10]) */}
                 <div className="relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.9)] transition-all duration-500 flex items-center justify-center p-3 sm:p-3.5">
                   {/* Media Type Badges */}
-                  {media.hasVideo && (
+                  {media.hasMultipleVideos ? (
+                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-[#76FF03] font-mono text-[9px] font-bold tracking-wider shadow">
+                      <Film className="w-2.5 h-2.5 text-[#76FF03]" />
+                      <span>2 VIDEOS (YT + MP4)</span>
+                    </div>
+                  ) : media.hasVideo ? (
                     <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-[#76FF03] font-mono text-[9px] font-bold tracking-wider shadow">
                       <Play className="w-2.5 h-2.5 fill-[#76FF03]" />
-                      <span>{media.type === 'youtube' ? 'VIDEO / YT' : 'VIDEO'}</span>
+                      <span>{media.type === 'youtube' ? 'VIDEO / YT' : 'CLIP MP4'}</span>
                     </div>
-                  )}
+                  ) : null}
 
                   {media.type === 'gif' && (
                     <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-cyan-300 font-mono text-[9px] font-bold tracking-wider shadow">
