@@ -32,6 +32,7 @@ import {
   saveProject,
 } from '../../utils/portfolioStorage';
 import { playClickSound } from '../../utils/audio';
+import { getMediaPreviewFit } from '../../utils/mediaDetector';
 
 interface DisciplineSliderEditorProps {
   disciplines: Discipline[];
@@ -331,7 +332,25 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
 
           {/* Tab 1: Slides Manager */}
           {activeTab === 'slides' && (
-            <div className="space-y-8">
+            <div className="space-y-6">
+              {/* Banner de Medidas Recomendadas para el Slider de Disciplina */}
+              <div className="p-4 rounded-xl border border-yellow-500/30 bg-yellow-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📐</span>
+                  <div>
+                    <span className="text-xs font-mono font-bold text-yellow-300 uppercase block">
+                      Medida Sugerida para Sliders: 1920 × 1080 px (16:9) o 2560 × 1080 px (21:9 Panorámico)
+                    </span>
+                    <span className="text-[11px] text-slate-300">
+                      Las imágenes con fondo completo ocupan el 100% sin franjas negras. Las siluetas transparentes se protegen centradas.
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-bold whitespace-nowrap self-start sm:self-auto">
+                  FORMATO RECOMENDADO
+                </span>
+              </div>
+
               {/* Quick Actions Row */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-5 rounded-xl border border-slate-700/60 bg-slate-900/40">
                 <div>
@@ -432,20 +451,38 @@ export const DisciplineSliderEditor: React.FC<DisciplineSliderEditorProps> = ({
                         }`}
                       >
                         {/* Image Preview & Order Badge */}
-                        <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-2.5 border border-slate-700/60 group">
-                          <img
-                            src={slide.image}
-                            alt={slide.title || 'Slide'}
-                            className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = '/images/retro-mini.jpg';
-                            }}
-                          />
-                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 backdrop-blur-md text-[11px] font-mono text-emerald-400 font-bold border border-emerald-500/30">
-                            #{idx + 1}
-                          </div>
-                        </div>
+                        {(() => {
+                          const isCover = getMediaPreviewFit({
+                            url: slide.image,
+                            hasVideo: Boolean(slide.videoUrl),
+                            explicitFit: slide.previewFit,
+                            title: slide.title,
+                          }) === 'cover';
+
+                          return (
+                            <div className={`relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-900 mb-2.5 border border-slate-700/60 group flex items-center justify-center ${
+                              isCover ? 'p-0' : 'p-2'
+                            }`}>
+                              <img
+                                src={slide.image}
+                                alt={slide.title || 'Slide'}
+                                className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
+                                  isCover ? 'object-cover' : 'object-contain'
+                                }`}
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = '/images/retro-mini.jpg';
+                                }}
+                              />
+                              <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 backdrop-blur-md text-[11px] font-mono text-emerald-400 font-bold border border-emerald-500/30">
+                                #{idx + 1}
+                              </div>
+                              <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono font-bold text-gray-300 border border-white/10">
+                                {isCover ? 'LLENO' : 'SILUETA'}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Slide Image Change Controls */}
                         <div className="space-y-2.5">

@@ -29,7 +29,8 @@ $migrations = [
     "ALTER TABLE `projects` ADD COLUMN `videoUrl` VARCHAR(1000) DEFAULT '' AFTER `disciplineId`",
     "ALTER TABLE `projects` ADD COLUMN `videoClip` VARCHAR(1000) DEFAULT '' AFTER `videoUrl`",
     "ALTER TABLE `projects` ADD COLUMN `gifUrl` VARCHAR(1000) DEFAULT '' AFTER `videoClip`",
-    "ALTER TABLE `projects` ADD COLUMN `visibleInCatalog` TINYINT(1) NOT NULL DEFAULT 1 AFTER `featured`"
+    "ALTER TABLE `projects` ADD COLUMN `visibleInCatalog` TINYINT(1) NOT NULL DEFAULT 1 AFTER `featured`",
+    "ALTER TABLE `projects` ADD COLUMN `previewFit` VARCHAR(20) DEFAULT 'auto' AFTER `visibleInCatalog`"
 ];
 foreach ($migrations as $migrationSql) {
     try {
@@ -54,6 +55,7 @@ if ($method === 'GET') {
         }
         $row['featured'] = (bool)$row['featured'];
         $row['visibleInCatalog'] = !isset($row['visibleInCatalog']) || (bool)$row['visibleInCatalog'];
+        $row['previewFit'] = $row['previewFit'] ?? 'auto';
         $row['galleryImages'] = json_decode($row['galleryImages'] ?? '[]', true) ?: [];
         $row['logo'] = $row['logo'] ?? '';
         $row['sliderImage'] = $row['sliderImage'] ?? '';
@@ -94,6 +96,7 @@ if ($method === 'GET') {
             'tags'             => json_decode($row['tags'] ?? '[]', true) ?: [],
             'featured'         => (bool)$row['featured'],
             'visibleInCatalog' => !isset($row['visibleInCatalog']) || (bool)$row['visibleInCatalog'],
+            'previewFit'       => $row['previewFit'] ?? 'auto',
             'metrics'          => json_decode($row['metrics'] ?? '[]', true) ?: [],
             'display_order'    => (int)$row['display_order'],
             'createdAt'        => $row['createdAt'],
@@ -158,13 +161,13 @@ if ($method === 'POST' || $method === 'PUT') {
         `image`, `galleryImages`, `logo`, `sliderImage`, `sliderTitle`, `sliderOrder`,
         `externalLink`, `externalLinkText`, `disciplineId`,
         `videoUrl`, `videoClip`, `gifUrl`, `tags`,
-        `featured`, `visibleInCatalog`, `metrics`, `display_order`, `createdAt`, `updatedAt`
+        `featured`, `visibleInCatalog`, `previewFit`, `metrics`, `display_order`, `createdAt`, `updatedAt`
     ) VALUES (
         :id, :title, :category, :year, :client, :shortDesc, :fullDesc,
         :image, :galleryImages, :logo, :sliderImage, :sliderTitle, :sliderOrder,
         :externalLink, :externalLinkText, :disciplineId,
         :videoUrl, :videoClip, :gifUrl, :tags,
-        :featured, :visibleInCatalog, :metrics, :display_order, :createdAt, :updatedAt
+        :featured, :visibleInCatalog, :previewFit, :metrics, :display_order, :createdAt, :updatedAt
     ) ON DUPLICATE KEY UPDATE
         `title` = VALUES(`title`),
         `category` = VALUES(`category`),
@@ -187,6 +190,7 @@ if ($method === 'POST' || $method === 'PUT') {
         `tags` = VALUES(`tags`),
         `featured` = VALUES(`featured`),
         `visibleInCatalog` = VALUES(`visibleInCatalog`),
+        `previewFit` = VALUES(`previewFit`),
         `metrics` = VALUES(`metrics`),
         `display_order` = VALUES(`display_order`),
         `updatedAt` = VALUES(`updatedAt`)
@@ -264,6 +268,7 @@ if ($method === 'POST' || $method === 'PUT') {
 
             $featured = !empty($item['featured']) ? 1 : 0;
             $visibleInCatalog = isset($item['visibleInCatalog']) && !$item['visibleInCatalog'] ? 0 : 1;
+            $previewFit = isset($item['previewFit']) && in_array($item['previewFit'], ['cover', 'contain', 'auto'], true) ? $item['previewFit'] : 'auto';
 
             $metrics = is_array($item['metrics'] ?? null)
                 ? json_encode($item['metrics'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
@@ -296,6 +301,7 @@ if ($method === 'POST' || $method === 'PUT') {
                 ':tags'             => $tags,
                 ':featured'         => $featured,
                 ':visibleInCatalog' => $visibleInCatalog,
+                ':previewFit'       => $previewFit,
                 ':metrics'          => $metrics,
                 ':display_order'    => $displayOrder,
                 ':createdAt'        => $createdAt,

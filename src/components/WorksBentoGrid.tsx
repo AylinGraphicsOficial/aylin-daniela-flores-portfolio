@@ -8,7 +8,7 @@ import {
   subscribeToPortfolioChanges,
 } from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
-import { getProjectPrimaryMedia } from '../utils/mediaDetector';
+import { getProjectPrimaryMedia, getMediaPreviewFit } from '../utils/mediaDetector';
 
 interface WorksBentoGridProps {
   lang: Language;
@@ -76,6 +76,12 @@ const DisciplineSliderCard: React.FC<{
   };
 
   const activeSlide = visibleSlides[currentSlideIndex] || visibleSlides[0];
+  const isCoverSlide = getMediaPreviewFit({
+    url: activeSlide.image,
+    hasVideo: Boolean(activeSlide.videoUrl),
+    explicitFit: activeSlide.previewFit,
+    title: activeSlide.title || discipline.titleEs,
+  }) === 'cover';
 
   return (
     <div
@@ -95,9 +101,11 @@ const DisciplineSliderCard: React.FC<{
 
       {/* Right Side: Main Interactive Slider Card + Typography */}
       <div className="flex-1 min-w-0">
-        {/* Interactive Image Slider Card */}
+        {/* Interactive Image Slider Card (Full cover with p-0 for background images, or padded contain for transparent cutouts) */}
         <div
-          className="relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-500 flex items-center justify-center p-2.5 sm:p-5 touch-pan-y"
+          className={`relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/9] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-[#081208] shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-500 flex items-center justify-center touch-pan-y ${
+            isCoverSlide ? 'p-0' : 'p-2.5 sm:p-5'
+          }`}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -118,7 +126,9 @@ const DisciplineSliderCard: React.FC<{
 
               e.currentTarget.src = fallback;
             }}
-            className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+            className={`w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.02] ${
+              isCoverSlide ? 'object-cover' : 'object-contain filter drop-shadow-2xl'
+            }`}
           />
 
           {/* Left / Right Arrow Controls (Visible only if more than 1 slide) */}
@@ -303,6 +313,13 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 ? media.thumbnailUrl
                 : getCategoryFallbackImage(project.category);
 
+            const isCover = getMediaPreviewFit({
+              url: displayMediaSrc,
+              hasVideo: media.hasVideo,
+              explicitFit: project.previewFit,
+              title: project.title,
+            }) === 'cover';
+
             return (
               <div
                 key={project.id}
@@ -313,8 +330,10 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                 onMouseEnter={playHoverSound}
                 className="group cursor-pointer flex flex-col"
               >
-                {/* Refined Image Card (Flat borderless, aspect-[16/10]) */}
-                <div className="relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.9)] transition-all duration-500 flex items-center justify-center p-3 sm:p-3.5">
+                {/* Refined Image Card (Full cover with p-0 for background images/videos, padded contain for cutouts) */}
+                <div className={`relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.9)] transition-all duration-500 flex items-center justify-center ${
+                  isCover ? 'p-0' : 'p-3 sm:p-3.5'
+                }`}>
                   {/* Media Type Badges */}
                   {media.hasMultipleVideos ? (
                     <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded bg-black/85 backdrop-blur-md text-[#76FF03] font-mono text-[9px] font-bold tracking-wider shadow">
@@ -354,7 +373,9 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                       const fallback = getCategoryFallbackImage(project.category);
                       e.currentTarget.src = fallback;
                     }}
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
+                    className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 ${
+                      isCover ? 'object-cover' : 'object-contain filter drop-shadow-xl'
+                    }`}
                   />
                 </div>
 

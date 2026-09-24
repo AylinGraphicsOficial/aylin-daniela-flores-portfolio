@@ -96,7 +96,7 @@ import {
   MediaStorageStatus,
   MediaDoctorReport,
 } from '../../utils/portfolioStorage';
-import { getProjectPrimaryMedia } from '../../utils/mediaDetector';
+import { getProjectPrimaryMedia, getMediaPreviewFit } from '../../utils/mediaDetector';
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
 import { LAB_MODEL_ICONS, getLabModelIcon } from '../../utils/labIcons';
@@ -2474,6 +2474,53 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </button>
               </div>
 
+              {/* Guía Visual de Medidas & Proporciones Sugeridas en Pixeles */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-[#76FF03]/30 shadow-[0_4px_20px_rgba(118,255,3,0.06)] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03] animate-pulse shrink-0" />
+                    <span className="font-bold text-xs sm:text-sm text-white font-mono uppercase tracking-wide">
+                      📐 Medidas Sugeridas en Píxeles para tus Proyectos & Miniaturas
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#76FF03] bg-[#76FF03]/10 px-2.5 py-0.5 rounded-full border border-[#76FF03]/30 font-bold self-start sm:self-auto">
+                    KINETIC STUDIO SPECS
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-1">
+                  <div className="p-2.5 rounded-xl bg-black/50 border border-emerald-500/30">
+                    <span className="text-[10px] font-mono text-emerald-400 block font-bold">🖼️ MIN DISCO / CATÁLOGO</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">1280 × 800 px</span>
+                    <span className="text-[10px] text-slate-400 block">Aspecto 16:10 ideal</span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-black/50 border border-yellow-500/30">
+                    <span className="text-[10px] font-mono text-yellow-400 block font-bold">⭐ BANNER SLIDER HERO</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">1920 × 1080 px</span>
+                    <span className="text-[10px] text-slate-400 block">16:9 / 2560×1080 (21:9)</span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-black/50 border border-cyan-500/30">
+                    <span className="text-[10px] font-mono text-cyan-400 block font-bold">🏷️ LOGO DE MARCA</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">500 × 500 px</span>
+                    <span className="text-[10px] text-slate-400 block">PNG Transparente / SVG</span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-black/50 border border-sky-500/30">
+                    <span className="text-[10px] font-mono text-sky-400 block font-bold">🎬 VIDEO / REELS</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">1080p (FHD)</span>
+                    <span className="text-[10px] text-slate-400 block">1920×1080 o 1080×1920</span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-black/50 border border-fuchsia-500/30 col-span-2 sm:col-span-1">
+                    <span className="text-[10px] font-mono text-fuchsia-400 block font-bold">🔍 RENDERS ZOOM</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">1920×1080 a 2K</span>
+                    <span className="text-[10px] text-slate-400 block">Sub-galería de detalle</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
@@ -2508,6 +2555,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   const cardThumbnail = (proj.image && proj.image.trim() !== '')
                     ? proj.image
                     : (media.thumbnailUrl || getCategoryFallbackImage(proj.category));
+                  const isCover = getMediaPreviewFit({
+                    url: cardThumbnail,
+                    hasVideo: media.hasVideo,
+                    explicitFit: proj.previewFit,
+                    title: proj.title,
+                  }) === 'cover';
 
                   return (
                     <div
@@ -2516,11 +2569,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     >
                       <div>
                         {/* Image Preview with Quick Thumbnail Changer */}
-                        <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3 group/thumb">
+                        <div className={`relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 mb-3 group/thumb flex items-center justify-center ${
+                          isCover ? 'p-0' : 'p-2'
+                        }`}>
+                          {/* Fit Mode Badge */}
+                          <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[9px] font-mono font-bold tracking-wider text-gray-300 border border-white/10 shadow">
+                            {isCover ? '🖼️ LLENO' : '🔍 SILUETA'}
+                          </div>
+
                           <img
                             src={cardThumbnail}
                             alt={proj.title}
-                            className="w-full h-full object-contain p-2"
+                            className={`w-full h-full transition-transform duration-500 ease-out group-hover/thumb:scale-105 ${
+                              isCover ? 'object-cover' : 'object-contain'
+                            }`}
                             onError={(e) => {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="%23050B05"><rect width="400" height="300" fill="%23091209"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2376FF03" font-family="monospace" font-size="14" letter-spacing="1">PREVIEW</text></svg>';

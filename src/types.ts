@@ -24,6 +24,7 @@ export interface Project {
   modelType?: 'car' | 'hand' | 'poly' | 'cube';
   featured?: boolean;
   visibleInCatalog?: boolean; // Controla si se visualiza en el Catálogo de Proyectos (por defecto true)
+  previewFit?: 'cover' | 'contain' | 'auto'; // Ajuste de miniatura en catálogo: 'cover' (lleno sin bordes) o 'contain' (silueta sin fondo)
   bentoSpan?: string; // Tailwind grid span classes
   deliverables?: string[];
   metrics?: { label: string; value: string }[];
@@ -39,6 +40,7 @@ export interface DisciplineSlide {
   description?: string;
   visible: boolean;
   videoUrl?: string;
+  previewFit?: 'cover' | 'contain' | 'auto'; // Ajuste del slide: 'cover' (lleno sin bordes) o 'contain' (silueta sin fondo)
 }
 
 export interface Discipline {

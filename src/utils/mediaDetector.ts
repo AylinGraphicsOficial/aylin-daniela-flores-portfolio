@@ -331,3 +331,86 @@ export function getProjectMediaCollection(project: {
     totalMediaCount: items.length,
   };
 }
+
+/**
+ * Detecta si una imagen es una silueta o render aislado sin fondo (canal alfa transparente).
+ * Casos emblemáticos del portafolio:
+ * - Stand Diana (Stand_Diana-principal_300x.webp / orbit-stand-diana)
+ * - Los Rebusca (imagen_naipes_300x.webp / cartas de baraja)
+ * - Renders de productos aislados o logos vectoriales sobre fondo transparente.
+ */
+export function isCutoutMedia(url?: string, title?: string): boolean {
+  if (!url) return false;
+  const cleanUrl = url.toLowerCase().trim();
+  const cleanTitle = (title || '').toLowerCase().trim();
+
+  // Los videos, clips y JPEGs por definición técnica tienen fondo opaco completo
+  if (
+    cleanUrl.endsWith('.jpg') ||
+    cleanUrl.endsWith('.jpeg') ||
+    cleanUrl.includes('.jpg?') ||
+    cleanUrl.includes('.jpeg?') ||
+    cleanUrl.endsWith('.mp4') ||
+    cleanUrl.endsWith('.webm') ||
+    cleanUrl.endsWith('.mov') ||
+    cleanUrl.includes('youtube.com') ||
+    cleanUrl.includes('youtu.be') ||
+    cleanUrl.includes('vimeo.com')
+  ) {
+    return false;
+  }
+
+  // Patrones claros de imágenes sin fondo / siluetas transparentes
+  const cutoutPatterns = [
+    'stand_diana',
+    'stand diana',
+    'orbit-stand',
+    'los-rebusca',
+    'los rebusca',
+    'naipes',
+    'naipe',
+    'holy-nation',
+    'cutout',
+    'isolated',
+    'transparen',
+    'sin-fondo',
+    'sin_fondo',
+    'nofondo',
+    'alpha',
+    'silueta',
+  ];
+
+  return cutoutPatterns.some((pattern) => cleanUrl.includes(pattern) || cleanTitle.includes(pattern));
+}
+
+export interface MediaPreviewFitOptions {
+  url?: string;
+  hasVideo?: boolean;
+  explicitFit?: 'cover' | 'contain' | 'auto';
+  title?: string;
+}
+
+/**
+ * Determina el modo de ajuste estético para previsualización ('cover' o 'contain').
+ * - 'cover': Ocupa el 100% del área del contenedor sin bordes ni franjas negras (p-0 + object-cover).
+ * - 'contain': Mantiene la silueta centrada y protegida con padding (p-3/p-4 + object-contain).
+ */
+export function getMediaPreviewFit(options: MediaPreviewFitOptions): 'cover' | 'contain' {
+  const { url, hasVideo, explicitFit, title } = options;
+
+  if (explicitFit === 'cover') return 'cover';
+  if (explicitFit === 'contain') return 'contain';
+
+  // Si tiene video (YouTube, MP4 o reel), siempre debe llenar el contenedor completo
+  if (hasVideo) return 'cover';
+
+  if (!url) return 'cover';
+
+  // Si es detectado como silueta o render aislado sin fondo
+  if (isCutoutMedia(url, title)) {
+    return 'contain';
+  }
+
+  // Por defecto, imágenes con fondo completo, fotografías, renders con escena y banners ocupan el 100%
+  return 'cover';
+}

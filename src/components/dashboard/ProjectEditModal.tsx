@@ -86,6 +86,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
       setFormData({
         ...project,
         visibleInCatalog: project.visibleInCatalog !== false,
+        previewFit: project.previewFit || 'auto',
         sliderImage: project.sliderImage || '',
         sliderTitle: project.sliderTitle || '',
         sliderOrder: project.sliderOrder ?? 1,
@@ -123,6 +124,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         tags: ['3D Modeling', 'Blender', 'Octane'],
         featured: false,
         visibleInCatalog: true,
+        previewFit: 'auto',
         sliderImage: '',
         sliderTitle: '',
         sliderOrder: 1,
@@ -443,17 +445,50 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
           </div>
         )}
 
-        {/* Suggestion Banner */}
-        <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-start gap-3">
-          <HelpCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <span className="font-bold text-emerald-300 block">
-              💡 Formatos & Galería de Detalle:
+        {/* Guía de Medidas Sugeridas en Píxeles (Highlight visual de dimensiones recomendadas) */}
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-[#76FF03]/30 shadow-[0_4px_20px_rgba(118,255,3,0.06)] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#76FF03] animate-pulse shrink-0" />
+              <span className="font-bold text-sm text-white font-mono uppercase tracking-wide">
+                📐 Guía de Medidas Sugeridas en Píxeles para tus Diseños
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-[#76FF03] bg-[#76FF03]/10 px-2.5 py-0.5 rounded-full border border-[#76FF03]/30 font-bold self-start sm:self-auto">
+              PROPORCIONES RECOMENDADAS
             </span>
-            <p className={textMuted}>
-              • <strong>Vistas de Detalle:</strong> Las imágenes agregadas abajo aparecerán en la sección <em>"VISTAS DE DETALLE & RENDER"</em> del estudio de caso.
-              <br />• <strong>Soporte Completo:</strong> Sube imágenes WebP/PNG, clips MP4/WebM y GIFs directamente al servidor.
-            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-1">
+            <div className="p-2.5 rounded-xl bg-black/50 border border-emerald-500/30">
+              <span className="text-[10px] font-mono text-emerald-400 block font-bold">🖼️ MIN DISCO / CATÁLOGO</span>
+              <span className="text-xs font-bold text-white block mt-0.5">1280 × 800 px</span>
+              <span className="text-[10px] text-slate-400 block">Proporción 16:10</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-black/50 border border-yellow-500/30">
+              <span className="text-[10px] font-mono text-yellow-400 block font-bold">⭐ BANNER SLIDER HERO</span>
+              <span className="text-xs font-bold text-white block mt-0.5">1920 × 1080 px</span>
+              <span className="text-[10px] text-slate-400 block">16:9 o 2560×1080 (21:9)</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-black/50 border border-cyan-500/30">
+              <span className="text-[10px] font-mono text-cyan-400 block font-bold">🏷️ LOGO REPRESENTATIVO</span>
+              <span className="text-xs font-bold text-white block mt-0.5">500 × 500 px</span>
+              <span className="text-[10px] text-slate-400 block">PNG Transparente / SVG</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-black/50 border border-sky-500/30">
+              <span className="text-[10px] font-mono text-sky-400 block font-bold">🎬 VIDEO / REELS</span>
+              <span className="text-xs font-bold text-white block mt-0.5">1080p (FHD)</span>
+              <span className="text-[10px] text-slate-400 block">1920×1080 o 1080×1920</span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-black/50 border border-fuchsia-500/30 col-span-2 sm:col-span-1">
+              <span className="text-[10px] font-mono text-fuchsia-400 block font-bold">🔍 RENDERS ZOOM</span>
+              <span className="text-xs font-bold text-white block mt-0.5">1920×1080 a 2K</span>
+              <span className="text-[10px] text-slate-400 block">Alta nitidez en detalle</span>
+            </div>
           </div>
         </div>
 
@@ -722,11 +757,16 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
 
                 {/* Slider Custom Banner 16:9 */}
                 <div className="sm:col-span-12 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-medium text-slate-300 block">
-                      Banner Panorámico 16:9 para el Slider (Opcional - Si se deja vacío usa la imagen principal)
-                    </label>
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold cursor-pointer transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-medium text-slate-300 block">
+                        Banner Panorámico 16:9 para el Slider (Opcional - Si se deja vacío usa la imagen principal)
+                      </label>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-300 border border-yellow-500/30 font-bold">
+                        📏 1920 × 1080 px (16:9) / 2560 × 1080 px (21:9)
+                      </span>
+                    </div>
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold cursor-pointer transition-colors self-start sm:self-auto">
                       {isUploadingSliderImage ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
                       ) : (
@@ -770,9 +810,14 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
           <div className="p-4 sm:p-5 rounded-2xl bg-black/25 border border-slate-700/70 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/50">
               <div>
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 block">
-                  Logotipo o Imagen Representativa (A la par del Título)
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 block">
+                    Logotipo o Imagen Representativa (A la par del Título)
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-bold">
+                    📏 500 × 500 px (1:1) o 600 × 250 px (PNG Transparente)
+                  </span>
+                </div>
                 <span className="text-[11px] text-slate-400 block mt-0.5">
                   Aparece junto al título principal en la página del proyecto y en el estudio de caso (PNG transparente, SVG o WebP recomendado).
                 </span>
@@ -895,22 +940,27 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
             const isVideo = formData.disciplineId === 'edicion-video' || formData.category === 'MOTION';
             return (
               <div className={`p-4 rounded-xl border ${isVideo ? 'border-cyan-500/40 bg-cyan-950/20' : 'border-slate-700/60 bg-slate-900/40'} space-y-4`}>
-                <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <ImageIcon className={`w-4 h-4 ${isVideo ? 'text-cyan-400' : 'text-emerald-400'}`} />
-                    <span>
-                      {isVideo
-                        ? 'Miniatura Representativa del Video (Poster / Carátula) *'
-                        : 'Imagen Principal / Render Hero *'}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-700/50">
+                  <label className="text-xs font-medium text-slate-300 flex items-center justify-between flex-1">
+                    <span className="flex items-center gap-2">
+                      <ImageIcon className={`w-4 h-4 ${isVideo ? 'text-cyan-400' : 'text-emerald-400'}`} />
+                      <span className="font-bold">
+                        {isVideo
+                          ? 'Miniatura Representativa del Video (Poster / Carátula) *'
+                          : 'Imagen Principal / Render Hero (Miniatura de Catálogo) *'}
+                      </span>
                     </span>
+                    {isUploadingImage && (
+                      <span className={`${isVideo ? 'text-cyan-400' : 'text-emerald-400'} text-xs flex items-center gap-1`}>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Subiendo a Hostinger...</span>
+                      </span>
+                    )}
+                  </label>
+                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold self-start sm:self-auto">
+                    📏 Medida Sugerida: 1280 × 800 px (16:10) o 1280 × 720 px (16:9)
                   </span>
-                  {isUploadingImage && (
-                    <span className={`${isVideo ? 'text-cyan-400' : 'text-emerald-400'} text-xs flex items-center gap-1`}>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Subiendo a Hostinger...</span>
-                    </span>
-                  )}
-                </label>
+                </div>
 
                 {isVideo && (
                   <p className="text-[11px] text-slate-400">
@@ -1039,6 +1089,62 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* Selector de Ajuste Estético en Catálogo (Lleno vs Silueta) */}
+                <div className="pt-3 border-t border-slate-700/50 space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label className="text-xs font-mono font-bold text-slate-200 flex items-center gap-1.5 uppercase">
+                      <span>Ajuste en Tarjetas de Catálogo:</span>
+                    </label>
+                    <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                      {formData.previewFit === 'cover'
+                        ? '🖼️ Llenar Recuadro Completo (Sin bordes)'
+                        : formData.previewFit === 'contain'
+                        ? '🔍 Silueta Centrada (Sin fondo)'
+                        : '✨ Detección Automática Inteligente'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, previewFit: 'cover' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        formData.previewFit === 'cover'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 font-bold shadow-sm'
+                          : 'bg-slate-800/80 text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>🖼️ Llenar Recuadro (Cover)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, previewFit: 'contain' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        formData.previewFit === 'contain'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 font-bold shadow-sm'
+                          : 'bg-slate-800/80 text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>🔍 Silueta Centrada (Contain)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, previewFit: 'auto' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        !formData.previewFit || formData.previewFit === 'auto'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 font-bold shadow-sm'
+                          : 'bg-slate-800/80 text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>✨ Auto (Inteligente)</span>
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    • <strong>Llenar Recuadro:</strong> Fotos, videos y renders con fondo ocupan el 100% sin dejar bordes ni franjas negras.<br />
+                    • <strong>Silueta Centrada:</strong> Protege stands 3D o naipes sin fondo para que no se corten los bordes.
+                  </p>
+                </div>
               </div>
             );
           })()}
@@ -1076,13 +1182,18 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
               <div className="p-4 rounded-xl border border-emerald-500/30 bg-slate-900/50 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <label className="text-xs font-bold text-emerald-400 flex items-center gap-2">
-                      <Layers className="w-4 h-4" />
-                      <span>Vistas de Detalle & Renders (Sub-Galería del Proyecto)</span>
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        {galleryCount} {galleryCount === 1 ? 'render' : 'renders'}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="text-xs font-bold text-emerald-400 flex items-center gap-2">
+                        <Layers className="w-4 h-4" />
+                        <span>Vistas de Detalle & Renders (Sub-Galería del Proyecto)</span>
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          {galleryCount} {galleryCount === 1 ? 'render' : 'renders'}
+                        </span>
+                      </label>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30 font-bold">
+                        📏 1920 × 1080 px hasta 2K (2560 × 1440 px) para Zoom HD
                       </span>
-                    </label>
+                    </div>
                     <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
                       Sube renders adicionales de detalle sin límites para visualización con zoom en el portafolio.
                     </p>

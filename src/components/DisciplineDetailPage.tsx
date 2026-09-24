@@ -19,7 +19,7 @@ import {
   subscribeToPortfolioChanges,
 } from '../utils/portfolioStorage';
 import { playClickSound, playHoverSound } from '../utils/audio';
-import { getProjectMediaCollection } from '../utils/mediaDetector';
+import { getProjectMediaCollection, getMediaPreviewFit } from '../utils/mediaDetector';
 
 interface DisciplineDetailPageProps {
   discipline: Discipline;
@@ -189,18 +189,34 @@ export const DisciplineDetailPage: React.FC<DisciplineDetailPageProps> = ({
             </div>
           </div>
 
-          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-[#081208] border border-white/15 shadow-2xl">
-            <img
-              src={visibleSlides[activeSlideIndex]?.image}
-              alt={visibleSlides[activeSlideIndex]?.title || 'Discipline Visual'}
-              className="w-full h-full object-contain p-4 transition-all duration-700"
-            />
-            {visibleSlides[activeSlideIndex]?.title && (
-              <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/15 text-xs font-mono text-white font-bold">
-                {visibleSlides[activeSlideIndex]?.title}
+          {(() => {
+            const currentSlide = visibleSlides[activeSlideIndex];
+            const isCover = getMediaPreviewFit({
+              url: currentSlide?.image,
+              hasVideo: Boolean(currentSlide?.videoUrl),
+              explicitFit: currentSlide?.previewFit,
+              title: currentSlide?.title || discipline.titleEs,
+            }) === 'cover';
+
+            return (
+              <div className={`relative aspect-[16/9] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-[#081208] border border-white/15 shadow-2xl flex items-center justify-center ${
+                isCover ? 'p-0' : 'p-4'
+              }`}>
+                <img
+                  src={currentSlide?.image}
+                  alt={currentSlide?.title || 'Discipline Visual'}
+                  className={`w-full h-full transition-all duration-700 ${
+                    isCover ? 'object-cover' : 'object-contain filter drop-shadow-2xl'
+                  }`}
+                />
+                {currentSlide?.title && (
+                  <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/15 text-xs font-mono text-white font-bold">
+                    {currentSlide.title}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
         </section>
       )}
 
@@ -251,25 +267,37 @@ export const DisciplineDetailPage: React.FC<DisciplineDetailPageProps> = ({
         ) : (
           /* Cards Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {assignedProjects.map((project) => (
-              <div
-                key={project.id}
-                onClick={() => {
-                  playClickSound();
-                  onSelectProject(project);
-                }}
-                onMouseEnter={playHoverSound}
-                className="group relative rounded-2xl overflow-hidden bg-[#0a140a] border border-white/10 hover:border-[#76FF03] shadow-lg hover:shadow-[0_15px_40px_rgba(118,255,3,0.2)] transition-all duration-500 cursor-pointer flex flex-col justify-between"
-              >
-                {/* Artwork Thumbnail Presentation */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#050B05] flex items-center justify-center p-4 border-b border-white/10">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
-                  />
+            {assignedProjects.map((project) => {
+              const isCover = getMediaPreviewFit({
+                url: project.image,
+                hasVideo: Boolean(project.videoUrl || project.videoClip),
+                explicitFit: project.previewFit,
+                title: project.title,
+              }) === 'cover';
+
+              return (
+                <div
+                  key={project.id}
+                  onClick={() => {
+                    playClickSound();
+                    onSelectProject(project);
+                  }}
+                  onMouseEnter={playHoverSound}
+                  className="group relative rounded-2xl overflow-hidden bg-[#0a140a] border border-white/10 hover:border-[#76FF03] shadow-lg hover:shadow-[0_15px_40px_rgba(118,255,3,0.2)] transition-all duration-500 cursor-pointer flex flex-col justify-between"
+                >
+                  {/* Artwork Thumbnail Presentation */}
+                  <div className={`relative aspect-[16/10] w-full overflow-hidden bg-[#050B05] flex items-center justify-center border-b border-white/10 ${
+                    isCover ? 'p-0' : 'p-4'
+                  }`}>
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      loading="lazy"
+                      decoding="async"
+                      className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 ${
+                        isCover ? 'object-cover' : 'object-contain filter drop-shadow-xl'
+                      }`}
+                    />
                   {/* Category Pill Tag Overlay */}
                   <div className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/15 text-[10px] font-mono font-bold uppercase text-[#76FF03]">
                     {project.category}
@@ -336,8 +364,9 @@ export const DisciplineDetailPage: React.FC<DisciplineDetailPageProps> = ({
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
         )}
       </section>
     </div>
