@@ -55,7 +55,15 @@ export function playClickSound() {
   }
 }
 
+let lastHoverTimestamp = 0;
+
 export function playHoverSound() {
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  if (now - lastHoverTimestamp < 120) {
+    return; // Throttle to prevent Web Audio node flood and main thread stutters
+  }
+  lastHoverTimestamp = now;
+
   const ctx = getAudioContext();
   if (!ctx) return;
 

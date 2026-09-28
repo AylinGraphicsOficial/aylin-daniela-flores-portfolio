@@ -126,8 +126,8 @@ const DisciplineSliderCard: React.FC<{
 
               e.currentTarget.src = fallback;
             }}
-            className={`w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.02] ${
-              isCoverSlide ? 'object-cover' : 'object-contain filter drop-shadow-2xl'
+            className={`w-full h-full transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) transform-gpu will-change-transform group-hover:scale-[1.03] [backface-visibility:hidden] ${
+              isCoverSlide ? 'object-cover' : 'object-contain'
             }`}
           />
 
@@ -328,10 +328,11 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                   onSelectProject(project);
                 }}
                 onMouseEnter={playHoverSound}
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '300px 240px' }}
                 className="group cursor-pointer flex flex-col"
               >
                 {/* Refined Image Card (Full cover with p-0 for background images/videos, padded contain for cutouts) */}
-                <div className={`relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.9)] transition-all duration-500 flex items-center justify-center ${
+                <div className={`relative aspect-[16/10] w-full rounded-[8px] overflow-hidden bg-[#081208] shadow-[0_8px_24px_rgba(0,0,0,0.6)] group-hover:shadow-[0_14px_36px_rgba(0,0,0,0.95)] transition-[transform,box-shadow] duration-300 ease-out transform-gpu group-hover:-translate-y-1 flex items-center justify-center ${
                   isCover ? 'p-0' : 'p-3 sm:p-3.5'
                 }`}>
                   {/* Media Type Badges */}
@@ -373,8 +374,8 @@ export const WorksBentoGrid: React.FC<WorksBentoGridProps> = ({
                       const fallback = getCategoryFallbackImage(project.category);
                       e.currentTarget.src = fallback;
                     }}
-                    className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 ${
-                      isCover ? 'object-cover' : 'object-contain filter drop-shadow-xl'
+                    className={`w-full h-full transition-transform duration-300 cubic-bezier(0.16, 1, 0.3, 1) transform-gpu will-change-transform group-hover:scale-[1.04] [backface-visibility:hidden] ${
+                      isCover ? 'object-cover' : 'object-contain'
                     }`}
                   />
                 </div>

@@ -283,7 +283,7 @@ export const DisciplineDetailPage: React.FC<DisciplineDetailPageProps> = ({
                     onSelectProject(project);
                   }}
                   onMouseEnter={playHoverSound}
-                  className="group relative rounded-2xl overflow-hidden bg-[#0a140a] border border-white/10 hover:border-[#76FF03] shadow-lg hover:shadow-[0_15px_40px_rgba(118,255,3,0.2)] transition-all duration-500 cursor-pointer flex flex-col justify-between"
+                  className="group relative rounded-2xl overflow-hidden bg-[#0a140a] border border-white/10 hover:border-[#76FF03] shadow-lg hover:shadow-[0_15px_40px_rgba(118,255,3,0.2)] transition-[transform,box-shadow,border-color] duration-300 ease-out transform-gpu hover:-translate-y-1 cursor-pointer flex flex-col justify-between"
                 >
                   {/* Artwork Thumbnail Presentation */}
                   <div className={`relative aspect-[16/10] w-full overflow-hidden bg-[#050B05] flex items-center justify-center border-b border-white/10 ${
@@ -294,8 +294,8 @@ export const DisciplineDetailPage: React.FC<DisciplineDetailPageProps> = ({
                       alt={project.title}
                       loading="lazy"
                       decoding="async"
-                      className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 ${
-                        isCover ? 'object-cover' : 'object-contain filter drop-shadow-xl'
+                      className={`w-full h-full transition-transform duration-300 cubic-bezier(0.16, 1, 0.3, 1) transform-gpu will-change-transform group-hover:scale-[1.04] [backface-visibility:hidden] ${
+                        isCover ? 'object-cover' : 'object-contain'
                       }`}
                     />
                   {/* Category Pill Tag Overlay */}

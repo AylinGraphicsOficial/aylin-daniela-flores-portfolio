@@ -142,6 +142,11 @@ if ($method === 'POST') {
                 'error'   => 'El archivo no es una imagen válida o está dañado.'
             ], 400);
         }
+        // Auto-optimización preventiva de imágenes sobredimensionadas (>1920px o >1.2MB)
+        if (in_array($ext, ['webp', 'png', 'jpg', 'jpeg'], true)) {
+            optimizeUploadedRasterImage($destination, $ext);
+            $fileSize = filesize($destination);
+        }
     }
 
     // Copia espejo en el resto de directorios (servido estático directo)
@@ -203,3 +208,69 @@ if ($method === 'POST') {
 }
 
 sendJsonResponse(['success' => false, 'error' => 'Método no permitido'], 405);
+
+/**
+ * Auto-optimiza imágenes sobredimensionadas para evitar descargas lentas y sobrecarga de GPU.
+ * Reduce imágenes de más de 1920px a un ancho máximo de 1920px con compresión balanceada.
+ */
+function optimizeUploadedRasterImage($filePath, $ext) {
+    if (!extension_loaded('gd') || !file_exists($filePath)) {
+        return;
+    }
+    $info = @getimagesize($filePath);
+    if (!$info) {
+        return;
+    }
+    $origWidth = $info[0];
+    $origHeight = $info[1];
+    $maxDim = 1920;
+    $fileSizeBytes = @filesize($filePath);
+
+    // Solo optimizar si excede 1920px en alguna dimensión o pesa más de 1.2MB
+    if ($origWidth <= $maxDim && $origHeight <= $maxDim && $fileSizeBytes < 1258291) {
+        return;
+    }
+
+    $ratio = min($maxDim / $origWidth, $maxDim / $origHeight, 1.0);
+    $newWidth = (int)max(1, round($origWidth * $ratio));
+    $newHeight = (int)max(1, round($origHeight * $ratio));
+
+    $srcImg = null;
+    if (($ext === 'jpg' || $ext === 'jpeg') && function_exists('imagecreatefromjpeg')) {
+        $srcImg = @imagecreatefromjpeg($filePath);
+    } elseif ($ext === 'png' && function_exists('imagecreatefrompng')) {
+        $srcImg = @imagecreatefrompng($filePath);
+    } elseif ($ext === 'webp' && function_exists('imagecreatefromwebp')) {
+        $srcImg = @imagecreatefromwebp($filePath);
+    }
+
+    if (!$srcImg) {
+        return;
+    }
+
+    $dstImg = imagecreatetruecolor($newWidth, $newHeight);
+    if (!$dstImg) {
+        imagedestroy($srcImg);
+        return;
+    }
+
+    if ($ext === 'png' || $ext === 'webp') {
+        imagealphablending($dstImg, false);
+        imagesavealpha($dstImg, true);
+        $transparent = imagecolorallocatealpha($dstImg, 0, 0, 0, 127);
+        imagefilledrectangle($dstImg, 0, 0, $newWidth, $newHeight, $transparent);
+    }
+
+    imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+    if (($ext === 'jpg' || $ext === 'jpeg') && function_exists('imagejpeg')) {
+        @imagejpeg($dstImg, $filePath, 84);
+    } elseif ($ext === 'png' && function_exists('imagepng')) {
+        @imagepng($dstImg, $filePath, 8);
+    } elseif ($ext === 'webp' && function_exists('imagewebp')) {
+        @imagewebp($dstImg, $filePath, 84);
+    }
+
+    imagedestroy($srcImg);
+    imagedestroy($dstImg);
+}
