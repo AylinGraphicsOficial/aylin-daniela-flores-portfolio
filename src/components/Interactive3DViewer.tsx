@@ -223,11 +223,32 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
     gridHelper.position.y = -1.65;
     scene.add(gridHelper);
 
-    // Animation Loop
+    // Visibility & Viewport Observers to pause Three.js loop when off-screen
+    let isVisible = true;
+    let isInViewport = true;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewport = entry.isIntersecting;
+      },
+      { threshold: 0.05 }
+    );
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    const handleVisibility = () => {
+      isVisible = !document.hidden;
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Animation Loop (Runs only when visible in viewport and tab active)
     const animate = () => {
       animationFrameIdRef.current = requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      if (isVisible && isInViewport) {
+        controls.update();
+        renderer.render(scene, camera);
+      }
     };
     animate();
 
@@ -244,6 +265,8 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({ lang }
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      observer.disconnect();
       if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
       clearModelGroup();
       renderer.dispose();

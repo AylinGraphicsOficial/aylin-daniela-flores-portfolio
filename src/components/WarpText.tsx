@@ -176,7 +176,7 @@ const buildTextCanvas = ({
     pointerEvents: 'none',
     whiteSpace: 'pre',
     inset: '0 auto auto 0',
-    fontFamily: props.fontFamily || 'Montserrat, sans-serif',
+    fontFamily: props.fontFamily || "'Special Gothic', sans-serif",
     fontSize: getFontValue(props.fontSize),
     fontWeight: String(props.fontWeight || '700'),
     letterSpacing: getFontValue(props.letterSpacing),
@@ -185,7 +185,7 @@ const buildTextCanvas = ({
   container.appendChild(probe);
   const computed = window.getComputedStyle(probe);
   let fontSizePx = parseFloat(computed.fontSize) || 48;
-  const fontFamily = computed.fontFamily || 'Montserrat, sans-serif';
+  const fontFamily = computed.fontFamily || "'Special Gothic', sans-serif";
   const fontWeight = computed.fontWeight || String(props.fontWeight || '700');
   let letterSpacing = computed.letterSpacing === 'normal' ? 0 : parseFloat(computed.letterSpacing) || 0;
   let lineHeight = parseFloat(computed.lineHeight);
@@ -250,7 +250,7 @@ export const WarpText: React.FC<WarpTextProps> = ({
   ripple = true,
   fontSize = 'clamp(1.8rem, 4.5vw, 3.5rem)',
   fontWeight = 700,
-  fontFamily = 'Montserrat, sans-serif',
+  fontFamily = "'Special Gothic', sans-serif",
   letterSpacing = '0.12em',
   lineHeight = 1,
   className = '',

@@ -82,6 +82,7 @@ export const DiplomadosSection: React.FC<DiplomadosSectionProps> = ({ lang }) =>
                   alt={item.title}
                   className="h-[180px] md:h-[210px] w-auto max-w-[320px] md:max-w-[400px] object-contain rounded-xl block pointer-events-none"
                   loading="lazy"
+                  decoding="async"
                   draggable={false}
                   onError={() => setFailedImages((prev) => ({ ...prev, [item.id]: true }))}
                 />

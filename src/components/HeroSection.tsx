@@ -81,6 +81,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               alt="Mano Izquierda 3D - Arte Kinetic"
               width={840}
               height={1376}
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-full object-contain [filter:drop-shadow(0_18px_30px_rgba(0,0,0,0.85))_drop-shadow(0_0_12px_rgba(118,255,3,0.15))]"
             />
           </div>
@@ -98,6 +100,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               alt="Aylin Flores - Isotipo 3D"
               width={2519}
               height={2743}
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-full object-contain [filter:drop-shadow(0_0_22px_rgba(118,255,3,0.5))] group-hover:[filter:drop-shadow(0_0_38px_rgba(118,255,3,0.8))] group-hover:scale-108 transition-all duration-500"
             />
           </div>
@@ -115,6 +119,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               alt="Mano Derecha 3D - Arte Kinetic"
               width={840}
               height={1376}
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-full object-contain [filter:drop-shadow(0_18px_30px_rgba(0,0,0,0.85))_drop-shadow(0_0_12px_rgba(118,255,3,0.15))]"
             />
           </div>
@@ -126,7 +132,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <WarpText
               text={t.contact.title}
               color="#ffffff"
-              fontFamily="Montserrat, sans-serif"
+              fontFamily="'Special Gothic', sans-serif"
               fontWeight={800}
               fontSize="clamp(1.8rem, 4.8vw, 3.25rem)"
               letterSpacing="0.14em"

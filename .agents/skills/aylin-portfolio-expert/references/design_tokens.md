@@ -24,7 +24,7 @@ Este documento contiene los estándares y especificaciones de diseño para mante
 
 ## Principios UX/UI
 
-1. **Jerarquía Visual Inmersiva**: Cada sección debe contar con un titular fuerte, tipografía Montserrat y espaciado generoso.
+1. **Jerarquía Visual Inmersiva**: Cada sección debe contar con un titular fuerte, tipografía Special Gothic y espaciado generoso.
 2. **Microinteracciones Dinámicas**: Efectos hover con `kinetic-hover` en todas las cards y botones interactivos.
 3. **Accesibilidad**: Mantener contraste de texto con `#FFFFFF` y `#76FF03` sobre fondos oscuros `#050B05`.
 4. **Adaptabilidad Móvil**: Asegurar que en pantallas menores a 768px no existan desbordamientos horizontales (`overflow-x: hidden`), los modales se abran en pantalla completa fluida y las interacciones complejas tengan soporte touch.

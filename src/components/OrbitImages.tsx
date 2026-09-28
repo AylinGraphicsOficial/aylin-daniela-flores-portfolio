@@ -267,6 +267,8 @@ export const OrbitImages: React.FC<OrbitImagesProps> = ({
       key={src}
       src={src}
       alt={`${altPrefix} ${index + 1}`}
+      loading="lazy"
+      decoding="async"
       draggable={false}
       className="orbit-image"
     />

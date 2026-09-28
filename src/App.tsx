@@ -16,19 +16,29 @@ import { AboutSection } from './components/AboutSection';
 import { DiplomadosSection } from './components/DiplomadosSection';
 import { BrandsSection } from './components/BrandsSection';
 import { ContactSection } from './components/ContactSection';
-import { ProjectDetailPage } from './components/ProjectDetailPage';
-import { DisciplineDetailPage } from './components/DisciplineDetailPage';
-import { ProjectContactPage } from './components/ProjectContactPage';
 import { Footer } from './components/Footer';
-import { AdminLoginPage } from './components/dashboard/AdminLoginPage';
-import { AdminDashboardPage } from './components/dashboard/AdminDashboardPage';
 import {
   getStoredProjects,
   getStoredDisciplines,
   subscribeToPortfolioChanges,
 } from './utils/portfolioStorage';
 
-// Lazy-loaded: only fetched when scrolled into view or opened on demand
+// Lazy-loaded routes & modal components for performance and code-splitting
+const ProjectDetailPage = lazy(() =>
+  import('./components/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage }))
+);
+const DisciplineDetailPage = lazy(() =>
+  import('./components/DisciplineDetailPage').then((m) => ({ default: m.DisciplineDetailPage }))
+);
+const ProjectContactPage = lazy(() =>
+  import('./components/ProjectContactPage').then((m) => ({ default: m.ProjectContactPage }))
+);
+const AdminLoginPage = lazy(() =>
+  import('./components/dashboard/AdminLoginPage').then((m) => ({ default: m.AdminLoginPage }))
+);
+const AdminDashboardPage = lazy(() =>
+  import('./components/dashboard/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage }))
+);
 const Interactive3DViewer = lazy(() =>
   import('./components/Interactive3DViewer').then((m) => ({ default: m.Interactive3DViewer }))
 );
@@ -260,19 +270,24 @@ export default function App() {
 
   // ==================== DEDICATED SECRET ADMIN PAGE ====================
   if (currentView === 'admin') {
-    if (!isAdminLoggedIn) {
-      return (
-        <AdminLoginPage
-          onLoginSuccess={() => setIsAdminLoggedIn(true)}
-          onNavigateHome={navigateHome}
-        />
-      );
-    }
     return (
-      <AdminDashboardPage
-        onNavigateHome={navigateHome}
-        onLogout={handleAdminLogout}
-      />
+      <Suspense fallback={
+        <div className="min-h-screen bg-[#050B05] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-[#76FF03] border-t-transparent animate-spin" />
+        </div>
+      }>
+        {!isAdminLoggedIn ? (
+          <AdminLoginPage
+            onLoginSuccess={() => setIsAdminLoggedIn(true)}
+            onNavigateHome={navigateHome}
+          />
+        ) : (
+          <AdminDashboardPage
+            onNavigateHome={navigateHome}
+            onLogout={handleAdminLogout}
+          />
+        )}
+      </Suspense>
     );
   }
 
@@ -311,80 +326,85 @@ export default function App() {
       />
 
       {/* Main Content Layout with Smooth Transitions */}
-      {currentView === 'contact' ? (
-        <main className="relative z-10">
-          <ProjectContactPage
-            lang={lang}
-            onLanguageToggle={toggleLanguage}
-            onNavigateHome={navigateHome}
-          />
-        </main>
-      ) : currentView === 'project-detail' && activeProject ? (
-        <main className="relative z-10">
-          <ProjectDetailPage
-            project={activeProject}
-            lang={lang}
-            onBackToPortfolio={activeDiscipline ? () => openDisciplineDetail(activeDiscipline) : navigateHome}
-            onSelectProject={openProjectDetail}
-            onOpenProjectPlanner={navigateToContact}
-          />
-        </main>
-      ) : currentView === 'discipline-detail' && activeDiscipline ? (
-        <main className="relative z-10">
-          <DisciplineDetailPage
-            discipline={activeDiscipline}
-            lang={lang}
-            onBackToPortfolio={navigateHome}
-            onSelectProject={openProjectDetail}
-            onOpenProjectPlanner={navigateToContact}
-          />
-        </main>
-      ) : (
-        <main className="relative z-10 flex flex-col space-y-4">
-          <div className="scroll-reveal is-visible">
-            <HeroSection
+      <Suspense fallback={
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-[#76FF03] border-t-transparent animate-spin" />
+        </div>
+      }>
+        {currentView === 'contact' ? (
+          <main className="relative z-10">
+            <ProjectContactPage
               lang={lang}
-              onOpenCVModal={() => setIsCVModalOpen(true)}
-              onOpenProjectPlanner={navigateToContact}
-              onSelectProject={openProjectDetail}
+              onLanguageToggle={toggleLanguage}
+              onNavigateHome={navigateHome}
             />
-          </div>
-
-          <div className="scroll-reveal">
-            <WorksBentoGrid
+          </main>
+        ) : currentView === 'project-detail' && activeProject ? (
+          <main className="relative z-10">
+            <ProjectDetailPage
+              project={activeProject}
               lang={lang}
+              onBackToPortfolio={activeDiscipline ? () => openDisciplineDetail(activeDiscipline) : navigateHome}
               onSelectProject={openProjectDetail}
-              onSelectDiscipline={openDisciplineDetail}
-            />
-          </div>
-
-          <div className="scroll-reveal">
-            <Suspense fallback={null}>
-              <Interactive3DViewer lang={lang} />
-            </Suspense>
-          </div>
-
-
-          <div className="scroll-reveal">
-            <AboutSection lang={lang} />
-          </div>
-
-          <div className="scroll-reveal">
-            <DiplomadosSection lang={lang} />
-          </div>
-
-          <div className="scroll-reveal">
-            <BrandsSection lang={lang} />
-          </div>
-
-          <div className="scroll-reveal">
-            <ContactSection
-              lang={lang}
               onOpenProjectPlanner={navigateToContact}
             />
-          </div>
-        </main>
-      )}
+          </main>
+        ) : currentView === 'discipline-detail' && activeDiscipline ? (
+          <main className="relative z-10">
+            <DisciplineDetailPage
+              discipline={activeDiscipline}
+              lang={lang}
+              onBackToPortfolio={navigateHome}
+              onSelectProject={openProjectDetail}
+              onOpenProjectPlanner={navigateToContact}
+            />
+          </main>
+        ) : (
+          <main className="relative z-10 flex flex-col space-y-4">
+            <div className="scroll-reveal is-visible">
+              <HeroSection
+                lang={lang}
+                onOpenCVModal={() => setIsCVModalOpen(true)}
+                onOpenProjectPlanner={navigateToContact}
+                onSelectProject={openProjectDetail}
+              />
+            </div>
+
+            <div className="scroll-reveal">
+              <WorksBentoGrid
+                lang={lang}
+                onSelectProject={openProjectDetail}
+                onSelectDiscipline={openDisciplineDetail}
+              />
+            </div>
+
+            <div className="scroll-reveal">
+              <Suspense fallback={null}>
+                <Interactive3DViewer lang={lang} />
+              </Suspense>
+            </div>
+
+            <div className="scroll-reveal">
+              <AboutSection lang={lang} />
+            </div>
+
+            <div className="scroll-reveal">
+              <DiplomadosSection lang={lang} />
+            </div>
+
+            <div className="scroll-reveal">
+              <BrandsSection lang={lang} />
+            </div>
+
+            <div className="scroll-reveal">
+              <ContactSection
+                lang={lang}
+                onOpenProjectPlanner={navigateToContact}
+              />
+            </div>
+          </main>
+        )}
+      </Suspense>
 
       {/* Studio Kinetic Footer with Secret Admin Link */}
       <Footer onOpenAdminLogin={openAdminSecret} />

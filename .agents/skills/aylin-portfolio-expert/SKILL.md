@@ -20,7 +20,7 @@ Esta Skill define los procedimientos, arquitectura, estándares de calidad, cicl
      - `--kinetic-green: #38B000`
      - `--stark-white: #FFFFFF`
    - Microinteracciones de alto impacto: `.glass-panel`, `.kinetic-hover`, `.glow-lime`, `.glow-green`, `.glow-text`.
-   - Tipografía: Montserrat con jerarquías claras y contrastes accesibles.
+   - Tipografía: Special Gothic con jerarquías claras y contrastes accesibles.
    - Responsive Design impecable en Desktop, Tablet y Mobile (con fallbacks táctiles para cursores y controles 3D).
 
 3. **React 19, TypeScript, HTML5 & Tailwind Specialist**:
