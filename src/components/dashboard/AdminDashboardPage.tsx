@@ -51,6 +51,8 @@ import {
   Inbox,
   Clock,
   Send,
+  TrendingUp,
+  Activity,
 } from 'lucide-react';
 import { Project, Discipline, SocialLink, DiplomadoItem, ContactMessage, CommentItem } from '../../types';
 import {
@@ -102,6 +104,8 @@ import { ProjectEditModal } from './ProjectEditModal';
 import { LAB_MODEL_ICONS, getLabModelIcon } from '../../utils/labIcons';
 import { DisciplineSliderEditor } from './DisciplineSliderEditor';
 import { SocialIcon } from '../SocialIcon';
+import { AnalyticsDashboardTab } from './AnalyticsDashboardTab';
+import { SEODashboardTab } from './SEODashboardTab';
 
 interface AdminDashboardPageProps {
   onNavigateHome: () => void;
@@ -122,6 +126,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<
     | 'overview'
+    | 'analytics'
+    | 'seo'
     | 'inbox'
     | 'comments'
     | 'projects'
@@ -1076,6 +1082,43 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               <span className="flex-1 text-left truncate">Resumen General</span>
             </button>
 
+            {/* 1b. Métricas & Analíticas - Cyan */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('analytics');
+              }}
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
+                activeTab === 'analytics'
+                  ? 'bg-cyan-600 text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.45)] border-cyan-400/40'
+                  : 'text-cyan-400 hover:bg-cyan-500/10 border-transparent hover:border-cyan-500/30'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Métricas &amp; Actividad</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-400/20 text-cyan-300 font-bold">
+                EN VIVO
+              </span>
+            </button>
+
+            {/* 1c. SEO & Buscadores - Amber */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setActiveTab('seo');
+              }}
+              className={`w-full flex items-center justify-start gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer border ${
+                activeTab === 'seo'
+                  ? 'bg-amber-600 text-white font-bold shadow-[0_0_15px_rgba(217,119,6,0.45)] border-amber-400/40'
+                  : 'text-amber-400 hover:bg-amber-500/10 border-transparent hover:border-amber-500/30'
+              }`}
+            >
+              <Search className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">SEO &amp; Buscadores</span>
+            </button>
+
             {/* 2. Bandeja de Entrada - Neon Lime */}
             <button
               type="button"
@@ -1725,6 +1768,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               </div>
             </div>
           )}
+
+          {/* ================= TAB: MÉTRICAS & ANALÍTICAS ================= */}
+          {activeTab === 'analytics' && <AnalyticsDashboardTab />}
+
+          {/* ================= TAB: SEO & BUSCADORES ================= */}
+          {activeTab === 'seo' && <SEODashboardTab />}
 
           {/* ================= TAB: BANDEJA DE ENTRADA (CORREOS & MENSAJES) ================= */}
           {activeTab === 'inbox' && (

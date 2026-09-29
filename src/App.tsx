@@ -21,7 +21,10 @@ import {
   getStoredProjects,
   getStoredDisciplines,
   subscribeToPortfolioChanges,
+  getStoredSEO,
+  applySEOToDocument,
 } from './utils/portfolioStorage';
+import { trackPageVisit, trackEvent } from './utils/analyticsTracker';
 
 // Lazy-loaded routes & modal components for performance and code-splitting
 const ProjectDetailPage = lazy(() =>
@@ -104,6 +107,29 @@ export default function App() {
     return false;
   });
 
+  // Initialize SEO metadata from MySQL/storage and track page visit on load
+  useEffect(() => {
+    try {
+      applySEOToDocument(getStoredSEO());
+    } catch {}
+    trackPageVisit();
+
+    const handleGlobalClick = (e: MouseEvent) => {
+      try {
+        const target = (e.target as HTMLElement)?.closest('button, a, [data-track-click]');
+        if (!target) return;
+        const trackLabel = target.getAttribute('data-track-click') || target.getAttribute('aria-label') || target.textContent?.trim() || '';
+        if (trackLabel && trackLabel.length < 80 && !trackLabel.includes('{')) {
+          const isButton = target.tagName.toLowerCase() === 'button';
+          trackEvent(trackLabel, isButton ? 'button' : 'social', target.getAttribute('href') || '');
+        }
+      } catch {}
+    };
+
+    document.addEventListener('click', handleGlobalClick, { passive: true });
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, []);
+
   // Sync with browser URL hash and stored projects
   useEffect(() => {
     const handleHashChange = () => {
@@ -116,6 +142,7 @@ export default function App() {
       if (hash === '#contacto' || hash === '#contact' || hash === '#iniciar-proyecto' || hash === '#/contacto' || hash === '#/iniciar-proyecto') {
         setCurrentView('contact');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        trackEvent('Sección Contacto', 'button', hash);
         return;
       }
       if (hash.startsWith('#proyecto/') || hash.startsWith('#project/')) {
@@ -126,6 +153,7 @@ export default function App() {
           setActiveProject(found);
           setCurrentView('project-detail');
           window.scrollTo({ top: 0, behavior: 'smooth' });
+          trackEvent(`Ver Proyecto: ${found.title}`, 'project', id);
           return;
         }
       }
@@ -137,6 +165,7 @@ export default function App() {
           setActiveDiscipline(found);
           setCurrentView('discipline-detail');
           window.scrollTo({ top: 0, behavior: 'smooth' });
+          trackEvent(`Disciplina: ${found.titleEs}`, 'button', id);
           return;
         }
       }
@@ -165,12 +194,14 @@ export default function App() {
   }, [activeProject, activeDiscipline]);
 
   const navigateToContact = () => {
+    trackEvent('Botón Iniciar Proyecto / Contacto', 'button', '#contacto');
     window.location.hash = '#contacto';
     setCurrentView('contact');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const openProjectDetail = (project: Project) => {
+    trackEvent(`Clic Proyecto: ${project.title}`, 'project', project.id);
     setActiveProject(project);
     setCurrentView('project-detail');
     window.location.hash = `#proyecto/${project.id}`;
@@ -178,6 +209,7 @@ export default function App() {
   };
 
   const openDisciplineDetail = (discipline: Discipline) => {
+    trackEvent(`Clic Disciplina: ${discipline.titleEs}`, 'button', discipline.id);
     setActiveDiscipline(discipline);
     setCurrentView('discipline-detail');
     window.location.hash = `#disciplina/${discipline.id}`;

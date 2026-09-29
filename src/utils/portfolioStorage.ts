@@ -1,4 +1,4 @@
-import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink, ContactMessage, CommentItem } from '../types';
+import { Project, Discipline, DisciplineSlide, ExperienceItem, SocialLink, ContactMessage, CommentItem, SEOData } from '../types';
 import { projectsData, experienceData } from '../data/portfolioData';
 
 const PROJECTS_STORAGE_KEY = 'aylin_portfolio_projects_v4';
@@ -960,6 +960,68 @@ export const getStoredSocials = (): SocialLink[] => {
 
 export const saveStoredSocials = (data: SocialLink[]) => {
   return saveStoredSection('socials', data);
+};
+
+// ==================== SEO & SEARCH ENGINES DATA ====================
+
+export const initialSEOData: SEOData = {
+  metaTitle: 'Aylin Daniela Flores | Diseñadora Gráfica & Modeladora 3D',
+  metaDescription: 'Portafolio profesional de Aylin Daniela Flores en El Salvador. Especialista en branding, modelado 3D, visualización arquitectónica, animación y diseño publicitario.',
+  keywords: 'Aylin Daniela Flores, Diseñadora Gráfica El Salvador, Modelado 3D El Salvador, Branding Sonsonate, Blender 3D, Diseño de Identidad Visual, Render Arquitectónico, Publicidad Digital, Edición de Video, Portfolio Creativo',
+  canonicalUrl: 'https://aylinflores.com',
+  author: 'Aylin Daniela Flores',
+  robots: 'index, follow',
+  ogImage: '/logo.webp',
+  googleAnalyticsId: '',
+  googleSiteVerification: '',
+};
+
+export const getStoredSEO = (): SEOData => {
+  return getStoredSection<SEOData>('seo', initialSEOData);
+};
+
+export const saveStoredSEO = (data: SEOData) => {
+  const res = saveStoredSection('seo', data);
+  applySEOToDocument(data);
+  return res;
+};
+
+export const applySEOToDocument = (seo: SEOData) => {
+  if (typeof document === 'undefined') return;
+  if (seo.metaTitle) {
+    document.title = seo.metaTitle;
+  }
+  
+  const updateMeta = (name: string, content: string, isProperty = false) => {
+    if (!content) return;
+    const attr = isProperty ? 'property' : 'name';
+    let el = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(attr, name);
+      document.head.appendChild(el);
+    }
+    el.content = content;
+  };
+
+  updateMeta('description', seo.metaDescription);
+  updateMeta('keywords', seo.keywords);
+  updateMeta('author', seo.author);
+  updateMeta('robots', seo.robots);
+  updateMeta('og:title', seo.metaTitle, true);
+  updateMeta('og:description', seo.metaDescription, true);
+  updateMeta('twitter:title', seo.metaTitle);
+  updateMeta('twitter:description', seo.metaDescription);
+  
+  if (seo.canonicalUrl) {
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = seo.canonicalUrl;
+  }
 };
 
 // ==================== MESSAGES & INBOX DATA ====================

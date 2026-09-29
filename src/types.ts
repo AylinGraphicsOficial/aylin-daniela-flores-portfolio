@@ -155,3 +155,67 @@ export interface CommentItem {
   updatedAt?: string;
 }
 
+export interface SEOData {
+  metaTitle: string;
+  metaDescription: string;
+  keywords: string;
+  canonicalUrl: string;
+  author: string;
+  robots: string;
+  ogImage: string;
+  googleAnalyticsId?: string;
+  googleSiteVerification?: string;
+  updatedAt?: string;
+}
+
+export interface AnalyticsDayStats {
+  date: string;
+  visits: number;
+  uniqueVisitors: number;
+  clicks: number;
+}
+
+export interface AnalyticsCountryStats {
+  countryCode: string;
+  countryName: string;
+  visits: number;
+  percentage: number;
+}
+
+export interface AnalyticsClickStats {
+  eventName: string;
+  eventType: string;
+  count: number;
+}
+
+export interface AnalyticsActivityItem {
+  id: string;
+  type: 'visit' | 'click';
+  title: string;
+  detail: string;
+  countryCode: string;
+  countryName: string;
+  city?: string;
+  deviceType: string;
+  browser?: string;
+  createdAt: string;
+}
+
+export interface AnalyticsSummary {
+  totalVisits: number;
+  uniqueVisitors: number;
+  totalClicks: number;
+  visitsToday: number;
+  visitsThisWeek: number;
+  visitsThisMonth: number;
+  byDays: AnalyticsDayStats[];
+  byCountry: AnalyticsCountryStats[];
+  topClicks: AnalyticsClickStats[];
+  recentActivity: AnalyticsActivityItem[];
+  deviceBreakdown: {
+    desktop: number;
+    mobile: number;
+    tablet: number;
+  };
+}
+

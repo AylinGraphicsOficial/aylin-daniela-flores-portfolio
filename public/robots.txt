@@ -1,0 +1,17 @@
+# Robots.txt for https://aylinflores.com
+# Portafolio Profesional Aylin Daniela Flores - Diseñadora Gráfica & Modeladora 3D
+
+User-agent: *
+Allow: /
+Allow: /#proyectos
+Allow: /#3d-lab
+Allow: /#sobre-mi
+Allow: /#contacto
+
+# Evitar indexación de rutas privadas administrativas
+Disallow: /admin
+Disallow: /#/admin
+Disallow: /api/
+
+# Enlace al mapa del sitio para rastreadores de motores de búsqueda
+Sitemap: https://aylinflores.com/sitemap.xml

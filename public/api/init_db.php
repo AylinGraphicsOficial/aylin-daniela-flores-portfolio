@@ -163,6 +163,45 @@ try {
         $pdo->exec("ALTER TABLE `comments` ADD COLUMN `displayOrder` INT NOT NULL DEFAULT 0 AFTER `featured`");
     } catch (Exception $e) {}
 
+    // 7. Create Site Visits and Events Analytics Tables
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `site_visits` (
+            `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+            `visitor_id` VARCHAR(64) NOT NULL,
+            `page_url` VARCHAR(255) NOT NULL,
+            `page_title` VARCHAR(255) DEFAULT '',
+            `referrer` VARCHAR(255) DEFAULT '',
+            `country_code` VARCHAR(10) DEFAULT 'SV',
+            `country_name` VARCHAR(100) DEFAULT 'El Salvador',
+            `city` VARCHAR(100) DEFAULT '',
+            `device_type` VARCHAR(20) DEFAULT 'desktop',
+            `browser` VARCHAR(50) DEFAULT '',
+            `os` VARCHAR(50) DEFAULT '',
+            `ip_hash` VARCHAR(64) DEFAULT '',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_v_created_at` (`created_at`),
+            INDEX `idx_v_country` (`country_code`),
+            INDEX `idx_v_visitor` (`visitor_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `site_events` (
+            `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+            `visitor_id` VARCHAR(64) NOT NULL,
+            `event_type` VARCHAR(50) NOT NULL,
+            `event_name` VARCHAR(255) NOT NULL,
+            `event_target` VARCHAR(255) DEFAULT '',
+            `page_url` VARCHAR(255) DEFAULT '',
+            `country_code` VARCHAR(10) DEFAULT 'SV',
+            `country_name` VARCHAR(100) DEFAULT 'El Salvador',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_e_created_at` (`created_at`),
+            INDEX `idx_e_name` (`event_name`),
+            INDEX `idx_e_type` (`event_type`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
     // Ensure uploads directory exists and is writable
     if (!file_exists(UPLOAD_DIR)) {
         @mkdir(UPLOAD_DIR, 0777, true);
