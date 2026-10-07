@@ -295,7 +295,10 @@ export interface Lab3DModelItem {
   id: string;
   name: string;
   url: string;
-  type: 'glb' | 'procedural';
+  type: 'glb' | 'procedural' | 'sketchfab' | 'spline' | 'vectary' | 'embed';
+  embedUrl?: string;
+  externalUrl?: string;
+  sourceType?: 'upload' | 'link' | 'embed';
   proceduralKey?: string;
   stats?: string;
   visible?: boolean;

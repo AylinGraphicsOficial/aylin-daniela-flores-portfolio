@@ -102,6 +102,7 @@ import { getProjectPrimaryMedia, getMediaPreviewFit } from '../../utils/mediaDet
 import { playClickSound, play8BitArcadeSound } from '../../utils/audio';
 import { ProjectEditModal } from './ProjectEditModal';
 import { LAB_MODEL_ICONS, getLabModelIcon } from '../../utils/labIcons';
+import { detectModel3D } from '../../utils/model3dDetector';
 import { DisciplineSliderEditor } from './DisciplineSliderEditor';
 import { SocialIcon } from '../SocialIcon';
 import { AnalyticsDashboardTab } from './AnalyticsDashboardTab';
@@ -184,6 +185,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [editingModelItem, setEditingModelItem] = useState<Lab3DModelItem | null>(null);
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
   const [isUploadingModelEdit, setIsUploadingModelEdit] = useState(false);
+  const [newModelSourceMode, setNewModelSourceMode] = useState<'link' | 'upload'>('link');
+  const [showNewModelPreview, setShowNewModelPreview] = useState(false);
+  const [showEditModelPreview, setShowEditModelPreview] = useState(false);
 
   // Uploading Profile Photo
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -717,20 +721,31 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   const handleAddModel = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newModelName.trim() || !newModelUrl.trim()) {
-      alert('Ingresa el nombre y la URL/archivo del modelo 3D.');
+    const rawUrl = newModelUrl.trim();
+    const nameTrimmed = newModelName.trim();
+    if (!nameTrimmed || !rawUrl) {
+      alert('Ingresa el nombre y el enlace o archivo del modelo 3D.');
       return;
     }
+
+    const detection = detectModel3D(rawUrl);
+    const modelType = detection.isEmbed
+      ? (detection.platform === 'sketchfab' ? 'sketchfab' : detection.platform === 'spline' ? 'spline' : 'embed')
+      : 'glb';
+
     const newModel: Lab3DModelItem = {
       id: `m3d-${Date.now()}`,
-      name: newModelName.trim(),
-      url: newModelUrl.trim(),
-      type: 'glb',
-      stats: newModelStats.trim() || 'Modelado 3D GLB • Geometría & Shaders PBR',
+      name: nameTrimmed,
+      url: detection.isEmbed ? (detection.externalUrl || rawUrl) : (detection.directGlbUrl || rawUrl),
+      embedUrl: detection.isEmbed ? detection.embedUrl : undefined,
+      externalUrl: detection.externalUrl,
+      sourceType: detection.isEmbed ? 'link' : (rawUrl.startsWith('/uploads') ? 'upload' : 'link'),
+      type: modelType,
+      stats: newModelStats.trim() || `${detection.platformName} • Modelo 3D Interactivo`,
       visible: true,
-      icon: newModelIcon,
-      iconColor: newModelColor,
-      badge: 'GLB',
+      icon: newModelIcon || detection.icon,
+      iconColor: newModelColor || detection.iconColor,
+      badge: detection.badge,
     };
     const updatedModels = [...(lab3dData.models || []), newModel];
     const updatedLabData: Lab3DData = { ...lab3dData, models: updatedModels };
@@ -741,7 +756,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setNewModelStats('');
     setNewModelIcon('box');
     setNewModelColor('#76FF03');
-    showNotification('¡Modelo 3D añadido y guardado en Hostinger MySQL!');
+    setShowNewModelPreview(false);
+    showNotification('¡Modelo 3D añadido y sincronizado en Hostinger MySQL!');
   };
 
   const handleStartEditModel = (model: Lab3DModelItem) => {
@@ -770,9 +786,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       return;
     }
 
-    const updatedItem = {
+    const rawUrl = (editingModelItem.url || '').trim();
+    const detection = detectModel3D(editingModelItem.embedUrl || rawUrl, editingModelItem.type);
+    const modelType = detection.isEmbed
+      ? (detection.platform === 'sketchfab' ? 'sketchfab' : detection.platform === 'spline' ? 'spline' : 'embed')
+      : 'glb';
+
+    const updatedItem: Lab3DModelItem = {
       ...editingModelItem,
       name: nameTrimmed,
+      url: detection.isEmbed ? (detection.externalUrl || rawUrl) : (detection.directGlbUrl || rawUrl),
+      embedUrl: detection.isEmbed ? detection.embedUrl : undefined,
+      externalUrl: detection.externalUrl,
+      sourceType: detection.isEmbed ? 'link' : (rawUrl.startsWith('/uploads') ? 'upload' : 'link'),
+      type: modelType,
+      badge: editingModelItem.badge || detection.badge,
     };
 
     const updatedModels = (lab3dData.models || []).map((m) =>
@@ -783,7 +811,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     await saveStoredLab3D(updatedLabData);
     setIsModelModalOpen(false);
     setEditingModelItem(null);
-    showNotification('¡Nombre y datos del modelo 3D guardados en Hostinger MySQL!');
+    setShowEditModelPreview(false);
+    showNotification('¡Modelo 3D actualizado y guardado en Hostinger MySQL!');
   };
 
   const handleModelEditGlbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3190,22 +3219,147 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               {/* Add New 3D Model Form */}
               <form
                 onSubmit={handleAddModel}
-                className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-4`}
+                className={`p-6 sm:p-8 rounded-2xl border ${bgCard} space-y-5`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold uppercase text-emerald-400 flex items-center gap-2">
-                    <Box className="w-4 h-4" />
-                    <span>Subir Nuevo Modelo 3D (.GLB / .GLTF) a Hostinger</span>
-                  </span>
-                  {isUploadingModel && (
-                    <span className="text-xs text-emerald-400 flex items-center gap-1.5 font-mono">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Subiendo archivo 3D a Hostinger...</span>
-                    </span>
-                  )}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-700/50">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <Box className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white tracking-wide">
+                        Añadir Nuevo Modelo 3D al Laboratorio
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Pega el enlace de plataformas gratuitas (Sketchfab, Spline) o sube tu archivo .GLB desde tu equipo.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Mode Selector Switch: Pegar Enlace vs Subir Archivo */}
+                  <div className="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setNewModelSourceMode('link');
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        newModelSourceMode === 'link'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Pegar Link / Enlace</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setNewModelSourceMode('upload');
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        newModelSourceMode === 'upload'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Subir Archivo .GLB</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Intelligent Detection Banner */}
+                {(() => {
+                  const det = newModelUrl.trim() ? detectModel3D(newModelUrl.trim()) : null;
+                  if (!det) return null;
+                  return (
+                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full animate-ping"
+                          style={{ backgroundColor: det.iconColor }}
+                        />
+                        <div className="text-xs">
+                          <span className="font-bold text-white">
+                            ✓ Plataforma detectada: <span className="text-emerald-400">{det.platformName}</span>
+                          </span>
+                          <span className="text-slate-300 ml-2 font-mono text-[11px]">
+                            ({det.isEmbed ? 'Visor en la Nube Optimizado' : 'Renderizado Three.js GLB'})
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {det.titleSuggestion && !newModelName && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playClickSound();
+                              setNewModelName(det.titleSuggestion!);
+                              if (det.badge) setNewModelStats(`${det.platformName} • Modelo 3D Interactivo`);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-bold transition-all cursor-pointer"
+                          >
+                            Usar Nombre: &quot;{det.titleSuggestion}&quot;
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setShowNewModelPreview(!showNewModelPreview)}
+                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold border border-slate-700 flex items-center gap-1 cursor-pointer transition-all"
+                        >
+                          <Eye className="w-3 h-3 text-emerald-400" />
+                          <span>{showNewModelPreview ? 'Ocultar Preview' : 'Previsualizar'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Live Preview Box */}
+                {showNewModelPreview && newModelUrl.trim() && (() => {
+                  const det = detectModel3D(newModelUrl.trim());
+                  return (
+                    <div className="relative rounded-2xl overflow-hidden border border-emerald-500/40 bg-black aspect-[16/9] max-h-80 shadow-2xl animate-in zoom-in-95 duration-200">
+                      {det.isEmbed ? (
+                        <iframe
+                          src={det.embedUrl}
+                          title="Preview Modelo 3D"
+                          className="w-full h-full border-0"
+                          allow="autoplay; fullscreen; xr-spatial-tracking"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center space-y-2 p-6 text-center">
+                          <Box className="w-12 h-12 text-emerald-400 animate-bounce" />
+                          <span className="text-sm font-bold text-white font-mono">
+                            Archivo GLB Directo Listo
+                          </span>
+                          <span className="text-xs text-slate-400 max-w-md font-mono break-all">
+                            {newModelUrl}
+                          </span>
+                          <span className="text-[11px] text-emerald-400 font-mono">
+                            ✓ Se visualizará mediante el motor nativo Three.js WebGL en el visor
+                          </span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowNewModelPreview(false)}
+                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/80 hover:bg-black text-white border border-white/10 cursor-pointer"
+                        title="Cerrar Previsualización"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {/* Form Inputs Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-medium text-slate-300 block mb-1">
                       Nombre del Modelo 3D *
@@ -3215,45 +3369,79 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       required
                       value={newModelName}
                       onChange={(e) => setNewModelName(e.target.value)}
-                      placeholder="Ej. Torre Castillo 3D, Stand Diana 3D"
+                      placeholder="Ej. Cyber Car, Torre Castillo, Drone Sci-Fi"
                       className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-semibold`}
                     />
                   </div>
 
-                  <div>
-                    <label className="text-xs font-medium text-slate-300 block mb-1">
-                      Ruta / URL del archivo .GLB *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newModelUrl}
-                      onChange={(e) => setNewModelUrl(e.target.value)}
-                      placeholder="/uploads/modelo.glb o /models/..."
-                      className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-slate-300 block mb-1">
-                      Subir archivo desde PC (.GLB)
-                    </label>
-                    <label className="w-full py-2.5 px-3 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-emerald-500/40 transition-colors shadow-sm">
-                      {isUploadingModel ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Upload className="w-3.5 h-3.5" />
-                      )}
-                      <span>{isUploadingModel ? 'Subiendo GLB...' : 'Subir Archivo .GLB'}</span>
+                  {newModelSourceMode === 'link' ? (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-medium text-slate-300">
+                          Enlace del Modelo o Código Embed *
+                        </label>
+                        <span className="text-[10px] font-mono text-emerald-400">
+                          Sketchfab, Spline, o .GLB web
+                        </span>
+                      </div>
                       <input
-                        type="file"
-                        accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
-                        disabled={isUploadingModel}
-                        onChange={handleGlbFileUpload}
-                        className="hidden"
+                        type="text"
+                        required
+                        value={newModelUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewModelUrl(val);
+                          const d = detectModel3D(val);
+                          if (d && d.titleSuggestion && !newModelName) {
+                            setNewModelName(d.titleSuggestion);
+                          }
+                          if (d && d.icon) setNewModelIcon(d.icon);
+                          if (d && d.iconColor) setNewModelColor(d.iconColor);
+                        }}
+                        placeholder="https://sketchfab.com/3d-models/... o iframe"
+                        className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
                       />
-                    </label>
-                  </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-medium text-slate-300">
+                          Archivo .GLB en Hostinger *
+                        </label>
+                        {isUploadingModel && (
+                          <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Subiendo...</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={newModelUrl}
+                          onChange={(e) => setNewModelUrl(e.target.value)}
+                          placeholder="/uploads/modelo.glb o /models/..."
+                          className={`flex-1 px-4 py-2.5 rounded-xl border ${bgInput} text-xs font-mono`}
+                        />
+                        <label className="py-2.5 px-3 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-emerald-500/40 transition-colors shadow-sm shrink-0">
+                          {isUploadingModel ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Upload className="w-3.5 h-3.5" />
+                          )}
+                          <span>{isUploadingModel ? 'Subiendo...' : 'Examinar .GLB'}</span>
+                          <input
+                            type="file"
+                            accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+                            disabled={isUploadingModel}
+                            onChange={handleGlbFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -3265,7 +3453,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       type="text"
                       value={newModelStats}
                       onChange={(e) => setNewModelStats(e.target.value)}
-                      placeholder="Ej. 120k Polígonos • Materiales PBR • Blender 3D"
+                      placeholder="Ej. Visor en la Nube 60 FPS • Blender 3D • Texturas 4K"
                       className={`w-full px-4 py-2.5 rounded-xl border ${bgInput} text-xs`}
                     />
                   </div>
@@ -3328,10 +3516,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(lab3dData.models || []).map((model) => {
                     const isDefault = lab3dData.defaultModelId === model.id;
-                    const isGlb = model.type === 'glb';
+                    const itemDetection = detectModel3D(model.embedUrl || model.url, model.type);
+                    const isGlb = itemDetection.platform === 'glb';
                     const isEditing = editingModelId === model.id;
-                    const ModelIcon = getLabModelIcon(model.icon);
-                    const modelColor = model.iconColor || '#76FF03';
+                    const ModelIcon = getLabModelIcon(model.icon || itemDetection.icon);
+                    const modelColor = model.iconColor || itemDetection.iconColor || '#76FF03';
 
                     return (
                       <div
@@ -3343,7 +3532,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700">
-                              {isGlb ? 'ARCHIVO GLB 3D' : 'PROCEDURAL 3D'}
+                              {itemDetection.isEmbed
+                                ? itemDetection.platformName.toUpperCase()
+                                : (isGlb ? 'ARCHIVO GLB 3D' : 'PROCEDURAL 3D')}
                             </span>
                             {isDefault && (
                               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500 text-white">
@@ -3492,6 +3683,17 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           )}
 
                           <div className="flex items-center gap-2">
+                            {itemDetection.externalUrl && (
+                              <a
+                                href={itemDetection.externalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded cursor-pointer transition-colors"
+                                title={`Abrir en ${itemDetection.platformName}`}
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
                             <button
                               type="button"
                               onClick={() => handleDeleteModel(model.id)}
@@ -4753,9 +4955,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   <Box className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Modificar Nombre de Modelo 3D</h3>
+                  <h3 className="text-base font-bold text-white">Modificar Modelo 3D & Enlace</h3>
                   <p className="text-xs text-slate-400">
-                    Cambia el nombre y propiedades visibles en los botones del Laboratorio 3D.
+                    Cambia el nombre, pega un nuevo enlace (Sketchfab, Spline, GLB) o sube otro archivo a Hostinger.
                   </p>
                 </div>
               </div>
@@ -4764,6 +4966,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 onClick={() => {
                   setIsModelModalOpen(false);
                   setEditingModelItem(null);
+                  setShowEditModelPreview(false);
                 }}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
               >
@@ -4849,7 +5052,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
               <div>
                 <label className="text-xs font-mono text-slate-400 block mb-1">
-                  Texto del Badge (ej. GLB, 3D, NEW)
+                  Texto del Badge (ej. GLB, 3D, SKETCHFAB, SPLINE)
                 </label>
                 <input
                   type="text"
@@ -4863,17 +5066,80 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-mono text-slate-400 block mb-1">
-                  Archivo / URL del Modelo 3D (GLB)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-mono text-slate-300 font-bold uppercase tracking-wider">
+                    Enlace / Archivo del Modelo 3D
+                  </label>
+                  <span className="text-[10px] font-mono text-emerald-400">
+                    Sketchfab, Spline, o .GLB
+                  </span>
+                </div>
+
+                {/* Edit Detection Pill */}
+                {(() => {
+                  const det = editingModelItem.url ? detectModel3D(editingModelItem.url) : null;
+                  if (!det) return null;
+                  return (
+                    <div className="mb-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: det.iconColor }}
+                        />
+                        <span className="text-white font-bold">
+                          {det.platformName} <span className="text-slate-400 font-mono">({det.badge})</span>
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowEditModelPreview(!showEditModelPreview)}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold border border-slate-700 flex items-center gap-1 cursor-pointer"
+                      >
+                        <Eye className="w-3 h-3 text-emerald-400" />
+                        <span>{showEditModelPreview ? 'Ocultar' : 'Probar'}</span>
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {/* Live Preview in Modal */}
+                {showEditModelPreview && editingModelItem.url && (() => {
+                  const det = detectModel3D(editingModelItem.url);
+                  return (
+                    <div className="relative mb-3 rounded-xl overflow-hidden border border-emerald-500/30 bg-black aspect-[16/9] max-h-56">
+                      {det.isEmbed ? (
+                        <iframe
+                          src={det.embedUrl}
+                          title="Preview Modelo"
+                          className="w-full h-full border-0"
+                          allow="autoplay; fullscreen; xr-spatial-tracking"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+                          <Box className="w-8 h-8 text-emerald-400 animate-bounce" />
+                          <span className="text-xs font-mono text-white mt-1">Archivo GLB Directo</span>
+                          <span className="text-[10px] text-slate-400 font-mono truncate max-w-xs">{editingModelItem.url}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={editingModelItem.url || ''}
-                    onChange={(e) =>
-                      setEditingModelItem({ ...editingModelItem, url: e.target.value })
-                    }
-                    placeholder="/uploads/modelo.glb o URL"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const d = detectModel3D(val);
+                      setEditingModelItem({
+                        ...editingModelItem,
+                        url: val,
+                        badge: d ? d.badge : editingModelItem.badge,
+                      });
+                    }}
+                    placeholder="https://sketchfab.com/3d-models/... o /uploads/..."
                     className="flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
                   />
                   <label className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700 transition-colors shrink-0">

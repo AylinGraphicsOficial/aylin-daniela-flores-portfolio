@@ -21,6 +21,11 @@ import {
   Palette,
   Layers,
   Sparkles,
+  Globe,
+  Cloud,
+  ExternalLink,
+  Eye,
+  Compass,
 } from 'lucide-react';
 
 export interface LabIconOption {
@@ -51,6 +56,11 @@ export const LAB_MODEL_ICONS: LabIconOption[] = [
   { key: 'palette', label: 'Paleta de Arte', Icon: Palette },
   { key: 'layers', label: 'Capas / Modelado', Icon: Layers },
   { key: 'sparkles', label: 'Brillo / Magia', Icon: Sparkles },
+  { key: 'globe', label: 'Web / Sketchfab', Icon: Globe },
+  { key: 'cloud', label: 'Nube / Spline', Icon: Cloud },
+  { key: 'externalLink', label: 'Enlace Externo', Icon: ExternalLink },
+  { key: 'eye', label: 'Visor / Ojo', Icon: Eye },
+  { key: 'compass', label: 'Brújula / Órbita', Icon: Compass },
 ];
 
 const ICON_MAP: Record<string, LucideIcon> = Object.fromEntries(
